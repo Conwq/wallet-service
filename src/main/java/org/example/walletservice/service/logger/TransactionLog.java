@@ -11,7 +11,7 @@ import java.util.*;
  * The class is designed to record all player actions.
  */
 public final class TransactionLog {
-	private final Map<String, List<String>> transactionRecords = new HashMap<>();
+	private final Map<String, List<String>> transactionRecords = new TreeMap<>();
 	private static TransactionLog instance;
 
 	private TransactionLog() {

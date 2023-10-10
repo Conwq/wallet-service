@@ -57,7 +57,8 @@ public final class PlayerSessionManager {
 		System.out.printf("\nWelcome back, %s!\n\n", player.getUsername());
 		int numberCommandToSelect = player.getRole() == Role.ADMIN ? 6 : 5;
 
-		while (true){
+		boolean exit = false;
+		do {
 			displayMenuOptions(player, numberCommandToSelect);
 
 			int userInputValue = operationChooserVerification.userDataVerification(numberCommandToSelect);
@@ -67,17 +68,15 @@ public final class PlayerSessionManager {
 			if (userInputValue == numberCommandToSelect) {
 				System.out.printf("\nGood bye, %s!\n\n", player.getUsername());
 				transactionLog.recordTransaction(Operation.EXIT, player.getUsername(), Status.SUCCESSFUl);
-				break;
+				exit = true;
 			}
 			executeCommandAccordingUserChoice(userInputValue, player);
 		}
+		while (!exit);
 	}
 
 	private void displayMenuOptions(Player player, int numberCommandToSelect) {
-		System.out.println("\n1. Balance\n" +
-				"2. Credit\n" +
-				"3. Debit\n" +
-				"4. Show transactional history");
+		System.out.println("\n1. Balance\n2. Credit\n3. Debit\n4. Show transactional history");
 		if (player.getRole() == Role.ADMIN) {
 			System.out.println("5. Show logs");
 		}
@@ -95,29 +94,22 @@ public final class PlayerSessionManager {
 	}
 
 	private void displayLogOptions(Player player){
-		while (true) {
-			System.out.println("\n1. All logs\n" +
-					"2. Players logs\n" +
-					"3. Back");
+		boolean exit = false;
+
+		do {
+			System.out.println("\n1. All logs\n2. Players logs\n3. Back");
 
 			int userInputValue = operationChooserVerification.userDataVerification(3);
-
-			if (userInputValue == -1){
-				continue;
-			}
-			if (userInputValue == 3){
-				break;
-			}
-
 			switch (userInputValue){
 				case 1 -> playerController.showAllLogs(player);
 				case 2 -> {
 					cleaner.cleanBuffer(scanner);
 					System.out.print("\nEnter the name of the user you want to see the logs: ");
-					String inputUsernameForSearch = scanner.nextLine();
-					playerController.showLogsByUsername(player, inputUsernameForSearch);
+					playerController.showLogsByUsername(player, scanner.nextLine());
 				}
+				case 3 -> exit = true;
 			}
 		}
+		while (!exit);
 	}
 }

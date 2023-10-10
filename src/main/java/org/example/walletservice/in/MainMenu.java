@@ -32,29 +32,24 @@ public final class MainMenu {
 	 */
 	public void start() {
 		System.out.println("\n\t***Hello!***\n");
+		boolean exit = false;
 
-		while (true) {
+		do {
 			System.out.println("1. Registration\n" +
 					"2. Log in\n" +
 					"3. Exit\n");
 			int userInputValue = operationChooserVerification.userDataVerification(3);
 
-			if (userInputValue == -1) {
-				continue;
+			switch (userInputValue) {
+				case 1 -> playerRegistrationHandler.registrationPlayer();
+				case 2 -> playerSessionManager.logIn();
+				case 3 -> {
+					System.out.println("\nGood bye!");
+					exit = true;
+					scanner.close();
+				}
 			}
-			if (userInputValue == 3) {
-				System.out.println("\nGood bye!");
-				scanner.close();
-				break;
-			}
-			executeCommandAccordingUserChoice(userInputValue);
 		}
-	}
-
-	private void executeCommandAccordingUserChoice(int userInputValue) {
-		switch (userInputValue){
-			case 1 -> playerRegistrationHandler.registrationPlayer();
-			case 2 -> playerSessionManager.logIn();
-		}
+		while (!exit);
 	}
 }
