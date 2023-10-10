@@ -1,14 +1,14 @@
 package org.example.walletservice.in;
 
 import org.example.walletservice.controller.PlayerController;
+import org.example.walletservice.in.util.OperationChooserVerification;
+import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.logger.TransactionLog;
 import org.example.walletservice.util.Cleaner;
-import org.example.walletservice.in.util.OperationChooserVerification;
 import org.example.walletservice.util.ScannerProvider;
-import org.example.walletservice.model.Player;
 
 import java.util.Scanner;
 

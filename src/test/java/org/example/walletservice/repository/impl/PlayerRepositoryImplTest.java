@@ -6,9 +6,7 @@ import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.RepositoryProvider;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
