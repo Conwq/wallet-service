@@ -6,7 +6,7 @@ import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.example.walletservice.service.logger.TransactionLog;
+import org.example.walletservice.service.logger.PlayerActivityLogger;
 import org.example.walletservice.util.Cleaner;
 
 import java.util.Scanner;
@@ -20,18 +20,18 @@ public final class PlayerSessionManager {
 	private final OperationChooserVerification operationChooserVerification;
 	private final PlayerController playerController;
 	private final Scanner scanner;
-	private final TransactionLog transactionLog;
+	private final PlayerActivityLogger playerActivityLogger;
 
 	public PlayerSessionManager(Cleaner cleaner,
 								OperationChooserVerification operationChooserVerification,
 								PlayerController playerController,
 								Scanner scanner,
-								TransactionLog transactionLog) {
+								PlayerActivityLogger playerActivityLogger) {
 		this.cleaner = cleaner;
 		this.operationChooserVerification = operationChooserVerification;
 		this.playerController = playerController;
 		this.scanner = scanner;
-		this.transactionLog = transactionLog;
+		this.playerActivityLogger = playerActivityLogger;
 	}
 
 	/**
@@ -72,7 +72,7 @@ public final class PlayerSessionManager {
 			}
 			if (userInputValue == numberCommandToSelect) {
 				System.out.printf("\nGood bye, %s!\n\n", player.getUsername());
-				transactionLog.recordTransaction(Operation.EXIT, player.getUsername(), Status.SUCCESSFUL);
+				playerActivityLogger.recordAction(Operation.EXIT, player.getUsername(), Status.SUCCESSFUL);
 				break;
 			}
 			executeCommandAccordingUserChoice(userInputValue, player);
@@ -102,10 +102,10 @@ public final class PlayerSessionManager {
 	 */
 	private void executeCommandAccordingUserChoice(int userInputValue, Player player) {
 		switch (userInputValue) {
-			case 1 -> playerController.showPlayerBalance(player);
+			case 1 -> playerController.displayPlayerBalance(player);
 			case 2 -> playerController.credit(player);
 			case 3 -> playerController.debit(player);
-			case 4 -> playerController.showPlayerTransactionalHistory(player);
+			case 4 -> playerController.displayPlayerTransactionalHistory(player);
 			case 5 -> displayLogOptions(player);
 		}
 	}

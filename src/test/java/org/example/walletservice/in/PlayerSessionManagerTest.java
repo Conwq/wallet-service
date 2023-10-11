@@ -5,7 +5,7 @@ import org.example.walletservice.controller.PlayerController;
 import org.example.walletservice.in.util.OperationChooserVerification;
 import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
-import org.example.walletservice.service.logger.TransactionLog;
+import org.example.walletservice.service.logger.PlayerActivityLogger;
 import org.example.walletservice.util.Cleaner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,7 @@ class PlayerSessionManagerTest {
 			Mockito.mock(OperationChooserVerification.class);
 	private final PlayerController playerController = Mockito.mock(PlayerController.class);
 	private final Scanner scanner = Mockito.mock(Scanner.class);
-	private final TransactionLog transactionLog = Mockito.mock(TransactionLog.class);
+	private final PlayerActivityLogger playerActivityLogger = Mockito.mock(PlayerActivityLogger.class);
 	private final InputStream origIn = System.in;
 	private final PrintStream origOut = System.out;
 	private static final String USERNAME = "user123";
@@ -37,7 +37,7 @@ class PlayerSessionManagerTest {
 	@BeforeEach
 	void setUp() {
 		playerSessionManager =
-				new PlayerSessionManager(cleaner, operationChooser, playerController, scanner, transactionLog);
+				new PlayerSessionManager(cleaner, operationChooser, playerController, scanner, playerActivityLogger);
 
 		outputStream = new ByteArrayOutputStream();
 		System.setOut(new PrintStream(outputStream));

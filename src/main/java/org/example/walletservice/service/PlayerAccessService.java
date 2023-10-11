@@ -3,9 +3,9 @@ package org.example.walletservice.service;
 import org.example.walletservice.model.Player;
 
 /**
- * The PlayerService interface provides methods for managing players in the system.
+ * The PlayerAccessService interface provides methods for managing players in the system.
  */
-public interface PlayerService {
+public interface PlayerAccessService {
 
 	/**
 	 * Registers a new player in the system.
@@ -23,34 +23,6 @@ public interface PlayerService {
 	 * @return An instance of a Player object that successfully logged on.
 	 */
 	Player logIn(String username, String password);
-
-	/**
-	 * Credits a player's account.
-	 *
-	 * @param player Player object to which the account is credited.
-	 */
-	void credit(Player player);
-
-	/**
-	 * Debits funds from a player's account.
-	 *
-	 * @param player Player object from which funds are debited.
-	 */
-	void debit(Player player);
-
-	/**
-	 * Gets the transaction history of a player.
-	 *
-	 * @param player Player object for which the transaction history is requested.
-	 */
-	void getPlayerTransactionalHistory(Player player);
-
-	/**
-	 * Gets the balance of a player.
-	 *
-	 * @param player Player object for which the balance is requested.
-	 */
-	void showPlayerBalance(Player player);
 
 	/**
 	 * Shows all events in the log for a specific player.

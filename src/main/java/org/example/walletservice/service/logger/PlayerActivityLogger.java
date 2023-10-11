@@ -4,29 +4,32 @@ import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 /**
  * The class is designed to record all player actions.
  */
-public final class TransactionLog {
+public final class PlayerActivityLogger {
 	private final Map<String, List<String>> transactionRecords = new TreeMap<>();
-	private static TransactionLog instance;
+	private static PlayerActivityLogger instance;
 
-	private TransactionLog() {
+	private PlayerActivityLogger() {
 	}
 
 	/**
-	 * The method returns a single instance of the TransactionLog type.
+	 * The method returns a single instance of the PlayerActivityLogger type.
 	 * If the instance has not yet been created, a new instance is created,
 	 * otherwise the existing instance is returned
 	 *
-	 * @return a single instance of type TransactionLog
+	 * @return a single instance of type PlayerActivityLogger
 	 */
-	public static TransactionLog getInstance() {
+	public static PlayerActivityLogger getInstance() {
 		if (instance == null){
-			instance = new TransactionLog();
+			instance = new PlayerActivityLogger();
 		}
 		return instance;
 	}
@@ -38,7 +41,7 @@ public final class TransactionLog {
 	 * @param username - the name of the user who performed this operation
 	 * @param status - operation status SUCCESSFUL/FAIL
 	 */
-	public void recordTransaction(Operation operation, String username, Status status) {
+	public void recordAction(Operation operation, String username, Status status) {
 		List<String>transactionalRecordsPlayer = transactionRecords.get(username);
 		if (transactionalRecordsPlayer == null){
 			transactionalRecordsPlayer = new ArrayList<>();
@@ -54,7 +57,7 @@ public final class TransactionLog {
 	 * Using this method we get a list of all player transactions.
 	 * @return list all logs.
 	 */
-	public List<String> getAllTransactionRecords() {
+	public List<String> getAllActivityRecords() {
 		List<String> allTransactionRecordsForAllPlayers = new ArrayList<>();
 		for (Map.Entry<String, List<String>> recordsList : transactionRecords.entrySet()){
 			allTransactionRecordsForAllPlayers.addAll(recordsList.getValue());
@@ -68,7 +71,7 @@ public final class TransactionLog {
 	 * @param username The username of the player whose logs are to be retrieved.
 	 * @return A list of transaction logs for the specified player, or null if the player's logs are not found.
 	 */
-	public List<String> getLogsForPlayer(String username) {
+	public List<String> getActivityRecordsForPlayer(String username) {
 		return transactionRecords.get(username);
 	}
 }
