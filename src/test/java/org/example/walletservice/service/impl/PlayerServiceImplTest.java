@@ -47,7 +47,7 @@ class PlayerServiceImplTest {
 	}
 
 	@AfterEach
-	public void ret(){
+	public void tearDown(){
 		System.setOut(origOut);
 		System.setIn(origIn);
 	}

@@ -13,10 +13,15 @@ import java.util.Scanner;
 public final class PlayerRegistrationHandler {
 	private static PlayerRegistrationHandler instance;
 	private final Cleaner cleaner = Cleaner.getInstance();
-	private final PlayerController playerController = PlayerController.getInstance();
-	private final Scanner scanner = ScannerProvider.getScanner();
+	private PlayerController playerController = PlayerController.getInstance();
+	private Scanner scanner = ScannerProvider.getScanner();
 
 	private PlayerRegistrationHandler() {
+	}
+
+	public PlayerRegistrationHandler(PlayerController playerController, Scanner scanner){
+		this.playerController = playerController;
+		this.scanner = scanner;
 	}
 
 	/**

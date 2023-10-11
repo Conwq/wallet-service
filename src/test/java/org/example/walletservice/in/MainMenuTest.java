@@ -33,7 +33,7 @@ class MainMenuTest {
 	}
 
 	@AfterEach
-	public void res(){
+	public void tearDown(){
 		System.setOut(origOut);
 		System.setIn(origIn);
 	}
