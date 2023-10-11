@@ -15,11 +15,11 @@ import org.example.walletservice.util.ScannerProvider;
 
 import java.util.Scanner;
 
+/**
+ * Singleton class responsible for managing the application context.
+ */
 public class ApplicationContextHolder {
 	private static ApplicationContextHolder instance;
-
-	private ApplicationContextHolder(){
-	}
 
 	final Scanner scanner = ScannerProvider.getScanner();
 	final Cleaner cleaner = Cleaner.getInstance();
@@ -29,12 +29,16 @@ public class ApplicationContextHolder {
 	final PlayerRepository playerRepository = new PlayerRepositoryImpl();
 	final PlayerService playerService = new PlayerServiceImpl(playerRepository, cleaner, scanner, transactionLog);
 	final PlayerController playerController = new PlayerController(playerService);
+
 	final PlayerRegistrationHandler playerRegistrationHandler = new PlayerRegistrationHandler(playerController,
 			scanner, cleaner);
 	final PlayerSessionManager playerSessionManager = new PlayerSessionManager(cleaner, operationChooserVerification,
 			playerController, scanner, transactionLog);
 	final MainMenu mainMenu = new MainMenu(playerRegistrationHandler, playerSessionManager,
 			operationChooserVerification, scanner);
+
+	private ApplicationContextHolder(){
+	}
 
 	public static ApplicationContextHolder getInstance(){
 		if (instance == null){

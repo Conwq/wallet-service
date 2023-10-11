@@ -10,12 +10,8 @@ import org.example.walletservice.in.MainMenu;
 public class WalletServiceApplication {
 	private static final ApplicationContextHolder context = ApplicationContextHolder.getInstance();
 
-	public static void main(String[] args) {
-		MainMenu mainMenu = new MainMenu(context.getPlayerRegistrationHandler(),
-				context.getPlayerSessionManager(),
-				context.getOperationChooserVerification(),
-				context.getScanner());
-
+	public static void main(String... args) {
+		MainMenu mainMenu = context.getMainMenu();
 		mainMenu.start();
 	}
 }

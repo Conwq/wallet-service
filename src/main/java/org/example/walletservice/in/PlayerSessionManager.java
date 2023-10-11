@@ -24,7 +24,8 @@ public final class PlayerSessionManager {
 
 	public PlayerSessionManager(Cleaner cleaner,
 								OperationChooserVerification operationChooserVerification,
-								PlayerController playerController, Scanner scanner,
+								PlayerController playerController,
+								Scanner scanner,
 								TransactionLog transactionLog) {
 		this.cleaner = cleaner;
 		this.operationChooserVerification = operationChooserVerification;
@@ -41,10 +42,10 @@ public final class PlayerSessionManager {
 		cleaner.cleanBuffer(scanner);
 
 		System.out.print("Enter username: ");
-		String username = scanner.nextLine().trim();
+		String username = scanner.nextLine();
 
 		System.out.print("Enter password: ");
-		String password = scanner.nextLine().trim();
+		String password = scanner.nextLine();
 
 		Player player = playerController.logIn(username, password);
 		if (player == null){

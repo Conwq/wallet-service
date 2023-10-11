@@ -22,13 +22,16 @@ class PlayerRegistrationHandlerTest {
 			new PlayerRegistrationHandler(playerController, scanner, cleaner);
 	private final PrintStream origOut = System.out;
 	private final InputStream origIn = System.in;
+	private static final String USERNAME = "user123";
+	private static final String PASSWORD = "13213";
 
 	@BeforeEach
 	void setUp() {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		System.setOut(new PrintStream(outputStream));
 
-		ByteArrayInputStream inputStream = new ByteArrayInputStream("user123\n13213".getBytes());
+		ByteArrayInputStream inputStream = new ByteArrayInputStream(
+				String.format("%s\n%s", USERNAME, PASSWORD).getBytes());
 		System.setIn(inputStream);
 	}
 
@@ -40,7 +43,7 @@ class PlayerRegistrationHandlerTest {
 
 	@Test
 	public void shouldShowTextEnteringLoginAndPassword() {
-		Mockito.when(scanner.nextLine()).thenReturn("user123").thenReturn("13213");
+		Mockito.when(scanner.nextLine()).thenReturn(USERNAME).thenReturn(PASSWORD);
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		System.setOut(new PrintStream(outputStream));
@@ -50,6 +53,6 @@ class PlayerRegistrationHandlerTest {
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Enter username:", "Enter password:");
 
 		Mockito.verify(playerController, Mockito.times(1))
-				.registrationPlayer("user123", "13213");
+				.registrationPlayer(USERNAME, PASSWORD);
 	}
 }

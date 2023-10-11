@@ -9,7 +9,6 @@ import org.example.walletservice.service.PlayerService;
 public final class PlayerController {
 	private final PlayerService playerService;
 
-
 	public PlayerController(PlayerService playerService) {
 		this.playerService = playerService;
 	}
