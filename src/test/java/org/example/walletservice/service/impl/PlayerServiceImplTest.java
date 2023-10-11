@@ -113,7 +113,7 @@ class PlayerServiceImplTest {
 		PrintStream origOut = System.out;
 		System.setOut(new PrintStream(outputStream));
 
-		playerService.getPlayerBalance(player);
+		playerService.showPlayerBalance(player);
 
 		Mockito.verify(playerRepository, Mockito.times(1)).getPlayerBalance(player);
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Balance -- " + BALANCE);

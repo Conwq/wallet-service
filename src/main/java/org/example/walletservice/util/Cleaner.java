@@ -3,7 +3,8 @@ package org.example.walletservice.util;
 import java.util.Scanner;
 
 /**
- * This method is designed to clear extra characters after using the Scanner class.
+ * This class is designed to clear extra characters after using the Scanner class.
+ * Class singleton with lazy initialization.
  */
 public final class Cleaner {
 	private static Cleaner instance;
@@ -11,6 +12,13 @@ public final class Cleaner {
 	private Cleaner(){
 	}
 
+	/**
+	 * The method returns a single instance of the Cleaner type.
+	 * If the instance has not yet been created, a new instance is created,
+	 * otherwise the existing instance is returned
+	 *
+	 * @return a single instance of type Cleaner
+	 */
 	public static Cleaner getInstance(){
 		if (instance == null){
 			instance = new Cleaner();

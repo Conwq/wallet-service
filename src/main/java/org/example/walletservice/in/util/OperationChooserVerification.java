@@ -16,6 +16,13 @@ public final class OperationChooserVerification {
 	private OperationChooserVerification(){
 	}
 
+	/**
+	 * The method returns a single instance of the OperationChooserVerification type.
+	 * If the instance has not yet been created, a new instance is created,
+	 * otherwise the existing instance is returned.
+	 *
+	 * @return a single instance of type OperationChooserVerification.
+	 */
 	public static OperationChooserVerification getInstance(){
 		if (instance == null){
 			instance = new OperationChooserVerification();
@@ -23,6 +30,12 @@ public final class OperationChooserVerification {
 		return instance;
 	}
 
+	/**
+	 * Verifies and retrieves user input for menu commands.
+	 *
+	 * @param numberCommandsToSelect The maximum number of commands a user can select.
+	 * @return The user input value if valid, or -1 if input is invalid.
+	 */
 	public int userDataVerification(int numberCommandsToSelect) {
 		if (!scanner.hasNextInt()) {
 			System.out.println("*{{FAIL}} This is not a number, try again!*\n");

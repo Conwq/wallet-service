@@ -22,7 +22,7 @@ import java.util.Scanner;
  * and log display.
  */
 public final class PlayerServiceImpl implements PlayerService {
-	private static final PlayerService instance = new PlayerServiceImpl();
+	private static PlayerService instance;
 	private final Cleaner cleaner = Cleaner.getInstance();
 	private PlayerRepository playerRepository = RepositoryProvider.getInstance().getPlayerRepository();
 	private Scanner scanner = ScannerProvider.getScanner();
@@ -43,17 +43,14 @@ public final class PlayerServiceImpl implements PlayerService {
 	 * @return The singleton instance.
 	 */
 	public static PlayerService getInstance(){
+		if (instance == null){
+			instance = new PlayerServiceImpl();
+		}
 		return instance;
 	}
 
 	/**
-	 * The method takes as input the parameters with which the user wants to register.
-	 * The user is being checked for users with the same username.
-	 * If the user is not found, then a new user  is created and a record of successful registration
-	 * is recorded in the log.
-	 * If the user has this username, then a response about the existence of
-	 * a user with the selected username is returned and this operation is recorded
-	 * in the log with the status FAIL.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void registrationPlayer(String username, String password){
@@ -69,15 +66,11 @@ public final class PlayerServiceImpl implements PlayerService {
 		playerRepository.registrationPayer(player);
 		System.out.println("\n*User successfully registered!*\n");
 
-		transactionLog.recordTransaction(Operation.REGISTRATION, username, Status.SUCCESSFUl);
+		transactionLog.recordTransaction(Operation.REGISTRATION, username, Status.SUCCESSFUL);
 	}
 
 	/**
-	 * Log in a player with the input username and password.
-	 *
-	 * @param username The username of the player.
-	 * @param password The password of the player.
-	 * @return The logged-in player if successful, or {@code null} if the login fails.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Player logIn(String username, String password) {
@@ -97,27 +90,23 @@ public final class PlayerServiceImpl implements PlayerService {
 			transactionLog.recordTransaction(Operation.LOG_IN, username, Status.FAIL);
 			return null;
 		}
-		transactionLog.recordTransaction(Operation.LOG_IN, username, Status.SUCCESSFUl);
+		transactionLog.recordTransaction(Operation.LOG_IN, username, Status.SUCCESSFUL);
 		return player;
 	}
 
 	/**
-	 * Displays the balance of the specified player.
-	 *
-	 * @param player The player for whom to retrieve the balance.
+	 * {@inheritDoc}
 	 */
 	@Override
-	public void getPlayerBalance(Player player) {
+	public void showPlayerBalance(Player player) {
 		String balance = playerRepository.getPlayerBalance(player);
 		System.out.printf("\n*Balance -- %s*\n\n", balance);
 
-		transactionLog.recordTransaction(Operation.VIEW_BALANCE, player.getUsername(), Status.SUCCESSFUl);
+		transactionLog.recordTransaction(Operation.VIEW_BALANCE, player.getUsername(), Status.SUCCESSFUL);
 	}
 
 	/**
-	 * Replenishes the player's account.
-	 *
-	 * @param player A player who performs a credit operation.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void credit(Player player) {
@@ -131,7 +120,7 @@ public final class PlayerServiceImpl implements PlayerService {
 			playerRepository.credit(amountTransaction, player, transactionalToken);
 			System.out.println("\n*Credit successfully.*\n");
 
-			transactionLog.recordTransaction(Operation.CREDIT, player.getUsername(), Status.SUCCESSFUl);
+			transactionLog.recordTransaction(Operation.CREDIT, player.getUsername(), Status.SUCCESSFUL);
 		}
 		else {
 			System.out.println("\n*{{FAIL}} A transaction with this number already exists!*\n");
@@ -140,9 +129,7 @@ public final class PlayerServiceImpl implements PlayerService {
 	}
 
 	/**
-	 *Withdraw the desired amount of funds from your account.
-	 *
-	 * @param player A player performing a write-off operation.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void debit(Player player) {
@@ -162,7 +149,7 @@ public final class PlayerServiceImpl implements PlayerService {
 			playerRepository.debit(inputPlayerAmount, player, transactionalToken);
 			System.out.println("\n*Debit successfully.*\n");
 
-			transactionLog.recordTransaction(Operation.DEBIT, player.getUsername(), Status.SUCCESSFUl);
+			transactionLog.recordTransaction(Operation.DEBIT, player.getUsername(), Status.SUCCESSFUL);
 		}
 		else {
 			System.out.println("\n*{{FAIL}} A transaction with this number already exists!*\n");
@@ -171,9 +158,7 @@ public final class PlayerServiceImpl implements PlayerService {
 	}
 
 	/**
-	 * Displays the transactional history of a player.
-	 *
-	 * @param player The player for whom display the transactional history.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void getPlayerTransactionalHistory(Player player) {
@@ -190,11 +175,11 @@ public final class PlayerServiceImpl implements PlayerService {
 		for (Map.Entry<String, String> transaction : playerTransactionalHistory.entrySet()) {
 			System.out.println(transaction.getValue());
 		}
-		transactionLog.recordTransaction(Operation.TRANSACTIONAL_HISTORY, player.getUsername(), Status.SUCCESSFUl);
+		transactionLog.recordTransaction(Operation.TRANSACTIONAL_HISTORY, player.getUsername(), Status.SUCCESSFUL);
 	}
 
 	/**
-	 * Displays all logs for players.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void showAllLogs(Player player) {
@@ -210,13 +195,11 @@ public final class PlayerServiceImpl implements PlayerService {
 			System.out.println(record);
 		}
 		System.out.println();
-		transactionLog.recordTransaction(Operation.SHOW_ALL_LOGS, player.getUsername(), Status.SUCCESSFUl);
+		transactionLog.recordTransaction(Operation.SHOW_ALL_LOGS, player.getUsername(), Status.SUCCESSFUL);
 	}
 
 	/**
-	 * Displays player logs.
-	 * @param player Whoever uses the search function
-	 * @param inputUsernameForSearch Username of who we're looking at logs
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void showLogsByUsername(Player player, String inputUsernameForSearch) {
@@ -234,7 +217,7 @@ public final class PlayerServiceImpl implements PlayerService {
 			System.out.println(record);
 		}
 		System.out.println();
-		transactionLog.recordTransaction(Operation.SHOW_LOGS_PLAYER, player.getUsername(), Status.SUCCESSFUl);
+		transactionLog.recordTransaction(Operation.SHOW_LOGS_PLAYER, player.getUsername(), Status.SUCCESSFUL);
 	}
 
 	/**

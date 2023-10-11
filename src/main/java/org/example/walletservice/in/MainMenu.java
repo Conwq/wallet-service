@@ -20,6 +20,13 @@ public final class MainMenu {
 	private MainMenu() {
 	}
 
+	/**
+	 * The method returns a single instance of the MainMenu type.
+	 * If the instance has not yet been created, a new instance is created,
+	 * otherwise the existing instance is returned.
+	 *
+	 * @return a single instance of type MainMenu.
+	 */
 	public static MainMenu getInstance() {
 		if (instance == null) {
 			instance = new MainMenu();
@@ -35,16 +42,14 @@ public final class MainMenu {
 		boolean exit = false;
 
 		do {
-			System.out.println("1. Registration\n" +
-					"2. Log in\n" +
-					"3. Exit\n");
+			System.out.println("1. Registration\n2. Log in\n3. Exit\n");
 			int userInputValue = operationChooserVerification.userDataVerification(3);
 
 			switch (userInputValue) {
 				case 1 -> playerRegistrationHandler.registrationPlayer();
 				case 2 -> playerSessionManager.logIn();
 				case 3 -> {
-					System.out.println("\nGood bye!");
+					System.out.println("\nGood bye!\n");
 					exit = true;
 					scanner.close();
 				}

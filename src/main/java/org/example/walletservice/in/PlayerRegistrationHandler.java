@@ -19,6 +19,13 @@ public final class PlayerRegistrationHandler {
 	private PlayerRegistrationHandler() {
 	}
 
+	/**
+	 * The method returns a single instance of the PlayerRegistrationHandler type.
+	 * If the instance has not yet been created, a new instance is created,
+	 * otherwise the existing instance is returned
+	 *
+	 * @return a single instance of type PlayerRegistrationHandler
+	 */
 	public static PlayerRegistrationHandler getInstance(){
 		if (instance == null){
 			instance = new PlayerRegistrationHandler();

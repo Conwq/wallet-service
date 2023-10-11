@@ -39,7 +39,7 @@ public final class PlayerController {
 	 *Player balance display
 	 */
 	public void showPlayerBalance(Player player){
-		playerService.getPlayerBalance(player);
+		playerService.showPlayerBalance(player);
 	}
 
 	/**

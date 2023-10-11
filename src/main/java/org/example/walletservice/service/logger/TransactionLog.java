@@ -17,6 +17,13 @@ public final class TransactionLog {
 	private TransactionLog() {
 	}
 
+	/**
+	 * The method returns a single instance of the TransactionLog type.
+	 * If the instance has not yet been created, a new instance is created,
+	 * otherwise the existing instance is returned
+	 *
+	 * @return a single instance of type TransactionLog
+	 */
 	public static TransactionLog getInstance() {
 		if (instance == null){
 			instance = new TransactionLog();

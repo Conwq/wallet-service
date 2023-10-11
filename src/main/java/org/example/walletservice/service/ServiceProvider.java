@@ -12,6 +12,13 @@ public final class ServiceProvider {
 	private ServiceProvider(){
 	}
 
+	/**
+	 * The method returns a single instance of the ServiceProvider type.
+	 * If the instance has not yet been created, a new instance is created,
+	 * otherwise the existing instance is returned
+	 *
+	 * @return a single instance of type ServiceProvider
+	 */
 	public static ServiceProvider getInstant(){
 		if (serviceProvider == null){
 			serviceProvider = new ServiceProvider();
@@ -19,6 +26,10 @@ public final class ServiceProvider {
 		return serviceProvider;
 	}
 
+	/**
+	 * A method that returns a finished instance of the PlayerService class.
+	 * @return A ready-to-use instance of the PlayerService class.
+	 */
 	public PlayerService getPlayerService() {
 		return playerService;
 	}

@@ -13,7 +13,8 @@ import org.example.walletservice.util.ScannerProvider;
 import java.util.Scanner;
 
 /**
- * Manages the player's session.  Includes the login process and available operations for the authorized user.
+ * Manages the player's session.
+ * Includes the login process and available operations for the authorized user.
  */
 public final class PlayerSessionManager {
 	private static PlayerSessionManager instance;
@@ -26,6 +27,13 @@ public final class PlayerSessionManager {
 	private PlayerSessionManager(){
 	}
 
+	/**
+	 * The method returns a single instance of the PlayerSessionManager type.
+	 * If the instance has not yet been created, a new instance is created,
+	 * otherwise the existing instance is returned
+	 *
+	 * @return a single instance of type PlayerSessionManager
+	 */
 	public static PlayerSessionManager getInstance() {
 		if(instance == null){
 			instance = new PlayerSessionManager();
@@ -53,6 +61,11 @@ public final class PlayerSessionManager {
 		displayOperationsMenuForAuthorizedPlayer(player);
 	}
 
+	/**
+	 * The method displays menu items to choose from, depending on which role the authorized user has.
+	 *
+	 * @param player An authorized player for whom menu items will be displayed depending on the role.
+	 */
 	private void displayOperationsMenuForAuthorizedPlayer(Player player) {
 		System.out.printf("\nWelcome back, %s!\n\n", player.getUsername());
 		int numberCommandToSelect = player.getRole() == Role.ADMIN ? 6 : 5;
@@ -67,7 +80,7 @@ public final class PlayerSessionManager {
 			}
 			if (userInputValue == numberCommandToSelect) {
 				System.out.printf("\nGood bye, %s!\n\n", player.getUsername());
-				transactionLog.recordTransaction(Operation.EXIT, player.getUsername(), Status.SUCCESSFUl);
+				transactionLog.recordTransaction(Operation.EXIT, player.getUsername(), Status.SUCCESSFUL);
 				exit = true;
 			}
 			executeCommandAccordingUserChoice(userInputValue, player);
@@ -75,6 +88,12 @@ public final class PlayerSessionManager {
 		while (!exit);
 	}
 
+	/**
+	 * Displays the menu options based on the player's role.
+	 *
+	 * @param player The player for whom the menu options are displayed.
+	 * @param numberCommandToSelect The number representing the command to log out.
+	 */
 	private void displayMenuOptions(Player player, int numberCommandToSelect) {
 		System.out.println("\n1. Balance\n2. Credit\n3. Debit\n4. Show transactional history");
 		if (player.getRole() == Role.ADMIN) {
@@ -83,6 +102,12 @@ public final class PlayerSessionManager {
 		System.out.printf("%d. Log out\n", numberCommandToSelect);
 	}
 
+	/**
+	 * Executes action based on the user's choice.
+	 *
+	 * @param userInputValue The value representing the user's choice.
+	 * @param player The player for whom the command is executed.
+	 */
 	private void executeCommandAccordingUserChoice(int userInputValue, Player player) {
 		switch (userInputValue) {
 			case 1 -> playerController.showPlayerBalance(player);
@@ -93,6 +118,12 @@ public final class PlayerSessionManager {
 		}
 	}
 
+	/**
+	 * Displays log-related options for the player, allowing them to view all logs,
+	 * view logs for specific players, or go back to the main menu.
+	 *
+	 * @param player The player for whom the log options are displayed.
+	 */
 	private void displayLogOptions(Player player){
 		boolean exit = false;
 
