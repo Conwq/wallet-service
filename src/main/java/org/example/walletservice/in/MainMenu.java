@@ -11,13 +11,21 @@ import java.util.Scanner;
  */
 public final class MainMenu {
 	private static MainMenu instance;
-	private final PlayerRegistrationHandler playerRegistrationHandler = PlayerRegistrationHandler.getInstance();
-	private final PlayerSessionManager playerSessionManager = PlayerSessionManager.getInstance();
-	private final OperationChooserVerification operationChooserVerification =
+	private PlayerRegistrationHandler playerRegistrationHandler = PlayerRegistrationHandler.getInstance();
+	private PlayerSessionManager playerSessionManager = PlayerSessionManager.getInstance();
+	private OperationChooserVerification operationChooserVerification =
 			OperationChooserVerification.getInstance();
 	private final Scanner scanner = ScannerProvider.getScanner();
 
 	private MainMenu() {
+	}
+
+	public MainMenu(PlayerRegistrationHandler playerRegistrationHandler,
+					PlayerSessionManager playerSessionManager,
+					OperationChooserVerification operationChooserVerification){
+		this.playerRegistrationHandler = playerRegistrationHandler;
+		this.playerSessionManager = playerSessionManager;
+		this.operationChooserVerification = operationChooserVerification;
 	}
 
 	/**
