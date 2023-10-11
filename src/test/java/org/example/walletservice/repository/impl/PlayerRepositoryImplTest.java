@@ -1,10 +1,10 @@
 package org.example.walletservice.repository.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
+import org.example.walletservice.context.ApplicationContextHolder;
 import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.repository.RepositoryProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +20,7 @@ class PlayerRepositoryImplTest {
 
 	@BeforeEach
 	public void setUp(){
-		playerRepository = RepositoryProvider.getInstance().getPlayerRepository();
+		playerRepository = ApplicationContextHolder.getInstance().getPlayerRepository();
 
 		String username = "user123";
 		String password = "1313";

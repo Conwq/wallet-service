@@ -14,18 +14,8 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 	private static final Map<String, Player> playersData = new HashMap<>(){{
 		put("admin", new Player("admin", "admin", Role.ADMIN));
 	}};
+
 	private static final Set<String> transactionNumbers = new HashSet<>();
-	private static PlayerRepository instance;
-
-	private PlayerRepositoryImpl(){
-	}
-
-	public static PlayerRepository getInstance(){
-		if (instance == null){
-			instance = new PlayerRepositoryImpl();
-		}
-		return instance;
-	}
 
 	/**
 	 * Finds a player by their username.

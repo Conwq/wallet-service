@@ -6,6 +6,7 @@ import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.logger.TransactionLog;
+import org.example.walletservice.util.Cleaner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ class PlayerServiceImplTest {
 	private final PlayerRepository playerRepository = Mockito.mock(PlayerRepository.class);
 	private final Scanner scanner = Mockito.mock(Scanner.class);
 	private final TransactionLog transactionLog = Mockito.mock(TransactionLog.class);
+	private final Cleaner cleaner = Mockito.mock(Cleaner.class);
 	private PlayerService playerService;
 	private static final String BALANCE = "10000";
 	private static final double AMOUNT = 100.0;
@@ -32,7 +34,7 @@ class PlayerServiceImplTest {
 
 	@BeforeEach
 	public void setUp() {
-		playerService = new PlayerServiceImpl(playerRepository, scanner, transactionLog);
+		playerService = new PlayerServiceImpl(playerRepository, cleaner, scanner, transactionLog);
 
 		final String username = "user123";
 		final String password = "1313";

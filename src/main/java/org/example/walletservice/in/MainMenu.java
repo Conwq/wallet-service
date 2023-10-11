@@ -1,7 +1,6 @@
 package org.example.walletservice.in;
 
 import org.example.walletservice.in.util.OperationChooserVerification;
-import org.example.walletservice.util.ScannerProvider;
 
 import java.util.Scanner;
 
@@ -10,36 +9,20 @@ import java.util.Scanner;
  * Handles user interaction for registration, login, and logout.
  */
 public final class MainMenu {
-	private static MainMenu instance;
-	private PlayerRegistrationHandler playerRegistrationHandler = PlayerRegistrationHandler.getInstance();
-	private PlayerSessionManager playerSessionManager = PlayerSessionManager.getInstance();
-	private OperationChooserVerification operationChooserVerification =
-			OperationChooserVerification.getInstance();
-	private final Scanner scanner = ScannerProvider.getScanner();
-
-	private MainMenu() {
-	}
+	private final PlayerRegistrationHandler playerRegistrationHandler;
+	private final PlayerSessionManager playerSessionManager;
+	private final OperationChooserVerification operationChooserVerification;
+	private final Scanner scanner;
 
 	public MainMenu(PlayerRegistrationHandler playerRegistrationHandler,
 					PlayerSessionManager playerSessionManager,
-					OperationChooserVerification operationChooserVerification){
+					OperationChooserVerification operationChooserVerification,
+					Scanner scanner) {
+
 		this.playerRegistrationHandler = playerRegistrationHandler;
 		this.playerSessionManager = playerSessionManager;
 		this.operationChooserVerification = operationChooserVerification;
-	}
-
-	/**
-	 * The method returns a single instance of the MainMenu type.
-	 * If the instance has not yet been created, a new instance is created,
-	 * otherwise the existing instance is returned.
-	 *
-	 * @return a single instance of type MainMenu.
-	 */
-	public static MainMenu getInstance() {
-		if (instance == null) {
-			instance = new MainMenu();
-		}
-		return instance;
+		this.scanner = scanner;
 	}
 
 	/**

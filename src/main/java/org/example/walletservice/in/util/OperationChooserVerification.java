@@ -1,7 +1,6 @@
 package org.example.walletservice.in.util;
 
 import org.example.walletservice.util.Cleaner;
-import org.example.walletservice.util.ScannerProvider;
 
 import java.util.Scanner;
 
@@ -9,25 +8,12 @@ import java.util.Scanner;
  * The class is designed to validate user input to select one of the provided operations
  */
 public final class OperationChooserVerification {
-	private static OperationChooserVerification instance;
-	private final Scanner scanner = ScannerProvider.getScanner();
-	private final Cleaner cleaner = Cleaner.getInstance();
+	private final Scanner scanner;
+	private final Cleaner cleaner;
 
-	private OperationChooserVerification(){
-	}
-
-	/**
-	 * The method returns a single instance of the OperationChooserVerification type.
-	 * If the instance has not yet been created, a new instance is created,
-	 * otherwise the existing instance is returned.
-	 *
-	 * @return a single instance of type OperationChooserVerification.
-	 */
-	public static OperationChooserVerification getInstance(){
-		if (instance == null){
-			instance = new OperationChooserVerification();
-		}
-		return instance;
+	public OperationChooserVerification(Scanner scanner, Cleaner cleaner) {
+		this.scanner = scanner;
+		this.cleaner = cleaner;
 	}
 
 	/**

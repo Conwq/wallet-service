@@ -1,15 +1,13 @@
 package org.example.walletservice.service.impl;
 
+import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.repository.PlayerRepository;
+import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.example.walletservice.util.Cleaner;
-import org.example.walletservice.util.ScannerProvider;
-import org.example.walletservice.model.Player;
 import org.example.walletservice.service.logger.TransactionLog;
-import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.repository.RepositoryProvider;
-import org.example.walletservice.service.PlayerService;
+import org.example.walletservice.util.Cleaner;
 
 import java.util.List;
 import java.util.Map;
@@ -22,31 +20,18 @@ import java.util.Scanner;
  * and log display.
  */
 public final class PlayerServiceImpl implements PlayerService {
-	private static PlayerService instance;
-	private final Cleaner cleaner = Cleaner.getInstance();
-	private PlayerRepository playerRepository = RepositoryProvider.getInstance().getPlayerRepository();
-	private Scanner scanner = ScannerProvider.getScanner();
-	private TransactionLog transactionLog = TransactionLog.getInstance();
+	private final Cleaner cleaner;
+	private final PlayerRepository playerRepository;
+	private final Scanner scanner;
+	private final TransactionLog transactionLog;
 
-	private PlayerServiceImpl(){
-	}
+	public PlayerServiceImpl(PlayerRepository playerRepository, Cleaner cleaner, Scanner scanner,
+							 TransactionLog transactionLog) {
 
-	public PlayerServiceImpl(PlayerRepository playerRepository, Scanner scanner, TransactionLog transactionLog) {
 		this.playerRepository = playerRepository;
+		this.cleaner = cleaner;
 		this.scanner = scanner;
 		this.transactionLog = transactionLog;
-	}
-
-	/**
-	 * Gets the singleton instance of {@code PlayerServiceImpl}.
-	 *
-	 * @return The singleton instance.
-	 */
-	public static PlayerService getInstance(){
-		if (instance == null){
-			instance = new PlayerServiceImpl();
-		}
-		return instance;
 	}
 
 	/**

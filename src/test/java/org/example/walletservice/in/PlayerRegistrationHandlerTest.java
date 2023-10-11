@@ -2,6 +2,7 @@ package org.example.walletservice.in;
 
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.controller.PlayerController;
+import org.example.walletservice.util.Cleaner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,14 +17,15 @@ import java.util.Scanner;
 class PlayerRegistrationHandlerTest {
 	private final Scanner scanner = Mockito.mock(Scanner.class);
 	private final PlayerController playerController = Mockito.mock(PlayerController.class);
-	private PlayerRegistrationHandler registrationHandler = new PlayerRegistrationHandler(playerController, scanner);
+	private final Cleaner cleaner = Mockito.mock(Cleaner.class);
+	private final PlayerRegistrationHandler registrationHandler =
+			new PlayerRegistrationHandler(playerController, scanner, cleaner);
 	private final PrintStream origOut = System.out;
 	private final InputStream origIn = System.in;
-	private ByteArrayOutputStream outputStream;
 
 	@BeforeEach
 	void setUp() {
-		outputStream = new ByteArrayOutputStream();
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		System.setOut(new PrintStream(outputStream));
 
 		ByteArrayInputStream inputStream = new ByteArrayInputStream("user123\n13213".getBytes());

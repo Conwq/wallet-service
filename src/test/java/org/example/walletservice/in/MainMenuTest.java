@@ -11,19 +11,21 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Scanner;
 
 class MainMenuTest {
 	private MainMenu mainMenu;
 	private final PlayerRegistrationHandler registrationHandler = Mockito.mock(PlayerRegistrationHandler.class);
 	private final PlayerSessionManager sessionManager = Mockito.mock(PlayerSessionManager.class);
 	private final OperationChooserVerification chooserVerification = Mockito.mock(OperationChooserVerification.class);
+	private final Scanner scanner = Mockito.mock(Scanner.class);
 	private final PrintStream origOut = System.out;
 	private final InputStream origIn = System.in;
 	private ByteArrayOutputStream outputStream;
 
 	@BeforeEach
 	public void setUp() {
-		mainMenu = new MainMenu(registrationHandler, sessionManager, chooserVerification);
+		mainMenu = new MainMenu(registrationHandler, sessionManager, chooserVerification, scanner);
 
 		outputStream = new ByteArrayOutputStream();
 		System.setOut(new PrintStream(outputStream));

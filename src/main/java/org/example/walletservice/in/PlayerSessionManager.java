@@ -8,7 +8,6 @@ import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.logger.TransactionLog;
 import org.example.walletservice.util.Cleaner;
-import org.example.walletservice.util.ScannerProvider;
 
 import java.util.Scanner;
 
@@ -17,28 +16,21 @@ import java.util.Scanner;
  * Includes the login process and available operations for the authorized user.
  */
 public final class PlayerSessionManager {
-	private static PlayerSessionManager instance;
-	private final Cleaner cleaner = Cleaner.getInstance();
-	private final OperationChooserVerification operationChooserVerification = OperationChooserVerification.getInstance();
-	private final PlayerController playerController = PlayerController.getInstance();
-	private final Scanner scanner = ScannerProvider.getScanner();
-	private final TransactionLog transactionLog = TransactionLog.getInstance();
+	private final Cleaner cleaner;
+	private final OperationChooserVerification operationChooserVerification;
+	private final PlayerController playerController;
+	private final Scanner scanner;
+	private final TransactionLog transactionLog;
 
-	private PlayerSessionManager(){
-	}
-
-	/**
-	 * The method returns a single instance of the PlayerSessionManager type.
-	 * If the instance has not yet been created, a new instance is created,
-	 * otherwise the existing instance is returned
-	 *
-	 * @return a single instance of type PlayerSessionManager
-	 */
-	public static PlayerSessionManager getInstance() {
-		if(instance == null){
-			instance = new PlayerSessionManager();
-		}
-		return instance;
+	public PlayerSessionManager(Cleaner cleaner,
+								OperationChooserVerification operationChooserVerification,
+								PlayerController playerController, Scanner scanner,
+								TransactionLog transactionLog) {
+		this.cleaner = cleaner;
+		this.operationChooserVerification = operationChooserVerification;
+		this.playerController = playerController;
+		this.scanner = scanner;
+		this.transactionLog = transactionLog;
 	}
 
 	/**
@@ -70,7 +62,6 @@ public final class PlayerSessionManager {
 		System.out.printf("\nWelcome back, %s!\n\n", player.getUsername());
 		int numberCommandToSelect = player.getRole() == Role.ADMIN ? 6 : 5;
 
-		boolean exit = false;
 		do {
 			displayMenuOptions(player, numberCommandToSelect);
 
@@ -81,11 +72,11 @@ public final class PlayerSessionManager {
 			if (userInputValue == numberCommandToSelect) {
 				System.out.printf("\nGood bye, %s!\n\n", player.getUsername());
 				transactionLog.recordTransaction(Operation.EXIT, player.getUsername(), Status.SUCCESSFUL);
-				exit = true;
+				break;
 			}
 			executeCommandAccordingUserChoice(userInputValue, player);
 		}
-		while (!exit);
+		while (true);
 	}
 
 	/**

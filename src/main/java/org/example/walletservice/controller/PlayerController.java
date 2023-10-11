@@ -2,23 +2,16 @@ package org.example.walletservice.controller;
 
 import org.example.walletservice.model.Player;
 import org.example.walletservice.service.PlayerService;
-import org.example.walletservice.service.ServiceProvider;
 
 /**
  * Controller class to perform player operations.
  */
 public final class PlayerController {
-	private static PlayerController instance;
-	private final PlayerService playerService = ServiceProvider.getInstant().getPlayerService();
+	private final PlayerService playerService;
 
-	private PlayerController(){
-	}
 
-	public static PlayerController getInstance(){
-		if(instance == null){
-			instance = new PlayerController();
-		}
-		return instance;
+	public PlayerController(PlayerService playerService) {
+		this.playerService = playerService;
 	}
 
 	/**
