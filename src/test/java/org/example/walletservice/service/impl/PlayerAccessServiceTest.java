@@ -5,7 +5,7 @@ import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.PlayerAccessService;
-import org.example.walletservice.service.logger.PlayerActivityLogger;
+import org.example.walletservice.service.PlayerActionLoggerService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,13 +15,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
-class PlayerAccessServiceImplTest {
+class PlayerAccessServiceTest {
 	private final PlayerRepository playerRepository = Mockito.mock(PlayerRepository.class);
-	private final PlayerActivityLogger playerActivityLogger = Mockito.mock(PlayerActivityLogger.class);
+	private final PlayerActionLoggerService playerActionLoggerService = Mockito.mock(PlayerActionLoggerServiceImpl.class);
 	private PlayerAccessService playerAccessService;
 	private static final double AMOUNT = 100.0;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
@@ -32,7 +30,7 @@ class PlayerAccessServiceImplTest {
 
 	@BeforeEach
 	public void setUp() {
-		playerAccessService = new PlayerAccessServiceImpl(playerRepository, playerActivityLogger);
+		playerAccessService = new PlayerAccessServiceImpl(playerRepository, playerActionLoggerService);
 
 		final String username = "user123";
 		final String password = "1313";
@@ -105,63 +103,5 @@ class PlayerAccessServiceImplTest {
 		Mockito.verify(playerRepository, Mockito.times(1)).findPlayer(player.getUsername());
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("{{FAIL}} Incorrect password!");
 		AssertionsForClassTypes.assertThat(expected).isNull();
-	}
-
-
-
-	@Test
-	public void shouldShowAllLogs_successful(){
-		List<String> allLogs = new ArrayList<>(){{
-			add("log #1");
-			add("log #2");
-			add("log #3");
-		}};
-
-		Mockito.when(playerActivityLogger.getAllActivityRecords()).thenReturn(allLogs);
-
-		playerAccessService.showAllLogs(player);
-
-		Mockito.verify(playerActivityLogger, Mockito.times(1)).getAllActivityRecords();
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-						.contains("log #1", "log #2", "log #3");
-	}
-
-	@Test
-	public void shouldNotShowAllLogs_logsIsEmpty(){
-		Mockito.when(playerActivityLogger.getAllActivityRecords()).thenReturn(new ArrayList<>());
-
-		playerAccessService.showAllLogs(player);
-
-		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("*No logs*");
-	}
-
-	@Test
-	public void shouldShowPlayerLogs_successful() {
-		Mockito.when(playerActivityLogger.getActivityRecordsForPlayer(player.getUsername()))
-				.thenReturn(new ArrayList<>(List.of("Transact #1", "Transact #2")));
-
-		playerAccessService.showLogsByUsername(player, player.getUsername());
-
-		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Transact #1", "Transact #2");
-	}
-
-	@Test
-	public void shouldNotShowPlayerLogs_playerNotFound() {
-		Mockito.when(playerActivityLogger.getActivityRecordsForPlayer(player.getUsername())).thenReturn(null);
-
-		playerAccessService.showLogsByUsername(player, player.getUsername());
-
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains(String.format("*Player %s not found*", player.getUsername()));
-	}
-
-	@Test
-	public void shouldNotShowPlayerLogs_playerLogsIsEmpty() {
-		Mockito.when(playerActivityLogger.getActivityRecordsForPlayer(player.getUsername())).thenReturn(new ArrayList<>());
-
-		playerAccessService.showLogsByUsername(player, player.getUsername());
-
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains(String.format("*No logs for player %s*", player.getUsername()));
 	}
 }

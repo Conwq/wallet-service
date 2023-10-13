@@ -45,7 +45,6 @@ public final class MainMenu {
 					scanner.close();
 				}
 			}
-		}
-		while (!exit);
+		} while (!exit);
 	}
 }

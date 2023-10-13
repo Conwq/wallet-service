@@ -1,12 +1,12 @@
 package org.example.walletservice.in;
 
-import org.example.walletservice.controller.PlayerController;
+import org.example.walletservice.controller.FrontController;
 import org.example.walletservice.in.util.OperationChooserVerification;
 import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.service.PlayerActionLoggerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.example.walletservice.service.logger.PlayerActivityLogger;
 import org.example.walletservice.util.Cleaner;
 
 import java.util.Scanner;
@@ -18,20 +18,20 @@ import java.util.Scanner;
 public final class PlayerSessionManager {
 	private final Cleaner cleaner;
 	private final OperationChooserVerification operationChooserVerification;
-	private final PlayerController playerController;
+	private final FrontController frontController;
 	private final Scanner scanner;
-	private final PlayerActivityLogger playerActivityLogger;
+	private final PlayerActionLoggerService playerActionLoggerService;
 
 	public PlayerSessionManager(Cleaner cleaner,
 								OperationChooserVerification operationChooserVerification,
-								PlayerController playerController,
+								FrontController frontController,
 								Scanner scanner,
-								PlayerActivityLogger playerActivityLogger) {
+								PlayerActionLoggerService playerActionLoggerService) {
 		this.cleaner = cleaner;
 		this.operationChooserVerification = operationChooserVerification;
-		this.playerController = playerController;
+		this.frontController = frontController;
 		this.scanner = scanner;
-		this.playerActivityLogger = playerActivityLogger;
+		this.playerActionLoggerService = playerActionLoggerService;
 	}
 
 	/**
@@ -47,8 +47,8 @@ public final class PlayerSessionManager {
 		System.out.print("Enter password: ");
 		String password = scanner.nextLine();
 
-		Player player = playerController.logIn(username, password);
-		if (player == null){
+		Player player = frontController.logIn(username, password);
+		if (player == null) {
 			return;
 		}
 		displayOperationsMenuForAuthorizedPlayer(player);
@@ -72,10 +72,10 @@ public final class PlayerSessionManager {
 			}
 			if (userInputValue == numberCommandToSelect) {
 				System.out.printf("\nGood bye, %s!\n\n", player.getUsername());
-				playerActivityLogger.recordAction(Operation.EXIT, player.getUsername(), Status.SUCCESSFUL);
+				playerActionLoggerService.recordAction(Operation.EXIT, player.getUsername(), Status.SUCCESSFUL);
 				break;
 			}
-			executeCommandAccordingUserChoice(userInputValue, player);
+			executeCommandAccordingUserChoice(userInputValue, player.getUsername());
 		}
 		while (true);
 	}
@@ -83,7 +83,7 @@ public final class PlayerSessionManager {
 	/**
 	 * Displays the menu options based on the player's role.
 	 *
-	 * @param player The player for whom the menu options are displayed.
+	 * @param player                The player for whom the menu options are displayed.
 	 * @param numberCommandToSelect The number representing the command to log out.
 	 */
 	private void displayMenuOptions(Player player, int numberCommandToSelect) {
@@ -98,15 +98,15 @@ public final class PlayerSessionManager {
 	 * Executes action based on the user's choice.
 	 *
 	 * @param userInputValue The value representing the user's choice.
-	 * @param player The player for whom the command is executed.
+	 * @param username       The username of the player for whom the command is executed.
 	 */
-	private void executeCommandAccordingUserChoice(int userInputValue, Player player) {
+	private void executeCommandAccordingUserChoice(int userInputValue, String username) {
 		switch (userInputValue) {
-			case 1 -> playerController.displayPlayerBalance(player);
-			case 2 -> playerController.credit(player);
-			case 3 -> playerController.debit(player);
-			case 4 -> playerController.displayPlayerTransactionalHistory(player);
-			case 5 -> displayLogOptions(player);
+			case 1 -> frontController.displayPlayerBalance(username);
+			case 2 -> frontController.credit(username);
+			case 3 -> frontController.debit(username);
+			case 4 -> frontController.displayPlayerTransactionalHistoryByUsername(username);
+			case 5 -> displayLogOptions(username);
 		}
 	}
 
@@ -114,21 +114,21 @@ public final class PlayerSessionManager {
 	 * Displays log-related options for the player, allowing them to view all logs,
 	 * view logs for specific players, or go back to the main menu.
 	 *
-	 * @param player The player for whom the log options are displayed.
+	 * @param username The username of the player for whom the log options are displayed.
 	 */
-	private void displayLogOptions(Player player){
+	private void displayLogOptions(String username) {
 		boolean exit = false;
 
 		do {
 			System.out.println("\n1. All logs\n2. Players logs\n3. Back");
 
 			int userInputValue = operationChooserVerification.userDataVerification(3);
-			switch (userInputValue){
-				case 1 -> playerController.showAllLogs(player);
+			switch (userInputValue) {
+				case 1 -> frontController.showAllLogs(username);
 				case 2 -> {
 					cleaner.cleanBuffer(scanner);
 					System.out.print("\nEnter the name of the user you want to see the logs: ");
-					playerController.showLogsByUsername(player, scanner.nextLine());
+					frontController.showLogsByUsername(username, scanner.nextLine());
 				}
 				case 3 -> exit = true;
 			}

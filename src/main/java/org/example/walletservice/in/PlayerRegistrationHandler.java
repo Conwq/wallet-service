@@ -1,6 +1,6 @@
 package org.example.walletservice.in;
 
-import org.example.walletservice.controller.PlayerController;
+import org.example.walletservice.controller.FrontController;
 import org.example.walletservice.util.Cleaner;
 
 import java.util.Scanner;
@@ -10,18 +10,18 @@ import java.util.Scanner;
  * Allows users to enter a username and password to register.
  */
 public final class PlayerRegistrationHandler {
-	private final PlayerController playerController;
+	private final FrontController frontController;
 	private final Scanner scanner;
 	private final Cleaner cleaner;
 
-	public PlayerRegistrationHandler(PlayerController playerController, Scanner scanner, Cleaner cleaner){
-		this.playerController = playerController;
+	public PlayerRegistrationHandler(FrontController frontController, Scanner scanner, Cleaner cleaner) {
+		this.frontController = frontController;
 		this.scanner = scanner;
 		this.cleaner = cleaner;
 	}
 
 	/**
-	 *  Enter your login and password to register from the app console.
+	 * Enter your login and password to register from the app console.
 	 */
 	public void registrationPlayer() {
 		cleaner.cleanBuffer(scanner);
@@ -32,6 +32,6 @@ public final class PlayerRegistrationHandler {
 		System.out.print("Enter password: ");
 		String password = scanner.nextLine().trim();
 
-		playerController.registrationPlayer(username, password);
+		frontController.registrationPlayer(username, password);
 	}
 }

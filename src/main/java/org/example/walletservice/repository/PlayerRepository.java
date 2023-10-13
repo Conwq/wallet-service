@@ -9,5 +9,6 @@ import java.util.Optional;
  */
 public interface PlayerRepository {
 	Optional<Player> findPlayer(String username);
+
 	void registrationPayer(Player player);
 }

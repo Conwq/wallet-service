@@ -1,6 +1,7 @@
 package org.example.walletservice.repository.impl;
 
-import org.example.walletservice.database.CustomDatabase;
+import org.example.walletservice.database.PlayerDatabase;
+import org.example.walletservice.database.TransactionDatabase;
 import org.example.walletservice.model.Player;
 import org.example.walletservice.repository.PlayerRepository;
 
@@ -10,10 +11,12 @@ import java.util.Optional;
  * Реализация интерфейса {@link PlayerRepository}, управление данными игроков и транзакциями.
  */
 public final class PlayerRepositoryImpl implements PlayerRepository {
-	private final CustomDatabase customDatabase;
+	private final PlayerDatabase playerDatabase;
+	private final TransactionDatabase transactionDatabase;
 
-	public PlayerRepositoryImpl(CustomDatabase customDatabase) {
-		this.customDatabase = customDatabase;
+	public PlayerRepositoryImpl(PlayerDatabase playerDatabase, TransactionDatabase transactionDatabase) {
+		this.playerDatabase = playerDatabase;
+		this.transactionDatabase = transactionDatabase;
 	}
 
 	/**
@@ -23,8 +26,8 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 	 * @return Optional object containing the player if found or empty if not found.
 	 */
 	@Override
-	public Optional<Player> findPlayer(String username){
-		return customDatabase.getPlayer(username);
+	public Optional<Player> findPlayer(String username) {
+		return playerDatabase.findPlayerByUsername(username);
 	}
 
 	/**
@@ -34,6 +37,7 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 	 */
 	@Override
 	public void registrationPayer(Player player) {
-		customDatabase.savePlayer(player.getUsername(), player);
+		playerDatabase.savePlayer(player.getUsername(), player);
+		transactionDatabase.savePlayersNewAmountFunds(player.getUsername(), 0.0);
 	}
 }

@@ -1,7 +1,5 @@
 package org.example.walletservice.model;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -13,9 +11,8 @@ public final class Player {
 	private String password;
 	private Role role;
 	private double balance;
-	private Map<String, String> transactionalHistory;
 
-	public Player(String username, String password, Role role){
+	public Player(String username, String password, Role role) {
 		this.username = username;
 		this.password = password;
 		this.role = role;
@@ -54,27 +51,16 @@ public final class Player {
 		this.balance = balance;
 	}
 
-	public Map<String, String> getTransactionalHistory() {
-		if (transactionalHistory == null){
-			transactionalHistory = new HashMap<>();
-		}
-		return transactionalHistory;
-	}
-
-	public void setTransactionalHistory(Map<String, String> transactionalHistory) {
-		this.transactionalHistory = transactionalHistory;
-	}
-
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Player player = (Player) o;
-		return Double.compare(player.balance, balance) == 0 && Objects.equals(username, player.username) && Objects.equals(password, player.password) && role == player.role && Objects.equals(transactionalHistory, player.transactionalHistory);
+		return Double.compare(player.balance, balance) == 0 && Objects.equals(username, player.username) && Objects.equals(password, player.password) && role == player.role;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(username, password, role, balance, transactionalHistory);
+		return Objects.hash(username, password, role, balance);
 	}
 }

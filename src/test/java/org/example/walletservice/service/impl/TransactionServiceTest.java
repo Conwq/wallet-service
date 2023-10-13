@@ -5,7 +5,6 @@ import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.TransactionService;
-import org.example.walletservice.service.logger.PlayerActivityLogger;
 import org.example.walletservice.util.Cleaner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,16 +15,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
-class TransactionServiceImplTest {
+class TransactionServiceTest {
 	private final Scanner scanner = Mockito.mock(Scanner.class);
-	private final PlayerActivityLogger playerActivityLogger = Mockito.mock(PlayerActivityLogger.class);
+	private final PlayerActionLoggerServiceImpl PlayerActionLoggerServiceImpl = Mockito.mock(PlayerActionLoggerServiceImpl.class);
 	private final TransactionRepository transactionRepository = Mockito.mock(TransactionRepository.class);
+	private final Cleaner cleaner = Mockito.mock(Cleaner.class);
 	private TransactionService transactionService;
-	private static final String BALANCE = "10000";
+	private static final double BALANCE = 10000;
 	private static final double AMOUNT = 100.0;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
@@ -35,8 +35,7 @@ class TransactionServiceImplTest {
 
 	@BeforeEach
 	public void setUp() {
-		transactionService = new TransactionServiceImpl(scanner, playerActivityLogger,
-				Cleaner.getInstance(), transactionRepository);
+		transactionService = new TransactionServiceImpl(scanner, PlayerActionLoggerServiceImpl, cleaner, transactionRepository);
 
 		final String username = "user123";
 		final String password = "1313";
@@ -51,18 +50,19 @@ class TransactionServiceImplTest {
 	}
 
 	@AfterEach
-	public void tearDown(){
+	public void tearDown() {
 		System.setOut(origOut);
 		System.setIn(origIn);
 	}
 
 	@Test
 	public void shouldGetBalancePlayer_successful() {
-		Mockito.when(transactionRepository.getPlayerBalance(player)).thenReturn(BALANCE);
+		Mockito.when(transactionRepository.findPlayerBalanceByUsername(player.getUsername())).thenReturn(BALANCE);
 
-		transactionService.displayPlayerBalance(player);
+		transactionService.displayPlayerBalance(player.getUsername());
 
-		Mockito.verify(transactionRepository, Mockito.times(1)).getPlayerBalance(player);
+		Mockito.verify(transactionRepository, Mockito.times(1))
+				.findPlayerBalanceByUsername(player.getUsername());
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Balance -- " + BALANCE);
 	}
 
@@ -73,10 +73,10 @@ class TransactionServiceImplTest {
 		Mockito.when(scanner.nextLine()).thenReturn(TRANSACTIONAL_TOKEN);
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
 
-		transactionService.credit(player);
+		transactionService.credit(player.getUsername());
 
 		Mockito.verify(transactionRepository, Mockito.times(1))
-				.credit(AMOUNT, player, TRANSACTIONAL_TOKEN);
+				.credit(AMOUNT, player.getUsername(), TRANSACTIONAL_TOKEN);
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Credit successfully.");
 	}
 
@@ -87,11 +87,11 @@ class TransactionServiceImplTest {
 		Mockito.when(scanner.nextLine()).thenReturn(TRANSACTIONAL_TOKEN);
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(true);
 
-		transactionService.credit(player);
+		transactionService.credit(player.getUsername());
 
 		AssertionsForClassTypes.assertThat(outputStream.toString())
 				.contains("{{FAIL}} A transaction with this number already exists!");
-		Mockito.verify(transactionRepository, Mockito.never()).credit(AMOUNT, player, TRANSACTIONAL_TOKEN);
+		Mockito.verify(transactionRepository, Mockito.never()).credit(AMOUNT, player.getUsername(), TRANSACTIONAL_TOKEN);
 	}
 
 	@Test
@@ -100,12 +100,13 @@ class TransactionServiceImplTest {
 		Mockito.when(scanner.nextDouble()).thenReturn(AMOUNT);
 		Mockito.when(scanner.nextLine()).thenReturn(TRANSACTIONAL_TOKEN);
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
+		Mockito.when(transactionRepository.findPlayerBalanceByUsername(player.getUsername())).thenReturn(200.0);
 
 		player.setBalance(AMOUNT);
-		transactionService.debit(player);
+		transactionService.debit(player.getUsername());
 
 		Mockito.verify(transactionRepository, Mockito.times(1))
-				.debit(AMOUNT, player, TRANSACTIONAL_TOKEN);
+				.debit(AMOUNT, player.getUsername(), TRANSACTIONAL_TOKEN);
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Debit successfully.");
 	}
 
@@ -117,9 +118,9 @@ class TransactionServiceImplTest {
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(true);
 
 		player.setBalance(AMOUNT);
-		transactionService.debit(player);
+		transactionService.debit(player.getUsername());
 
-		Mockito.verify(transactionRepository, Mockito.never()).debit(AMOUNT, player, TRANSACTIONAL_TOKEN);
+		Mockito.verify(transactionRepository, Mockito.never()).debit(AMOUNT, player.getUsername(), TRANSACTIONAL_TOKEN);
 		AssertionsForClassTypes.assertThat(outputStream.toString())
 				.contains("{{FAIL}} A transaction with this number already exists!");
 	}
@@ -127,28 +128,28 @@ class TransactionServiceImplTest {
 
 	@Test
 	public void shouldGetPlayerTransactionalHistory_successful() {
-		Map<String, String> testTransactionHistory = new HashMap<>(){{
-			put("1", "Transaction #1");
-			put("2", "Transaction #2");
+		List<String> testTransactionHistory = new ArrayList<>() {{
+			add("Transaction #1");
+			add("Transaction #2");
 		}};
 
-		Mockito.when(transactionRepository.getPlayerTransactionalHistory(player.getUsername()))
+		Mockito.when(transactionRepository.findPlayerTransactionalHistoryByUsername(player.getUsername()))
 				.thenReturn(testTransactionHistory);
 
-		transactionService.displayPlayerTransactionalHistory(player);
+		transactionService.displayPlayerTransactionalHistoryByUsername(player.getUsername());
 
 		AssertionsForClassTypes.assertThat(outputStream.toString())
 				.contains("Transaction #1", "Transaction #2");
 	}
 
 	@Test
-	public void shouldGetPlayerTransactionalHistory_emptyMap(){
-		Map<String, String> testTransactionHistory = new HashMap<>();
+	public void shouldGetPlayerTransactionalHistory_emptyMap() {
+		List<String> testTransactionHistory = new ArrayList<>();
 
-		Mockito.when(transactionRepository.getPlayerTransactionalHistory(player.getUsername()))
+		Mockito.when(transactionRepository.findPlayerTransactionalHistoryByUsername(player.getUsername()))
 				.thenReturn(testTransactionHistory);
 
-		transactionService.displayPlayerTransactionalHistory(player);
+		transactionService.displayPlayerTransactionalHistoryByUsername(player.getUsername());
 
 		AssertionsForClassTypes.assertThat(outputStream.toString())
 				.contains("Transactions is empty.");
