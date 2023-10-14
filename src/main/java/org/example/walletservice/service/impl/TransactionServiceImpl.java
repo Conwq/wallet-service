@@ -1,6 +1,6 @@
 package org.example.walletservice.service.impl;
 
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;

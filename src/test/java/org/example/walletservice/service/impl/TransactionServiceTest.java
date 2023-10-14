@@ -1,7 +1,7 @@
 package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.TransactionService;
@@ -104,7 +104,6 @@ class TransactionServiceTest {
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
 		Mockito.when(transactionRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(200.0);
 
-		player.setBalance(AMOUNT);
 		transactionService.debit(player);
 
 //		Mockito.verify(transactionRepository, Mockito.times(1))
@@ -119,7 +118,6 @@ class TransactionServiceTest {
 		Mockito.when(scanner.nextLine()).thenReturn(TRANSACTIONAL_TOKEN);
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(true);
 
-		player.setBalance(AMOUNT);
 		transactionService.debit(player);
 
 //		Mockito.verify(transactionRepository, Mockito.never()).debit(AMOUNT, player.getUsername(), TRANSACTIONAL_TOKEN);

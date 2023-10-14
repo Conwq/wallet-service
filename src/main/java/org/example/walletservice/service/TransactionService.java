@@ -1,6 +1,6 @@
 package org.example.walletservice.service;
 
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 
 /**
  * Shows the amount of funds on the account, displays the history of transactions and makes a debit/credit.

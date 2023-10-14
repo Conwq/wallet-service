@@ -2,7 +2,7 @@ package org.example.walletservice.in;
 
 import org.example.walletservice.controller.FrontController;
 import org.example.walletservice.in.util.OperationChooserVerification;
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.enums.Operation;

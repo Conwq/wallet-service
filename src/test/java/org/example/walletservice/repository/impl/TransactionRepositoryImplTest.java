@@ -1,7 +1,7 @@
 package org.example.walletservice.repository.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
@@ -25,7 +25,6 @@ class TransactionRepositoryImplTest {
 		transactionRepository = new TransactionRepositoryImpl(connectionProvider);
 
 		player = Player.builder().playerID(1).username("user123").password("1313").role(Role.USER).build();
-		player.setBalance(AMOUNT);
 	}
 
 	@Test

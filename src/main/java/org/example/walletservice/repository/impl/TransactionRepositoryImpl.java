@@ -108,7 +108,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			statement.setInt(1, playerID);
 			resultSet = statement.executeQuery();
 			List<String> transactionHistory = new ArrayList<>();
-			while (resultSet.next()) {
+			while (resultSet.next() && resultSet.getString("record") != null) {
 				transactionHistory.add(resultSet.getString("record"));
 			}
 			return transactionHistory;

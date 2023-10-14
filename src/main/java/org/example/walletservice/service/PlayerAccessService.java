@@ -1,6 +1,6 @@
 package org.example.walletservice.service;
 
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 
 /**
  * The PlayerAccessService interface provides methods for managing players in the system.

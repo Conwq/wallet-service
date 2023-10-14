@@ -1,6 +1,6 @@
 package org.example.walletservice.service;
 
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 

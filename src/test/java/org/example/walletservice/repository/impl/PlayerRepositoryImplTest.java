@@ -2,7 +2,7 @@ package org.example.walletservice.repository.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.context.ApplicationContextHolder;
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.PlayerRepository;
 import org.junit.jupiter.api.BeforeEach;

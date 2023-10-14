@@ -1,6 +1,6 @@
 package org.example.walletservice.repository;
 
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 
 import java.util.Optional;
 

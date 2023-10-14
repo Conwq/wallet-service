@@ -1,9 +1,10 @@
-package org.example.walletservice.model;
+package org.example.walletservice.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.walletservice.model.Role;
 
 /**
  * Represents a player in the wallet service with information such as username,
