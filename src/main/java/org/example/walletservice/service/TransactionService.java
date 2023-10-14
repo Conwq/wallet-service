@@ -1,31 +1,37 @@
 package org.example.walletservice.service;
 
+import org.example.walletservice.model.Player;
+
+/**
+ * Shows the amount of funds on the account, displays the history of transactions and makes a debit/credit.
+ */
 public interface TransactionService {
-	/**
-	 * Credits a player's account.
-	 *
-	 * @param username The username of the player object to which the account is credited.
-	 */
-	void credit(String username);
-
-	/**
-	 * Debits funds from a player's account.
-	 *
-	 * @param username The username of the player from which funds are debited.
-	 */
-	void debit(String username);
-
-	/**
-	 * Gets the transaction history of a player.
-	 *
-	 * @param username The username of the player for whom the transaction history is being requested.
-	 */
-	void displayPlayerTransactionalHistoryByUsername(String username);
 
 	/**
 	 * Gets the balance of a player.
 	 *
-	 * @param username The username of the player object for which the balance is requested.
+	 * @param player The player for whom the balance is requested.
 	 */
-	void displayPlayerBalance(String username);
+	void displayPlayerBalance(Player player);
+
+	/**
+	 * Credits a player's account.
+	 *
+	 * @param player The player to which the account is credited.
+	 */
+	void credit(Player player);
+
+	/**
+	 * Debits funds from a player's account.
+	 *
+	 * @param player The player from which funds are debited.
+	 */
+	void debit(Player player);
+
+	/**
+	 * Gets the transaction history of a player.
+	 *
+	 * @param player The player for whom the transaction history is being requested.
+	 */
+	void displayPlayerTransactionalHistory(Player player);
 }

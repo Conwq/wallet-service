@@ -1,43 +1,93 @@
 package org.example.walletservice.repository.impl;
 
-import org.example.walletservice.database.PlayerDatabase;
-import org.example.walletservice.database.TransactionDatabase;
 import org.example.walletservice.model.Player;
+import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.PlayerRepository;
+import org.example.walletservice.repository.manager.ConnectionProvider;
 
+import java.sql.*;
 import java.util.Optional;
 
 /**
- * Реализация интерфейса {@link PlayerRepository}, управление данными игроков и транзакциями.
+ * Implement the {@link PlayerRepository} interface, manage player data and transactions.
  */
 public final class PlayerRepositoryImpl implements PlayerRepository {
-	private final PlayerDatabase playerDatabase;
-	private final TransactionDatabase transactionDatabase;
+	private final ConnectionProvider connectionProvider;
 
-	public PlayerRepositoryImpl(PlayerDatabase playerDatabase, TransactionDatabase transactionDatabase) {
-		this.playerDatabase = playerDatabase;
-		this.transactionDatabase = transactionDatabase;
+	public PlayerRepositoryImpl(ConnectionProvider connectionProvider) {
+		this.connectionProvider = connectionProvider;
 	}
 
 	/**
-	 * Finds a player by their username.
-	 *
-	 * @param username The player's username.
-	 * @return Optional object containing the player if found or empty if not found.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Optional<Player> findPlayer(String username) {
-		return playerDatabase.findPlayerByUsername(username);
+		ResultSet resultSet = null;
+		try (Connection connection = connectionProvider.takeConnection();
+			 PreparedStatement statement = connection.prepareStatement("SELECT * FROM wallet_service.players " +
+					 "JOIN wallet_service.roles " +
+					 "ON wallet_service.players.role_id = wallet_service.roles.role_id " +
+					 "WHERE wallet_service.players.username = ?")) {
+
+			statement.setString(1, username);
+			resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				Player player = Player.builder().playerID(resultSet.getInt("player_id"))
+						.username(resultSet.getString("username"))
+						.password(resultSet.getString("password"))
+						.role(Role.valueOf(resultSet.getString("role_name").toUpperCase())).build();
+				return Optional.of(player);
+			}
+			return Optional.empty();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (resultSet != null) {
+				try {
+					resultSet.close();
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
 	}
 
 	/**
-	 * Registers a new player.
-	 *
-	 * @param player to register.
+	 * {@inheritDoc}
 	 */
 	@Override
-	public void registrationPayer(Player player) {
-		playerDatabase.savePlayer(player.getUsername(), player);
-		transactionDatabase.savePlayersNewAmountFunds(player.getUsername(), 0.0);
+	public int registrationPayer(Player player) {
+		ResultSet resultSet = null;
+		try (Connection connection = connectionProvider.takeConnection();
+			 PreparedStatement statementToSaveUser = connection.prepareStatement(
+					 "INSERT INTO wallet_service.players(username, password, role_id) VALUES(?, ?, 1)",
+					 Statement.RETURN_GENERATED_KEYS);
+			 PreparedStatement statementCreateNewBalance = connection.prepareStatement(
+					 "INSERT INTO wallet_service.transaction(player_id) VALUES (?)")) {
+
+			statementToSaveUser.setString(1, player.getUsername());
+			statementToSaveUser.setString(2, player.getPassword());
+			statementToSaveUser.executeUpdate();
+			resultSet = statementToSaveUser.getGeneratedKeys();
+			resultSet.next();
+
+			int playerID = resultSet.getInt(1);
+
+			statementCreateNewBalance.setInt(1, playerID);
+			statementCreateNewBalance.executeUpdate();
+
+			return playerID;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (resultSet != null) {
+				try {
+					resultSet.close();
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
 	}
 }

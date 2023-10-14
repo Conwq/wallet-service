@@ -1,8 +1,8 @@
 package org.example.walletservice.controller;
 
 import org.example.walletservice.model.Player;
+import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.PlayerAccessService;
-import org.example.walletservice.service.PlayerActionLoggerService;
 import org.example.walletservice.service.TransactionService;
 
 /**
@@ -11,12 +11,13 @@ import org.example.walletservice.service.TransactionService;
 public final class FrontController {
 	private final PlayerAccessService playerAccessService;
 	private final TransactionService transactionService;
-	private final PlayerActionLoggerService playerActionLoggerService;
+	private final LoggerService loggerService;
 
-	public FrontController(PlayerAccessService playerAccessService, TransactionService transactionService, PlayerActionLoggerService playerActionLoggerService) {
+	public FrontController(PlayerAccessService playerAccessService, TransactionService transactionService,
+						   LoggerService loggerService) {
 		this.playerAccessService = playerAccessService;
 		this.transactionService = transactionService;
-		this.playerActionLoggerService = playerActionLoggerService;
+		this.loggerService = loggerService;
 	}
 
 	/**
@@ -36,47 +37,47 @@ public final class FrontController {
 	/**
 	 * Player balance display
 	 */
-	public void displayPlayerBalance(String username) {
-		transactionService.displayPlayerBalance(username);
+	public void displayPlayerBalance(Player player) {
+		transactionService.displayPlayerBalance(player);
 	}
 
 	/**
 	 * Increasing player balance
 	 */
-	public void credit(String username) {
-		transactionService.credit(username);
+	public void credit(Player player) {
+		transactionService.credit(player);
 	}
 
 	/**
 	 * Withdrawal from a player's account
 	 */
-	public void debit(String username) {
-		transactionService.debit(username);
+	public void debit(Player player) {
+		transactionService.debit(player);
 	}
 
 	/**
 	 * Display the calling player's entire successful transaction history
 	 */
-	public void displayPlayerTransactionalHistoryByUsername(String username) {
-		transactionService.displayPlayerTransactionalHistoryByUsername(username);
+	public void displayPlayerTransactionalHistory(Player player) {
+		transactionService.displayPlayerTransactionalHistory(player);
 	}
 
 	/**
 	 * Show all player logs
 	 *
-	 * @param username Username of the player who is viewing the logs
+	 * @param player Player who is viewing the logs
 	 */
-	public void showAllLogs(String username) {
-		playerActionLoggerService.showAllLogs(username);
+	public void showAllLogs(Player player) {
+		loggerService.showAllLogs(player);
 	}
 
 	/**
 	 * Viewing User Logs.
 	 *
-	 * @param username               Username of the player who views the log.
+	 * @param player                 Player who views the log.
 	 * @param inputUsernameForSearch Name of the player whose logs are being viewed.
 	 */
-	public void showLogsByUsername(String username, String inputUsernameForSearch) {
-		playerActionLoggerService.showLogsByUsername(username, inputUsernameForSearch);
+	public void showLogsByUsername(Player player, String inputUsernameForSearch) {
+		loggerService.showLogsByUsername(player, inputUsernameForSearch);
 	}
 }

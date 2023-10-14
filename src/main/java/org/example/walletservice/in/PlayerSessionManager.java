@@ -4,7 +4,7 @@ import org.example.walletservice.controller.FrontController;
 import org.example.walletservice.in.util.OperationChooserVerification;
 import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
-import org.example.walletservice.service.PlayerActionLoggerService;
+import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.util.Cleaner;
@@ -20,18 +20,18 @@ public final class PlayerSessionManager {
 	private final OperationChooserVerification operationChooserVerification;
 	private final FrontController frontController;
 	private final Scanner scanner;
-	private final PlayerActionLoggerService playerActionLoggerService;
+	private final LoggerService loggerService;
 
 	public PlayerSessionManager(Cleaner cleaner,
 								OperationChooserVerification operationChooserVerification,
 								FrontController frontController,
 								Scanner scanner,
-								PlayerActionLoggerService playerActionLoggerService) {
+								LoggerService loggerService) {
 		this.cleaner = cleaner;
 		this.operationChooserVerification = operationChooserVerification;
 		this.frontController = frontController;
 		this.scanner = scanner;
-		this.playerActionLoggerService = playerActionLoggerService;
+		this.loggerService = loggerService;
 	}
 
 	/**
@@ -72,10 +72,10 @@ public final class PlayerSessionManager {
 			}
 			if (userInputValue == numberCommandToSelect) {
 				System.out.printf("\nGood bye, %s!\n\n", player.getUsername());
-				playerActionLoggerService.recordAction(Operation.EXIT, player.getUsername(), Status.SUCCESSFUL);
+				loggerService.recordActionInLog(Operation.EXIT, player, Status.SUCCESSFUL);
 				break;
 			}
-			executeCommandAccordingUserChoice(userInputValue, player.getUsername());
+			executeCommandAccordingUserChoice(userInputValue, player);
 		}
 		while (true);
 	}
@@ -98,15 +98,15 @@ public final class PlayerSessionManager {
 	 * Executes action based on the user's choice.
 	 *
 	 * @param userInputValue The value representing the user's choice.
-	 * @param username       The username of the player for whom the command is executed.
+	 * @param player         Player for whom the command is executed.
 	 */
-	private void executeCommandAccordingUserChoice(int userInputValue, String username) {
+	private void executeCommandAccordingUserChoice(int userInputValue, Player player) {
 		switch (userInputValue) {
-			case 1 -> frontController.displayPlayerBalance(username);
-			case 2 -> frontController.credit(username);
-			case 3 -> frontController.debit(username);
-			case 4 -> frontController.displayPlayerTransactionalHistoryByUsername(username);
-			case 5 -> displayLogOptions(username);
+			case 1 -> frontController.displayPlayerBalance(player);
+			case 2 -> frontController.credit(player);
+			case 3 -> frontController.debit(player);
+			case 4 -> frontController.displayPlayerTransactionalHistory(player);
+			case 5 -> displayLogOptions(player);
 		}
 	}
 
@@ -114,9 +114,9 @@ public final class PlayerSessionManager {
 	 * Displays log-related options for the player, allowing them to view all logs,
 	 * view logs for specific players, or go back to the main menu.
 	 *
-	 * @param username The username of the player for whom the log options are displayed.
+	 * @param player Player for whom the log options are displayed.
 	 */
-	private void displayLogOptions(String username) {
+	private void displayLogOptions(Player player) {
 		boolean exit = false;
 
 		do {
@@ -124,11 +124,11 @@ public final class PlayerSessionManager {
 
 			int userInputValue = operationChooserVerification.userDataVerification(3);
 			switch (userInputValue) {
-				case 1 -> frontController.showAllLogs(username);
+				case 1 -> frontController.showAllLogs(player);
 				case 2 -> {
 					cleaner.cleanBuffer(scanner);
 					System.out.print("\nEnter the name of the user you want to see the logs: ");
-					frontController.showLogsByUsername(username, scanner.nextLine());
+					frontController.showLogsByUsername(player, scanner.nextLine());
 				}
 				case 3 -> exit = true;
 			}

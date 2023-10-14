@@ -1,66 +1,22 @@
 package org.example.walletservice.model;
 
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Represents a player in the wallet service with information such as username,
  * password, balance, and transactional history.
  */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public final class Player {
+	private Integer playerID;
 	private String username;
 	private String password;
 	private Role role;
 	private double balance;
-
-	public Player(String username, String password, Role role) {
-		this.username = username;
-		this.password = password;
-		this.role = role;
-		this.balance = 0.0;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public Role getRole() {
-		return role;
-	}
-
-	public void setRole(Role role) {
-		this.role = role;
-	}
-
-	public double getBalance() {
-		return balance;
-	}
-
-	public void setBalance(double balance) {
-		this.balance = balance;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Player player = (Player) o;
-		return Double.compare(player.balance, balance) == 0 && Objects.equals(username, player.username) && Objects.equals(password, player.password) && role == player.role;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(username, password, role, balance);
-	}
 }

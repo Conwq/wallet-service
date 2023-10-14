@@ -3,8 +3,8 @@ package org.example.walletservice.service.impl;
 import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.PlayerRepository;
+import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.PlayerAccessService;
-import org.example.walletservice.service.PlayerActionLoggerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 
@@ -17,11 +17,11 @@ import java.util.Optional;
  */
 public final class PlayerAccessServiceImpl implements PlayerAccessService {
 	private final PlayerRepository playerRepository;
-	private final PlayerActionLoggerService playerActionLoggerService;
+	private final LoggerService loggerService;
 
-	public PlayerAccessServiceImpl(PlayerRepository playerRepository, PlayerActionLoggerService playerActionLoggerService) {
+	public PlayerAccessServiceImpl(PlayerRepository playerRepository, LoggerService loggerService) {
 		this.playerRepository = playerRepository;
-		this.playerActionLoggerService = playerActionLoggerService;
+		this.loggerService = loggerService;
 	}
 
 	/**
@@ -33,15 +33,20 @@ public final class PlayerAccessServiceImpl implements PlayerAccessService {
 
 		if (optionalPlayer.isPresent()) {
 			System.out.println("\n*{{FAIL}} This user is already registered. Try again.*\n");
-
-			playerActionLoggerService.recordAction(Operation.REGISTRATION, "UNKNOWN", Status.FAIL);
 			return;
 		}
-		Player player = new Player(username, password, Role.USER);
-		playerRepository.registrationPayer(player);
-		System.out.println("\n*User successfully registered!*\n");
 
-		playerActionLoggerService.recordAction(Operation.REGISTRATION, username, Status.SUCCESSFUL);
+		Player player = Player.builder()
+				.username(username)
+				.password(password)
+				.role(Role.USER)
+				.balance(0.0).build();
+
+		int playerID = playerRepository.registrationPayer(player);
+		player.setPlayerID(playerID);
+
+		System.out.println("\n*User successfully registered!*\n");
+		loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.SUCCESSFUL);
 	}
 
 	/**
@@ -53,19 +58,15 @@ public final class PlayerAccessServiceImpl implements PlayerAccessService {
 
 		if (optionalPlayer.isEmpty()) {
 			System.out.println("\n*{{FAIL}} Current player not found. Please try again.*\n");
-
-			playerActionLoggerService.recordAction(Operation.LOG_IN, "UNKNOWN", Status.FAIL);
 			return null;
 		}
 
 		Player player = optionalPlayer.get();
 		if (!player.getPassword().equals(password)) {
 			System.out.println("\n*{{FAIL}} Incorrect password!*\n");
-
-			playerActionLoggerService.recordAction(Operation.LOG_IN, username, Status.FAIL);
 			return null;
 		}
-		playerActionLoggerService.recordAction(Operation.LOG_IN, username, Status.SUCCESSFUL);
+		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
 		return player;
 	}
 }
