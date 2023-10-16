@@ -26,14 +26,18 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 		String operationValue = operation == Operation.CREDIT ? operation.toString() : Operation.DEBIT.toString();
 		try (Connection connection = connectionProvider.takeConnection();
 			 PreparedStatement statementToChangePlayerBalance = connection.prepareStatement(
-					 "UPDATE wallet_service.players SET balance = ? WHERE player_id = ?")) {
-
+					 "UPDATE wallet_service.players SET balance = ? WHERE player_id = ?")
+		) {
 			statementToChangePlayerBalance.setDouble(1, newPlayerAmount);
 			statementToChangePlayerBalance.setInt(2, playerID);
 			statementToChangePlayerBalance.executeUpdate();
 
-			recordTransactionInPlayerHistory(playerID, operationValue,
-					transactionalToken, newPlayerAmount);
+			recordTransactionInPlayerHistory(
+					playerID,
+					operationValue,
+					transactionalToken,
+					newPlayerAmount
+			);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -104,12 +108,16 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	 * @param transactionalToken Unique Transaction Token
 	 * @param newPlayerAmount    New player balance.
 	 */
-	private void recordTransactionInPlayerHistory(int playerID, String operation,
-												  String transactionalToken, double newPlayerAmount) {
+	private void recordTransactionInPlayerHistory(int playerID,
+												  String operation,
+												  String transactionalToken,
+												  double newPlayerAmount
+	) {
 		try (Connection connection = connectionProvider.takeConnection();
 			 PreparedStatement statement = connection.prepareStatement(
 					 "INSERT INTO wallet_service.transaction (record, player_id, token) " +
-							 "VALUES (?, ?, ?)");) {
+							 "VALUES (?, ?, ?)")
+		) {
 
 			statement.setString(1, String.format("*****************-%s-*****************\n" +
 							"\t-- Transaction number: %s\n" +
