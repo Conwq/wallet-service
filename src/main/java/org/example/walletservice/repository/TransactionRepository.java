@@ -8,13 +8,6 @@ import java.util.List;
  * Shows the amount of funds on the account, displays the history of transactions and makes a debit/credit.
  */
 public interface TransactionRepository {
-	/**
-	 * Gets the player's balance in the form of a line.
-	 *
-	 * @param playerID The ID of the player whose balance you want to receive.
-	 * @return String representation of the player's balance.
-	 */
-	double findPlayerBalanceByPlayerID(int playerID);
 
 	/**
 	 * Carries out the operation of replenishment of the player's balance.

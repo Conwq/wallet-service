@@ -22,4 +22,12 @@ public interface PlayerRepository {
 	 * @param player to register.
 	 */
 	int registrationPayer(Player player);
+
+	/**
+	 * Gets the player's balance in the form of a line.
+	 *
+	 * @param playerID The ID of the player whose balance you want to receive.
+	 * @return String representation of the player's balance.
+	 */
+	double findPlayerBalanceByPlayerID(int playerID);
 }

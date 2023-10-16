@@ -61,10 +61,13 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 		ResultSet resultSet = null;
 		try (Connection connection = connectionProvider.takeConnection();
 			 PreparedStatement statementToSaveUser = connection.prepareStatement(
-					 "INSERT INTO wallet_service.players(username, password, role_id) VALUES(?, ?, 1)",
-					 Statement.RETURN_GENERATED_KEYS);
+					 "INSERT INTO wallet_service.players(username, password, balance, role_id) " +
+							 "VALUES(?, ?, 0.0, 1)", Statement.RETURN_GENERATED_KEYS
+			 );
+
 			 PreparedStatement statementCreateNewBalance = connection.prepareStatement(
-					 "INSERT INTO wallet_service.transaction(player_id) VALUES (?)")) {
+					 "INSERT INTO wallet_service.transaction(player_id) VALUES (?)")
+		) {
 
 			statementToSaveUser.setString(1, player.getUsername());
 			statementToSaveUser.setString(2, player.getPassword());
@@ -78,6 +81,37 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			statementCreateNewBalance.executeUpdate();
 
 			return playerID;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (resultSet != null) {
+				try {
+					resultSet.close();
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double findPlayerBalanceByPlayerID(int playerID) {
+		ResultSet resultSet = null;
+		try (Connection connection = connectionProvider.takeConnection();
+			 PreparedStatement statement = connection.prepareStatement(
+					 "SELECT balance FROM wallet_service.players WHERE player_id = ?")) {
+
+			statement.setInt(1, playerID);
+			resultSet = statement.executeQuery();
+
+			if (resultSet.next()) {
+				return resultSet.getDouble(1);
+			} else {
+				throw new RuntimeException("No balance found for player.");
+			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} finally {

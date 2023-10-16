@@ -8,13 +8,6 @@ import org.example.walletservice.model.entity.Player;
 public interface TransactionService {
 
 	/**
-	 * Gets the balance of a player.
-	 *
-	 * @param player The player for whom the balance is requested.
-	 */
-	void displayPlayerBalance(Player player);
-
-	/**
 	 * Credits a player's account.
 	 *
 	 * @param player The player to which the account is credited.

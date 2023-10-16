@@ -6,7 +6,7 @@
          https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
         logicalFilePath="changelog.xml">
 
-    <changeSet id="1" author="Sergey.Patseev">
+    <changeSet id="change-miration-schema" author="Sergey.Patseev">
         <sql>
             ALTER TABLE public.databasechangelog SET SCHEMA migration;
 

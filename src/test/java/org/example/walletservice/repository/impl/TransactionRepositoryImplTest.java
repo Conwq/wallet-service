@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 import java.util.ArrayList;
 import java.util.List;
 
+@Disabled
 class TransactionRepositoryImplTest {
 	private TransactionRepository transactionRepository;
 	private final ConnectionProvider connectionProvider = Mockito.mock(ConnectionProvider.class);
@@ -27,17 +28,15 @@ class TransactionRepositoryImplTest {
 		player = Player.builder().playerID(1).username("user123").password("1313").role(Role.USER).build();
 	}
 
-	@Test
-	@Disabled
-	public void shouldGetPlayerBalance_successful() {
-//		Mockito.when(transactionDatabase.findPlayerBalanceByUsername(player.getUsername())).thenReturn(AMOUNT);
+//	@Test
+//	public void shouldGetPlayerBalance_successful() {
+////		Mockito.when(transactionDatabase.findPlayerBalanceByUsername(player.getUsername())).thenReturn(AMOUNT);
+//
+//		double expected = .findPlayerBalanceByPlayerID(player.getPlayerID());
+//		AssertionsForClassTypes.assertThat(expected).isEqualTo(AMOUNT);
+//	}
 
-		double expected = transactionRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
-		AssertionsForClassTypes.assertThat(expected).isEqualTo(AMOUNT);
-	}
-
 	@Test
-	@Disabled
 	public void shouldCredit_successful(){
 		List<String> transactionHistory = new ArrayList<>();
 
@@ -57,7 +56,6 @@ class TransactionRepositoryImplTest {
 	}
 
 	@Test
-	@Disabled
 	public void shouldDebit_successful(){
 		List<String> transactionHistory = new ArrayList<>();
 
@@ -78,7 +76,6 @@ class TransactionRepositoryImplTest {
 	}
 
 	@Test
-	@Disabled
 	public void shouldGetTransactionalHistory_successful(){
 		List<String> transactionalHistory = new ArrayList<>(){{
 			add("Transactional #1");

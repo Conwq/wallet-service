@@ -1,7 +1,7 @@
 package org.example.walletservice.repository.impl;
 
-import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.repository.TransactionRepository;
+import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 
 import java.sql.Connection;
@@ -22,42 +22,11 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public double findPlayerBalanceByPlayerID(int playerID) {
-		ResultSet resultSet = null;
-		try (Connection connection = connectionProvider.takeConnection();
-			 PreparedStatement statement = connection.prepareStatement(
-					 "SELECT balance FROM wallet_service.transaction WHERE player_id = ?")) {
-
-			statement.setInt(1, playerID);
-			resultSet = statement.executeQuery();
-
-			if (resultSet.next()) {
-				return resultSet.getDouble(1);
-			} else {
-				throw new RuntimeException("No balance found for player.");
-			}
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		} finally {
-			if (resultSet != null) {
-				try {
-					resultSet.close();
-				} catch (SQLException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public void creditOrDebit(double newPlayerAmount, int playerID, String transactionalToken, Operation operation) {
 		String operationValue = operation == Operation.CREDIT ? operation.toString() : Operation.DEBIT.toString();
 		try (Connection connection = connectionProvider.takeConnection();
 			 PreparedStatement statementToChangePlayerBalance = connection.prepareStatement(
-					 "UPDATE wallet_service.transaction SET balance = ? WHERE player_id = ?")) {
+					 "UPDATE wallet_service.players SET balance = ? WHERE player_id = ?")) {
 
 			statementToChangePlayerBalance.setDouble(1, newPlayerAmount);
 			statementToChangePlayerBalance.setInt(2, playerID);
@@ -108,8 +77,10 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			statement.setInt(1, playerID);
 			resultSet = statement.executeQuery();
 			List<String> transactionHistory = new ArrayList<>();
-			while (resultSet.next() && resultSet.getString("record") != null) {
-				transactionHistory.add(resultSet.getString("record"));
+			while (resultSet.next()) {
+				if (resultSet.getString("record") != null) {
+					transactionHistory.add(resultSet.getString("record"));
+				}
 			}
 			return transactionHistory;
 		} catch (SQLException e) {

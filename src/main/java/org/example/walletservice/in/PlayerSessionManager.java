@@ -103,8 +103,14 @@ public final class PlayerSessionManager {
 	private void executeCommandAccordingUserChoice(int userInputValue, Player player) {
 		switch (userInputValue) {
 			case 1 -> frontController.displayPlayerBalance(player);
-			case 2 -> frontController.credit(player);
-			case 3 -> frontController.debit(player);
+			case 2 -> {
+				System.out.print("Please enter the amount credit: ");
+				frontController.credit(player);
+			}
+			case 3 -> {
+				System.out.print("Enter the amount to withdraw funds: ");
+				frontController.debit(player);
+			}
 			case 4 -> frontController.displayPlayerTransactionalHistory(player);
 			case 5 -> displayLogOptions(player);
 		}

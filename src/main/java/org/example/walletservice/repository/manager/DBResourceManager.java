@@ -7,10 +7,10 @@ public class DBResourceManager {
 	private final ResourceBundle resourceBundle;
 
 	public DBResourceManager() {
-		this.resourceBundle = ResourceBundle.getBundle("database");
+		this.resourceBundle = ResourceBundle.getBundle("liquibase");
 	}
 
-	public String getValue(DBParameter parameter) {
-		return resourceBundle.getString(parameter.toString());
+	public String getValue(String key) {
+		return resourceBundle.getString(key);
 	}
 }

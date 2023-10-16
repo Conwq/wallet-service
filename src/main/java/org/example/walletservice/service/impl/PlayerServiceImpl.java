@@ -15,11 +15,11 @@ import java.util.Optional;
  * for player registration, login, balance management, credit, debit, transaction history,
  * and log display.
  */
-public final class PlayerAccessServiceImpl implements PlayerAccessService {
+public final class PlayerServiceImpl implements PlayerAccessService {
 	private final PlayerRepository playerRepository;
 	private final LoggerService loggerService;
 
-	public PlayerAccessServiceImpl(PlayerRepository playerRepository, LoggerService loggerService) {
+	public PlayerServiceImpl(PlayerRepository playerRepository, LoggerService loggerService) {
 		this.playerRepository = playerRepository;
 		this.loggerService = loggerService;
 	}
@@ -67,5 +67,16 @@ public final class PlayerAccessServiceImpl implements PlayerAccessService {
 		}
 		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
 		return player;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void displayPlayerBalance(Player player) {
+		double balance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+		System.out.printf("\n*Balance -- %s*\n\n", balance);
+
+		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
 	}
 }

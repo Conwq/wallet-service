@@ -1,6 +1,7 @@
 package org.example.walletservice.service.impl;
 
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;
@@ -16,24 +17,16 @@ public final class TransactionServiceImpl implements TransactionService {
 	private final LoggerService loggerService;
 	private final Cleaner cleaner;
 	private final TransactionRepository transactionRepository;
+	private final PlayerRepository playerRepository;
 
 	public TransactionServiceImpl(Scanner scanner, LoggerService loggerService,
-								  Cleaner cleaner, TransactionRepository transactionRepository) {
+								  Cleaner cleaner, TransactionRepository transactionRepository,
+								  PlayerRepository playerRepository) {
 		this.scanner = scanner;
 		this.loggerService = loggerService;
 		this.cleaner = cleaner;
 		this.transactionRepository = transactionRepository;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void displayPlayerBalance(Player player) {
-		double balance = transactionRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
-		System.out.printf("\n*Balance -- %s*\n\n", balance);
-
-		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
+		this.playerRepository = playerRepository;
 	}
 
 	/**
@@ -41,13 +34,11 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void credit(Player player) {
-		System.out.print("Please enter the amount credit: ");
-
 		double amountTransaction;
 		String transactionalToken;
 		if (scanner.hasNextDouble() && ((amountTransaction = scanner.nextDouble()) >= 0.0)
 				&& (transactionalToken = checkingEnteredUserToken()) != null) {
-			double playerBalance = transactionRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+			double playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 			double newPlayerBalance = playerBalance + amountTransaction;
 			transactionRepository.creditOrDebit(newPlayerBalance, player.getPlayerID(),
 					transactionalToken, Operation.CREDIT);
@@ -65,14 +56,12 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void debit(Player player) {
-		System.out.print("Enter the amount to withdraw funds: ");
-
 		double inputPlayerAmount;
 		String transactionalToken;
 		if (scanner.hasNextDouble() && ((inputPlayerAmount = scanner.nextDouble()) >= 0.0)
 				&& (transactionalToken = checkingEnteredUserToken()) != null) {
 
-			double currentAmountOfFundsInAccount = transactionRepository
+			double currentAmountOfFundsInAccount = playerRepository
 					.findPlayerBalanceByPlayerID(player.getPlayerID());
 			if (currentAmountOfFundsInAccount - inputPlayerAmount < 0.0) {
 				System.out.println("\n*{{FAIL}} There are not enough funds in the account!*\n");

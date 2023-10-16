@@ -21,8 +21,11 @@
             </column>
             <column name="username" type="VARCHAR(50)"/>
             <column name="password" type="VARCHAR(50)"/>
+            <column name="balance" type="DOUBLE PRECISION"
+                    defaultValue="0.0"/>
             <column name="role_id" type="INT">
-                <constraints foreignKeyName="fk_players_roles" references="wallet_service.roles(role_id)"/>
+                <constraints foreignKeyName="fk_players_roles"
+                             references="wallet_service.roles(role_id)"/>
             </column>
         </createTable>
     </changeSet>
@@ -34,21 +37,22 @@
             </column>
             <column name="record" type="VARCHAR(200)"/>
             <column name="player_id" type="INT">
-                <constraints foreignKeyName="fk_transaction_players" references="wallet_service.players(player_id)"/>
+                <constraints foreignKeyName="fk_transaction_players"
+                             references="wallet_service.players(player_id)"/>
             </column>
             <column name="token" type="VARCHAR(100)"/>
-            <column name="balance" type="DOUBLE PRECISION" defaultValue="0.0"/>
         </createTable>
     </changeSet>
 
     <changeSet id="4" author="Sergey.Patseev">
         <createTable schemaName="wallet_service" tableName="log">
             <column name="log_id" type="SERIAL">
-                <constraints primaryKey="true" />
+                <constraints primaryKey="true"/>
             </column>
-            <column name="log" type="VARCHAR(255)" />
+            <column name="log" type="VARCHAR(255)"/>
             <column name="player_id" type="INT">
-                <constraints foreignKeyName="fk_log_players" references="wallet_service.players(player_id)" />
+                <constraints foreignKeyName="fk_log_players"
+                             references="wallet_service.players(player_id)"/>
             </column>
         </createTable>
     </changeSet>

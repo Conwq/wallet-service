@@ -38,7 +38,7 @@ public final class FrontController {
 	 * Player balance display
 	 */
 	public void displayPlayerBalance(Player player) {
-		transactionService.displayPlayerBalance(player);
+		playerAccessService.displayPlayerBalance(player);
 	}
 
 	/**

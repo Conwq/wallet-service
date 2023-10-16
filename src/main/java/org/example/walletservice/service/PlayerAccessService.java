@@ -24,4 +24,10 @@ public interface PlayerAccessService {
 	 */
 	Player logIn(String username, String password);
 
+	/**
+	 * Gets the balance of a player.
+	 *
+	 * @param player The player for whom the balance is requested.
+	 */
+	void displayPlayerBalance(Player player);
 }

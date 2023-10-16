@@ -17,7 +17,7 @@ import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.PlayerAccessService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.impl.LoggerServiceImpl;
-import org.example.walletservice.service.impl.PlayerAccessServiceImpl;
+import org.example.walletservice.service.impl.PlayerServiceImpl;
 import org.example.walletservice.service.impl.TransactionServiceImpl;
 import org.example.walletservice.util.Cleaner;
 
@@ -28,6 +28,9 @@ import java.util.Scanner;
  */
 public class ApplicationContextHolder {
 	private static ApplicationContextHolder instance;
+	private static final String URL = "url";
+	private static final String USERNAME = "username";
+	private static final String PASSWORD = "password";
 
 	final Scanner scanner = new Scanner(System.in);
 	final Cleaner cleaner = new Cleaner();
@@ -35,7 +38,11 @@ public class ApplicationContextHolder {
 	final OperationChooserVerification operationChooserVerification =
 			new OperationChooserVerification(scanner, cleaner);
 	final DBResourceManager resourceManager = new DBResourceManager();
-	final ConnectionProvider connectionProvider = new ConnectionProvider(resourceManager);
+	final ConnectionProvider connectionProvider = new ConnectionProvider(
+			resourceManager.getValue(URL),
+			resourceManager.getValue(USERNAME),
+			resourceManager.getValue(PASSWORD)
+	);
 
 	final PlayerRepository playerRepository = new PlayerRepositoryImpl(connectionProvider);
 	final TransactionRepository transactionRepository = new TransactionRepositoryImpl(connectionProvider);
@@ -44,9 +51,9 @@ public class ApplicationContextHolder {
 	final LoggerService loggerService =
 			new LoggerServiceImpl(loggerRepository, playerRepository);
 	final TransactionService transactionService = new TransactionServiceImpl(scanner,
-			loggerService, cleaner, transactionRepository);
+			loggerService, cleaner, transactionRepository, playerRepository);
 	final PlayerAccessService playerAccessService =
-			new PlayerAccessServiceImpl(playerRepository, loggerService);
+			new PlayerServiceImpl(playerRepository, loggerService);
 
 	final FrontController frontController =
 			new FrontController(playerAccessService, transactionService, loggerService);

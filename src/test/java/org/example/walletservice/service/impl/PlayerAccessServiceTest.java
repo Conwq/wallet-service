@@ -30,7 +30,7 @@ class PlayerAccessServiceTest {
 
 	@BeforeEach
 	public void setUp() {
-		playerAccessService = new PlayerAccessServiceImpl(playerRepository, loggerService);
+		playerAccessService = new PlayerServiceImpl(playerRepository, loggerService);
 
 		player = Player.builder()
 				.playerID(1)
@@ -105,4 +105,17 @@ class PlayerAccessServiceTest {
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("{{FAIL}} Incorrect password!");
 		AssertionsForClassTypes.assertThat(expected).isNull();
 	}
+
+
+	@Test
+	public void shouldGetBalancePlayer_successful() {
+		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(100.0);
+
+		playerAccessService.displayPlayerBalance(player);
+
+		Mockito.verify(playerRepository, Mockito.times(1))
+				.findPlayerBalanceByPlayerID(player.getPlayerID());
+		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Balance -- " + 100.0);
+	}
+
 }

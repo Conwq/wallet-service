@@ -3,6 +3,7 @@ package org.example.walletservice.service.impl;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.util.Cleaner;
@@ -23,6 +24,7 @@ class TransactionServiceTest {
 	private final Scanner scanner = Mockito.mock(Scanner.class);
 	private final LoggerServiceImpl LoggerServiceImpl = Mockito.mock(LoggerServiceImpl.class);
 	private final TransactionRepository transactionRepository = Mockito.mock(TransactionRepository.class);
+	private final PlayerRepository playerRepository = Mockito.mock(PlayerRepository.class);
 	private final Cleaner cleaner = Mockito.mock(Cleaner.class);
 	private TransactionService transactionService;
 	private static final double BALANCE = 10000;
@@ -35,7 +37,8 @@ class TransactionServiceTest {
 
 	@BeforeEach
 	public void setUp() {
-		transactionService = new TransactionServiceImpl(scanner, LoggerServiceImpl, cleaner, transactionRepository);
+		transactionService = new TransactionServiceImpl(scanner, LoggerServiceImpl, cleaner, transactionRepository,
+				playerRepository);
 
 		player = Player.builder()
 				.playerID(1)
@@ -55,17 +58,6 @@ class TransactionServiceTest {
 	public void tearDown() {
 		System.setOut(origOut);
 		System.setIn(origIn);
-	}
-
-	@Test
-	public void shouldGetBalancePlayer_successful() {
-		Mockito.when(transactionRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(BALANCE);
-
-		transactionService.displayPlayerBalance(player);
-
-		Mockito.verify(transactionRepository, Mockito.times(1))
-				.findPlayerBalanceByPlayerID(player.getPlayerID());
-		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Balance -- " + BALANCE);
 	}
 
 	@Test
@@ -102,7 +94,7 @@ class TransactionServiceTest {
 		Mockito.when(scanner.nextDouble()).thenReturn(AMOUNT);
 		Mockito.when(scanner.nextLine()).thenReturn(TRANSACTIONAL_TOKEN);
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
-		Mockito.when(transactionRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(200.0);
+		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(200.0);
 
 		transactionService.debit(player);
 
