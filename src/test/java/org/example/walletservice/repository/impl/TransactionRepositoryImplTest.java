@@ -13,7 +13,10 @@ import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
@@ -21,9 +24,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 class TransactionRepositoryImplTest {
-	private static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-			"postgres:latest"
-	);
 	private static final String TRANSACTION_OUTPUT_FORMAT = "*****************-%s-*****************\n" +
 			"\t-- Transaction number: %s\n" +
 			"\t-- Your balance after transaction: %s\n" +
@@ -33,15 +33,20 @@ class TransactionRepositoryImplTest {
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;
 	private static Player player;
+	private static final String ADMIN = "admin";
+	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
+	static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
+			"postgres:latest"
+	);
 
 	@BeforeAll
 	static void beforeAll() {
-		postgres.start();
+		POSTGRESQL.start();
 
 		ConnectionProvider connectionProvider = new ConnectionProvider(
-				postgres.getJdbcUrl(),
-				postgres.getUsername(),
-				postgres.getUsername()
+				POSTGRESQL.getJdbcUrl(),
+				POSTGRESQL.getUsername(),
+				POSTGRESQL.getUsername()
 		);
 
 		try (Connection connection = connectionProvider.takeConnection()) {
@@ -50,7 +55,7 @@ class TransactionRepositoryImplTest {
 					.findCorrectDatabaseImplementation(new JdbcConnection(connection));
 
 			Liquibase liquibase = new Liquibase(
-					"changelog/changelog.xml",
+					PATH_TO_CHANGELOG,
 					new ClassLoaderResourceAccessor(),
 					database
 			);
@@ -65,21 +70,21 @@ class TransactionRepositoryImplTest {
 
 	@AfterAll
 	static void afterAll() {
-		postgres.stop();
+		POSTGRESQL.stop();
 	}
 
 	@BeforeEach
 	void setUp() {
 		ConnectionProvider connectionProvider = new ConnectionProvider(
-				postgres.getJdbcUrl(),
-				postgres.getUsername(),
-				postgres.getUsername()
+				POSTGRESQL.getJdbcUrl(),
+				POSTGRESQL.getUsername(),
+				POSTGRESQL.getUsername()
 		);
 		playerRepository = new PlayerRepositoryImpl(connectionProvider);
 
 		player = Player.builder().playerID(1)
-				.username("admin")
-				.password("admin")
+				.username(ADMIN)
+				.password(ADMIN)
 				.role(Role.ADMIN).build();
 	}
 

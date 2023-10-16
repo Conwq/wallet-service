@@ -24,9 +24,9 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	public void recordAction(int playerID, String playerAction) {
 		try (Connection connection = connectionProvider.takeConnection();
 			 PreparedStatement statement = connection.prepareStatement(
-					 "INSERT INTO wallet_service.log(log, player_id) VALUES (?, ?)")) {
-			statement.setString(1, playerAction);
-			statement.setInt(2, playerID);
+					 "INSERT INTO wallet_service.log(player_id, log) VALUES (?, ?)")) {
+			statement.setInt(1, playerID);
+			statement.setString(2, playerAction);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);

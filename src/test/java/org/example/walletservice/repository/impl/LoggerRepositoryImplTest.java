@@ -9,10 +9,11 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
+import org.example.walletservice.service.enums.Status;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,17 +22,16 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Optional;
+import java.util.List;
 
-class PlayerRepositoryImplTest {
+class LoggerRepositoryImplTest {
+	private static LoggerRepository loggerRepository;
 	private static PlayerRepository playerRepository;
-	private static TransactionRepository transactionRepository;
 	private static Player player;
+	private static final String LOG_FORMAT = "--Operation: %s; \t--User: %s; \t--Status: %s.";
 	private static final String ADMIN = "admin";
 	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
 	private static final String TEST = "test";
-	private static final String NOT_EXIST = "not_exist";
-	private static final String TRANSACTION_TOKEN = "transaction_token";
 	static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
 			"postgres:latest"
 	);
@@ -54,12 +54,13 @@ class PlayerRepositoryImplTest {
 					new ClassLoaderResourceAccessor(),
 					database
 			);
+
 			liquibase.update();
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
+		loggerRepository = new LoggerRepositoryImpl(connectionProvider);
 		playerRepository = new PlayerRepositoryImpl(connectionProvider);
-		transactionRepository = new TransactionRepositoryImpl(connectionProvider);
 	}
 
 	@AfterAll
@@ -72,61 +73,62 @@ class PlayerRepositoryImplTest {
 		player = Player.builder().playerID(2)
 				.username(TEST)
 				.password(TEST)
-				.role(Role.USER).build();
+				.role(Role.ADMIN).build();
 	}
 
 	@Test
-	public void shouldFindPlayer_returnPlayer() {
-		//when
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(ADMIN);
-
-		//then
-		AssertionsForClassTypes.assertThat(optionalPlayer).isNotEmpty();
-	}
-
-	@Test
-	public void shouldFindPlayer_returnEmptyPlayer() {
-		//when
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(NOT_EXIST);
-
-		//then
-		AssertionsForClassTypes.assertThat(optionalPlayer).isEmpty();
-	}
-
-	@Test
-	public void shouldRegistrationPlayer_successful() {
-		//when
-		int expectedPlayerID = playerRepository.registrationPayer(player);
-
-		//then
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(player.getUsername());
-		Player expected = optionalPlayer.get();
-		AssertionsForClassTypes.assertThat(player).isEqualTo(expected);
-		AssertionsForClassTypes.assertThat(2).isEqualTo(expectedPlayerID);
-	}
-
-	@Test
-	public void shouldGetBalanceByPlayerID() {
-		//when
-		double expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayerID(1);
-		//then
-		AssertionsForClassTypes.assertThat(0.0).isEqualTo(expectedBalancePlayer);
-	}
-
-	@Test
-	public void shouldReceiveBalanceByPlayerIDAfterDepositing() {
+	public void shouldReturnAllActivity() {
 		//given
-		transactionRepository.creditOrDebit(
-				100.0,
-				player.getPlayerID(),
-				TRANSACTION_TOKEN,
-				Operation.CREDIT
-		);
+		playerRepository.registrationPayer(player);
+
+		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, player.getUsername(), Status.SUCCESSFUL);
+		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
+
+		loggerRepository.recordAction(player.getPlayerID(), firstRecord);
+		loggerRepository.recordAction(player.getPlayerID(), secondRecord);
 
 		//when
-		double expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+		List<String> allLog = loggerRepository.findAllActivityRecords();
 
 		//then
-		AssertionsForClassTypes.assertThat(100.0).isEqualTo(expectedBalancePlayer);
+		AssertionsForClassTypes.assertThat(allLog).asList().contains(firstRecord, secondRecord);
+	}
+
+	@Test
+	public void shouldRecordAction() {
+		//given
+		String playerActionRecord = String.format(LOG_FORMAT, Operation.DEBIT, ADMIN, Status.SUCCESSFUL);
+
+		//when
+		loggerRepository.recordAction(1, playerActionRecord);
+
+		//then
+		List<String> playerAction = loggerRepository.findActivityRecordsForPlayer(1);
+		AssertionsForClassTypes.assertThat(playerAction).asList().contains(playerActionRecord);
+	}
+
+	@Test
+	public void shouldReturnEmptyRecordAction() {
+		//when
+		List<String> recordAction = loggerRepository.findActivityRecordsForPlayer(13);
+
+		//then
+		AssertionsForClassTypes.assertThat(recordAction).asList().isEmpty();
+	}
+
+	@Test
+	public void shouldReturnRecordActionForPlayer() {
+		//given
+		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, ADMIN, Status.SUCCESSFUL);
+		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
+
+		loggerRepository.recordAction(1, firstRecord);
+		loggerRepository.recordAction(1, secondRecord);
+
+		//when
+		List<String> recordAction = loggerRepository.findActivityRecordsForPlayer(1);
+
+		//then
+		AssertionsForClassTypes.assertThat(recordAction).asList().contains(firstRecord, secondRecord);
 	}
 }
