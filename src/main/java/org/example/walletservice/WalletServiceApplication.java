@@ -21,26 +21,41 @@ public final class WalletServiceApplication {
 	private static final ConnectionProvider connectionProvider = context.getConnectionProvider();
 
 	static {
-		try (Connection connection = connectionProvider.takeConnection()) {
-			connection.createStatement().executeUpdate("CREATE SCHEMA migration");
+		performingDatabaseMigration();
+	}
+
+	public static void main(String... args) {
+
+		MainMenu mainMenu = context.getMainMenu();
+		mainMenu.start();
+	}
+
+	/**
+	 * Performing a Database Migration
+	 */
+	private static void performingDatabaseMigration(){
+		Connection connection = null;
+		Statement statement = null;
+
+		try {
+			connection = connectionProvider.takeConnection();
+			statement = connection.createStatement();
+			statement.executeUpdate("CREATE SCHEMA migration");
+			connection.commit();
+
 			Database database = DatabaseFactory.getInstance()
 					.findCorrectDatabaseImplementation(new JdbcConnection(connection));
 			database.setLiquibaseSchemaName("migration");
 
-			Liquibase liquibase = new Liquibase(
-					"changelog/changelog.xml",
-					new ClassLoaderResourceAccessor(),
-					database
-			);
-
+			Liquibase liquibase = new Liquibase("changelog/changelog.xml", new ClassLoaderResourceAccessor(),
+					database);
+			liquibase.getDatabase().setDefaultSchemaName("wallet_service");
 			liquibase.update();
 		} catch (Exception e) {
+			connectionProvider.rollbackCommit(connection);
 			e.printStackTrace();
+		} finally {
+			connectionProvider.closeConnection(connection, statement);
 		}
-	}
-
-	public static void main(String... args) {
-		MainMenu mainMenu = context.getMainMenu();
-		mainMenu.start();
 	}
 }

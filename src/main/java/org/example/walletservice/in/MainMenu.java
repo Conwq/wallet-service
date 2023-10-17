@@ -14,11 +14,8 @@ public final class MainMenu {
 	private final OperationChooserVerification operationChooserVerification;
 	private final Scanner scanner;
 
-	public MainMenu(PlayerRegistrationHandler playerRegistrationHandler,
-					PlayerSessionManager playerSessionManager,
-					OperationChooserVerification operationChooserVerification,
-					Scanner scanner
-	) {
+	public MainMenu(PlayerRegistrationHandler playerRegistrationHandler, PlayerSessionManager playerSessionManager,
+					OperationChooserVerification operationChooserVerification, Scanner scanner) {
 		this.playerRegistrationHandler = playerRegistrationHandler;
 		this.playerSessionManager = playerSessionManager;
 		this.operationChooserVerification = operationChooserVerification;
@@ -34,7 +31,6 @@ public final class MainMenu {
 		do {
 			System.out.println("1. Registration\n2. Log in\n3. Exit\n");
 			int userInputValue = operationChooserVerification.userDataVerification(3);
-
 			switch (userInputValue) {
 				case 1 -> playerRegistrationHandler.registrationPlayer();
 				case 2 -> playerSessionManager.logIn();

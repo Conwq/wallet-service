@@ -92,7 +92,9 @@ public record ConnectionProvider(String url, String username, String password) {
 
 	public void rollbackCommit(Connection connection) {
 		try {
-			connection.rollback();
+			if (connection != null) {
+				connection.rollback();
+			}
 		} catch (SQLException ex) {
 			throw new RuntimeException(ex);
 		}

@@ -3,7 +3,6 @@ package org.example.walletservice.model.entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.example.walletservice.model.Role;
 
 /**
@@ -12,7 +11,6 @@ import org.example.walletservice.model.Role;
  */
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public final class Player {
 	private Integer playerID;
