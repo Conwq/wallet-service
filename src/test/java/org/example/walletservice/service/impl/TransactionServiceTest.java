@@ -3,10 +3,10 @@ package org.example.walletservice.service.impl;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.TransactionService;
-import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,7 +66,7 @@ class TransactionServiceTest {
 		transactionService.credit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
 		Mockito.verify(transactionRepository, Mockito.times(1))
-				.creditOrDebit(AMOUNT, player.getPlayerID(), TRANSACTIONAL_TOKEN, Operation.CREDIT);
+				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(Double.class));
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Credit successfully.");
 	}
 
@@ -79,7 +79,7 @@ class TransactionServiceTest {
 		AssertionsForClassTypes.assertThat(outputStream.toString())
 				.contains("{{FAIL}} A transaction with this number already exists!");
 		Mockito.verify(transactionRepository, Mockito.never())
-				.creditOrDebit(AMOUNT, player.getPlayerID(), TRANSACTIONAL_TOKEN, Operation.DEBIT);
+				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(Double.class));
 	}
 
 	@Test
@@ -90,7 +90,7 @@ class TransactionServiceTest {
 		transactionService.debit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
 		Mockito.verify(transactionRepository, Mockito.times(1))
-				.creditOrDebit(AMOUNT, player.getPlayerID(), TRANSACTIONAL_TOKEN, Operation.DEBIT);
+				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(Double.class));
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Debit successfully.");
 	}
 
@@ -101,7 +101,7 @@ class TransactionServiceTest {
 		transactionService.debit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
 		Mockito.verify(transactionRepository, Mockito.never())
-				.creditOrDebit(AMOUNT, player.getPlayerID(), TRANSACTIONAL_TOKEN, Operation.DEBIT);
+				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(Double.class));
 		AssertionsForClassTypes.assertThat(outputStream.toString())
 				.contains("{{FAIL}} A transaction with this number already exists!");
 	}

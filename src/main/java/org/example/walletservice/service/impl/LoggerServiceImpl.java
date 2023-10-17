@@ -1,5 +1,6 @@
 package org.example.walletservice.service.impl;
 
+import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
@@ -25,9 +26,15 @@ public class LoggerServiceImpl implements LoggerService {
 	 */
 	@Override
 	public void recordActionInLog(Operation operation, Player player, Status status) {
-		loggerRepository.recordAction(player.getPlayerID(),
-				String.format("--Operation: %s; \t--User: %s; \t--Status: %s.",
-						operation.toString(), player.getUsername(), status.toString()));
+		String formatLog = String.format("*****************\n-- Operation: %s;\n-- User: %s;\n-- Status: %s.\n",
+				operation.toString(), player.getUsername(), status.toString());
+
+		Log log = Log.builder()
+				.log(formatLog)
+				.playerID(player.getPlayerID())
+				.build();
+
+		loggerRepository.recordAction(log);
 	}
 
 	/**
@@ -35,7 +42,7 @@ public class LoggerServiceImpl implements LoggerService {
 	 */
 	@Override
 	public void showAllLogs(Player player) {
-		List<String> playersRecords = loggerRepository.findAllActivityRecords();
+		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
 
 		if (playersRecords.isEmpty()) {
 			System.out.println("\n*No logs.*\n");
@@ -43,10 +50,9 @@ public class LoggerServiceImpl implements LoggerService {
 			return;
 		}
 
-		for (String record : playersRecords) {
-			System.out.println(record);
+		for (Log log : playersRecords) {
+			System.out.println(log.getLog());
 		}
-		System.out.println();
 		recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
 	}
 
@@ -57,21 +63,20 @@ public class LoggerServiceImpl implements LoggerService {
 	public void showLogsByUsername(Player player, String inputUsernameForSearch) {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
 		if (optionalPlayer.isEmpty()) {
-			System.out.printf("\n*Player %s not found*\n", inputUsernameForSearch);
+			System.out.printf("*Player %s not found*\n", inputUsernameForSearch);
 			return;
 		}
 
 		Player findPlayer = optionalPlayer.get();
 
-		List<String> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
+		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
 		if (playerLogs.isEmpty()) {
-			System.out.printf("\n*No logs for player %s*\n", inputUsernameForSearch);
+			System.out.printf("*No logs for player %s*\n", inputUsernameForSearch);
 			return;
 		}
-		for (String record : playerLogs) {
-			System.out.println(record);
+		for (Log log : playerLogs) {
+			System.out.println(log.getLog());
 		}
-		System.out.println();
 		recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
 	}
 }

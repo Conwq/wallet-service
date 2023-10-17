@@ -2,20 +2,20 @@ package org.example.walletservice.controller;
 
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.service.LoggerService;
-import org.example.walletservice.service.PlayerAccessService;
+import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.TransactionService;
 
 /**
  * Controller class to perform player operations.
  */
 public final class FrontController {
-	private final PlayerAccessService playerAccessService;
+	private final PlayerService playerService;
 	private final TransactionService transactionService;
 	private final LoggerService loggerService;
 
-	public FrontController(PlayerAccessService playerAccessService, TransactionService transactionService,
+	public FrontController(PlayerService playerService, TransactionService transactionService,
 						   LoggerService loggerService) {
-		this.playerAccessService = playerAccessService;
+		this.playerService = playerService;
 		this.transactionService = transactionService;
 		this.loggerService = loggerService;
 	}
@@ -27,7 +27,7 @@ public final class FrontController {
 	 * @param password Registration password
 	 */
 	public void registrationPlayer(String username, String password) {
-		playerAccessService.registrationPlayer(username, password);
+		playerService.registrationPlayer(username, password);
 	}
 
 	/**
@@ -37,14 +37,14 @@ public final class FrontController {
 	 * @param password Login password
 	 */
 	public Player logIn(String username, String password) {
-		return playerAccessService.logIn(username, password);
+		return playerService.logIn(username, password);
 	}
 
 	/**
 	 * Player balance display
 	 */
 	public void displayPlayerBalance(Player player) {
-		playerAccessService.displayPlayerBalance(player);
+		playerService.displayPlayerBalance(player);
 	}
 
 	/**

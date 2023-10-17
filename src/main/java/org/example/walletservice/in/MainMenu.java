@@ -26,7 +26,7 @@ public final class MainMenu {
 	 * Launches the main menu and allows users to enter registration/login/exit.
 	 */
 	public void start() {
-		System.out.println("\n\t***Hello!***\n");
+		System.out.println("***Hello!***\n");
 		boolean exit = false;
 		do {
 			System.out.println("1. Registration\n2. Log in\n3. Exit\n");
@@ -35,7 +35,7 @@ public final class MainMenu {
 				case 1 -> playerRegistrationHandler.registrationPlayer();
 				case 2 -> playerSessionManager.logIn();
 				case 3 -> {
-					System.out.println("\nGood bye!\n");
+					System.out.println("Good bye!\n");
 					exit = true;
 					scanner.close();
 				}

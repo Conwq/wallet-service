@@ -9,11 +9,15 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
@@ -24,39 +28,32 @@ class PlayerRepositoryImplTest {
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;
 	private static Player player;
+	private static Transaction transaction;
 	private static final String ADMIN = "admin";
 	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
 	private static final String TEST = "test";
 	private static final String NOT_EXIST = "not_exist";
 	private static final String TRANSACTION_TOKEN = "transaction_token";
-	static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
-			"postgres:latest"
-	);
+	private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>("postgres:latest");
 
 	@BeforeAll
 	static void beforeAll() {
 		POSTGRESQL.start();
-
 		ConnectionProvider connectionProvider = new ConnectionProvider(
 				POSTGRESQL.getJdbcUrl(),
 				POSTGRESQL.getUsername(),
-				POSTGRESQL.getPassword()
-		);
+				POSTGRESQL.getPassword());
 		try (Connection connection = connectionProvider.takeConnection()) {
 			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
-					new JdbcConnection(connection)
-			);
-
-			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG,
-					new ClassLoaderResourceAccessor(),
-					database
-			);
+					new JdbcConnection(connection));
+			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
+					database);
 			liquibase.update();
+			playerRepository = new PlayerRepositoryImpl(connectionProvider);
+			transactionRepository = new TransactionRepositoryImpl(connectionProvider);
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
-		playerRepository = new PlayerRepositoryImpl(connectionProvider);
-		transactionRepository = new TransactionRepositoryImpl(connectionProvider);
 	}
 
 	@AfterAll
@@ -70,6 +67,13 @@ class PlayerRepositoryImplTest {
 				.username(TEST)
 				.password(TEST)
 				.role(Role.USER).build();
+
+		transaction = Transaction.builder()
+				.token(TRANSACTION_TOKEN)
+				.operation(Operation.CREDIT.name())
+				.amount(0.0)
+				.playerID(player.getPlayerID())
+				.build();
 	}
 
 	@Test
@@ -105,12 +109,7 @@ class PlayerRepositoryImplTest {
 
 	@Test
 	public void shouldReceiveBalanceByPlayerIDAfterDepositing() {
-		transactionRepository.creditOrDebit(
-				100.0,
-				player.getPlayerID(),
-				TRANSACTION_TOKEN,
-				Operation.CREDIT
-		);
+		transactionRepository.creditOrDebit(transaction, 100.0);
 
 		double expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 

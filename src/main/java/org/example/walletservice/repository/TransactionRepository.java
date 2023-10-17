@@ -1,6 +1,6 @@
 package org.example.walletservice.repository;
 
-import org.example.walletservice.service.enums.Operation;
+import org.example.walletservice.model.entity.Transaction;
 
 import java.util.List;
 
@@ -10,14 +10,12 @@ import java.util.List;
 public interface TransactionRepository {
 
 	/**
-	 * Carries out the operation of replenishment of the player's balance.
+	 * Updates the player's balance based on the provided transaction details.
 	 *
-	 * @param newPlayerBalance   New player balance.
-	 * @param playerID           The ID of the player from whom the deposit is being made.
-	 * @param transactionalToken A unique identifier for the transaction.
-	 * @param operation          The operation that the player is performing
+	 * @param transaction     The Transaction object containing details of the credit or debit operation.
+	 * @param newPlayerAmount The new balance of the player after the transaction.
 	 */
-	void creditOrDebit(double newPlayerBalance, int playerID, String transactionalToken, Operation operation);
+	void creditOrDebit(Transaction transaction, double newPlayerAmount);
 
 	/**
 	 * Checks for the presence of a unique transaction ID.

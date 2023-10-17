@@ -9,6 +9,8 @@ public final class Cleaner {
 
 	/**
 	 * The method takes a parameter of type Scanner and clears its line strings.
+	 *
+	 * @param scanner The scanner object whose buffer needs to be cleared.
 	 */
 	public void cleanBuffer(Scanner scanner) {
 		if (scanner.hasNextLine()) {

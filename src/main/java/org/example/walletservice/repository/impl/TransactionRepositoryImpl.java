@@ -1,8 +1,8 @@
 package org.example.walletservice.repository.impl;
 
+import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
-import org.example.walletservice.service.enums.Operation;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,12 +18,12 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 		this.connectionProvider = connectionProvider;
 	}
 
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void creditOrDebit(double newPlayerAmount, int playerID, String transactionalToken, Operation operation) {
-		String operationValue = operation == Operation.CREDIT ? operation.toString() : Operation.DEBIT.toString();
+	public void creditOrDebit(Transaction transaction, double newPlayerAmount) {
 		Connection connection = null;
 		PreparedStatement statementToChangePlayerBalance = null;
 
@@ -33,11 +33,9 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 					"UPDATE wallet_service.players SET balance = ? WHERE player_id = ?");
 
 			statementToChangePlayerBalance.setDouble(1, newPlayerAmount);
-			statementToChangePlayerBalance.setInt(2, playerID);
+			statementToChangePlayerBalance.setInt(2, transaction.getPlayerID());
 			statementToChangePlayerBalance.executeUpdate();
-			recordTransactionInPlayerHistory(connection, playerID, operationValue, transactionalToken,
-					newPlayerAmount);
-
+			recordTransactionInPlayerHistory(connection, transaction);
 			connection.commit();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
@@ -46,6 +44,33 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			connectionProvider.closeConnection(connection, statementToChangePlayerBalance);
 		}
 	}
+
+
+//	@Override
+//	public void creditOrDebit(double newPlayerAmount, int playerID, String transactionalToken, Operation operation) {
+//		String operationValue = operation == Operation.CREDIT ? operation.toString() : Operation.DEBIT.toString();
+//		Connection connection = null;
+//		PreparedStatement statementToChangePlayerBalance = null;
+//
+//		try {
+//			connection = connectionProvider.takeConnection();
+//			statementToChangePlayerBalance = connection.prepareStatement(
+//					"UPDATE wallet_service.players SET balance = ? WHERE player_id = ?");
+//
+//			statementToChangePlayerBalance.setDouble(1, newPlayerAmount);
+//			statementToChangePlayerBalance.setInt(2, playerID);
+//			statementToChangePlayerBalance.executeUpdate();
+//			recordTransactionInPlayerHistory(connection, playerID, operationValue, transactionalToken,
+//					newPlayerAmount);
+//
+//			connection.commit();
+//		} catch (SQLException e) {
+//			connectionProvider.rollbackCommit(connection);
+//			throw new RuntimeException(e);
+//		} finally {
+//			connectionProvider.closeConnection(connection, statementToChangePlayerBalance);
+//		}
+//	}
 
 	/**
 	 * {@inheritDoc}
@@ -102,28 +127,23 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	}
 
 	/**
-	 * Records the player's completed transaction in their history.
+	 * Records a transaction in the player's transaction history in the database.
 	 *
-	 * @param playerID           The ID of the player making the transaction
-	 * @param operation          Operation type
-	 * @param transactionalToken Unique Transaction Token
-	 * @param newPlayerAmount    New player balance.
+	 * @param connection  The database connection.
+	 * @param transaction The Transaction object containing details of the transaction.
 	 */
-	private void recordTransactionInPlayerHistory(Connection connection, int playerID, String operation,
-												  String transactionalToken, double newPlayerAmount) {
+	private void recordTransactionInPlayerHistory(Connection connection, Transaction transaction) {
 		PreparedStatement statement = null;
 
 		try {
 			statement = connection.prepareStatement(
-					"INSERT INTO wallet_service.transaction (record, player_id, token) VALUES (?, ?, ?)");
-
-			statement.setString(1, String.format("*****************-%s-*****************\n" +
-							"\t-- Transaction number: %s\n" +
-							"\t-- Your balance after transaction: %s\n" +
-							"******************************************\n",
-					operation, transactionalToken, newPlayerAmount));
-			statement.setInt(2, playerID);
-			statement.setString(3, transactionalToken);
+					"INSERT INTO wallet_service.transaction (record, token, operation, amount, player_id) " +
+							"VALUES (?, ?, ?, ?, ?)");
+			statement.setString(1, transaction.getRecord());
+			statement.setString(2, transaction.getToken());
+			statement.setString(3, transaction.getOperation());
+			statement.setDouble(4, transaction.getAmount());
+			statement.setInt(5, transaction.getPlayerID());
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);

@@ -60,7 +60,7 @@ public final class PlayerSessionManager {
 	 * @param player An authorized player for whom menu items will be displayed depending on the role.
 	 */
 	private void displayOperationsMenuForAuthorizedPlayer(Player player) {
-		System.out.printf("\nWelcome back, %s!\n\n", player.getUsername());
+		System.out.printf("Welcome back, %s!\n\n", player.getUsername());
 		int numberCommandToSelect = player.getRole() == Role.ADMIN ? 6 : 5;
 
 		do {
@@ -71,7 +71,7 @@ public final class PlayerSessionManager {
 				continue;
 			}
 			if (userInputValue == numberCommandToSelect) {
-				System.out.printf("\nGood bye, %s!\n\n", player.getUsername());
+				System.out.printf("Good bye, %s!\n", player.getUsername());
 				loggerService.recordActionInLog(Operation.EXIT, player, Status.SUCCESSFUL);
 				break;
 			}
@@ -87,7 +87,7 @@ public final class PlayerSessionManager {
 	 * @param numberCommandToSelect The number representing the command to log out.
 	 */
 	private void displayMenuOptions(Player player, int numberCommandToSelect) {
-		System.out.println("\n1. Balance\n2. Credit\n3. Debit\n4. Show transactional history");
+		System.out.println("1. Balance\n2. Credit\n3. Debit\n4. Show transactional history");
 		if (player.getRole() == Role.ADMIN) {
 			System.out.println("5. Show logs");
 		}
@@ -120,14 +120,14 @@ public final class PlayerSessionManager {
 		boolean exit = false;
 
 		do {
-			System.out.println("\n1. All logs\n2. Players logs\n3. Back");
+			System.out.println("1. All logs\n2. Players logs\n3. Back");
 
 			int userInputValue = operationChooserVerification.userDataVerification(3);
 			switch (userInputValue) {
 				case 1 -> frontController.showAllLogs(player);
 				case 2 -> {
 					cleaner.cleanBuffer(scanner);
-					System.out.print("\nEnter the name of the user you want to see the logs: ");
+					System.out.print("Enter the name of the user you want to see the logs: ");
 					frontController.showLogsByUsername(player, scanner.nextLine());
 				}
 				case 3 -> exit = true;

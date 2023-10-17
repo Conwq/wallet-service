@@ -4,18 +4,18 @@ import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
-import org.example.walletservice.service.PlayerAccessService;
+import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 
 import java.util.Optional;
 
 /**
- * Implementation of the {@link PlayerAccessService} interface that provides functionality
+ * Implementation of the {@link PlayerService} interface that provides functionality
  * for player registration, login, balance management, credit, debit, transaction history,
  * and log display.
  */
-public final class PlayerServiceImpl implements PlayerAccessService {
+public final class PlayerServiceImpl implements PlayerService {
 	private final PlayerRepository playerRepository;
 	private final LoggerService loggerService;
 
@@ -32,7 +32,7 @@ public final class PlayerServiceImpl implements PlayerAccessService {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
 
 		if (optionalPlayer.isPresent()) {
-			System.out.println("\n*{{FAIL}} This user is already registered. Try again.*\n");
+			System.out.println("*{{FAIL}} This user is already registered. Try again.*\n");
 			return;
 		}
 
@@ -44,7 +44,7 @@ public final class PlayerServiceImpl implements PlayerAccessService {
 		int playerID = playerRepository.registrationPayer(player);
 		player.setPlayerID(playerID);
 
-		System.out.println("\n*User successfully registered!*\n");
+		System.out.println("*User successfully registered!*\n");
 		loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.SUCCESSFUL);
 	}
 
@@ -56,13 +56,13 @@ public final class PlayerServiceImpl implements PlayerAccessService {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
 
 		if (optionalPlayer.isEmpty()) {
-			System.out.println("\n*{{FAIL}} Current player not found. Please try again.*\n");
+			System.out.println("*{{FAIL}} Current player not found. Please try again.*\n");
 			return null;
 		}
 
 		Player player = optionalPlayer.get();
 		if (!player.getPassword().equals(password)) {
-			System.out.println("\n*{{FAIL}} Incorrect password!*\n");
+			System.out.println("*{{FAIL}} Incorrect password!*\n");
 			return null;
 		}
 		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
@@ -75,7 +75,7 @@ public final class PlayerServiceImpl implements PlayerAccessService {
 	@Override
 	public void displayPlayerBalance(Player player) {
 		double balance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
-		System.out.printf("\n*Balance -- %s*\n\n", balance);
+		System.out.printf("*Balance -- %s*\n", balance);
 
 		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
 	}

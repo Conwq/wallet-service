@@ -1,11 +1,11 @@
 package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
-import org.example.walletservice.service.PlayerAccessService;
+import org.example.walletservice.service.PlayerService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,10 +17,10 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Optional;
 
-class PlayerAccessServiceTest {
+class PlayerServiceTest {
 	private final PlayerRepository playerRepository = Mockito.mock(PlayerRepository.class);
 	private final LoggerService loggerService = Mockito.mock(LoggerServiceImpl.class);
-	private PlayerAccessService playerAccessService;
+	private PlayerService playerService;
 	private static final double AMOUNT = 100.0;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
@@ -30,7 +30,7 @@ class PlayerAccessServiceTest {
 
 	@BeforeEach
 	public void setUp() {
-		playerAccessService = new PlayerServiceImpl(playerRepository, loggerService);
+		playerService = new PlayerServiceImpl(playerRepository, loggerService);
 
 		player = Player.builder()
 				.playerID(1)
@@ -56,7 +56,7 @@ class PlayerAccessServiceTest {
 	void shouldRegistrationPlayer_successful() {
 		Mockito.when(playerRepository.findPlayer(player.getUsername())).thenReturn(Optional.empty());
 
-		playerAccessService.registrationPlayer(player.getUsername(), player.getPassword());
+		playerService.registrationPlayer(player.getUsername(), player.getPassword());
 
 		Mockito.verify(playerRepository, Mockito.times(1)).findPlayer(player.getUsername());
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("User successfully registered!");
@@ -66,7 +66,7 @@ class PlayerAccessServiceTest {
 	public void shouldNotRegisteredPlayer_error() {
 		Mockito.when(playerRepository.findPlayer(player.getUsername())).thenReturn(Optional.of(player));
 
-		playerAccessService.registrationPlayer(player.getUsername(), player.getPassword());
+		playerService.registrationPlayer(player.getUsername(), player.getPassword());
 
 		Mockito.verify(playerRepository, Mockito.never()).registrationPayer(Mockito.any(Player.class));
 		AssertionsForClassTypes.assertThat(outputStream.toString())
@@ -77,7 +77,7 @@ class PlayerAccessServiceTest {
 	public void shouldLogInPlayer_success() {
 		Mockito.when(playerRepository.findPlayer(player.getUsername())).thenReturn(Optional.of(player));
 
-		Player expected = playerAccessService.logIn(player.getUsername(), player.getPassword());
+		Player expected = playerService.logIn(player.getUsername(), player.getPassword());
 
 		Mockito.verify(playerRepository, Mockito.times(1)).findPlayer(player.getUsername());
 		AssertionsForClassTypes.assertThat(expected).isEqualTo(player);
@@ -87,7 +87,7 @@ class PlayerAccessServiceTest {
 	public void shouldNotLogInPlayer_notFoundPlayer() {
 		Mockito.when(playerRepository.findPlayer(player.getUsername())).thenReturn(Optional.empty());
 
-		Player expected = playerAccessService.logIn(player.getUsername(), player.getPassword());
+		Player expected = playerService.logIn(player.getUsername(), player.getPassword());
 
 		Mockito.verify(playerRepository, Mockito.times(1)).findPlayer(player.getUsername());
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("{{FAIL}} Current player not found.");
@@ -99,7 +99,7 @@ class PlayerAccessServiceTest {
 		Mockito.when(playerRepository.findPlayer(player.getUsername()))
 				.thenReturn(Optional.of(player));
 
-		Player expected = playerAccessService.logIn(player.getUsername(), "1");
+		Player expected = playerService.logIn(player.getUsername(), "1");
 
 		Mockito.verify(playerRepository, Mockito.times(1)).findPlayer(player.getUsername());
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("{{FAIL}} Incorrect password!");
@@ -111,7 +111,7 @@ class PlayerAccessServiceTest {
 	public void shouldGetBalancePlayer_successful() {
 		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(100.0);
 
-		playerAccessService.displayPlayerBalance(player);
+		playerService.displayPlayerBalance(player);
 
 		Mockito.verify(playerRepository, Mockito.times(1))
 				.findPlayerBalanceByPlayerID(player.getPlayerID());

@@ -36,11 +36,13 @@
                 <constraints primaryKey="true"/>
             </column>
             <column name="record" type="VARCHAR(200)"/>
+            <column name="token" type="VARCHAR(20)"/>
+            <column name="operation" type="VARCHAR(20)"/>
+            <column name="amount" type="DOUBLE PRECISION"/>
             <column name="player_id" type="INT">
                 <constraints foreignKeyName="fk_transaction_players"
                              references="wallet_service.players(player_id)"/>
             </column>
-            <column name="token" type="VARCHAR(100)"/>
         </createTable>
     </changeSet>
 

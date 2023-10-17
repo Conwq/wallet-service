@@ -6,15 +6,20 @@ import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
@@ -29,35 +34,26 @@ class LoggerRepositoryImplTest {
 	private static final String ADMIN = "admin";
 	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
 	private static final String TEST = "test";
-	static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
-			"postgres:latest"
-	);
+	private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>("postgres:latest");
 
 	@BeforeAll
 	static void beforeAll() {
 		POSTGRESQL.start();
-
 		ConnectionProvider connectionProvider = new ConnectionProvider(
 				POSTGRESQL.getJdbcUrl(),
 				POSTGRESQL.getUsername(),
-				POSTGRESQL.getPassword()
-		);
+				POSTGRESQL.getPassword());
 		try (Connection connection = connectionProvider.takeConnection()) {
 			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
-					new JdbcConnection(connection)
-			);
-
-			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG,
-					new ClassLoaderResourceAccessor(),
-					database
-			);
-
+					new JdbcConnection(connection));
+			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
+					database);
 			liquibase.update();
+			loggerRepository = new LoggerRepositoryImpl(connectionProvider);
+			playerRepository = new PlayerRepositoryImpl(connectionProvider);
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
-		loggerRepository = new LoggerRepositoryImpl(connectionProvider);
-		playerRepository = new PlayerRepositoryImpl(connectionProvider);
 	}
 
 	@AfterAll
@@ -78,27 +74,33 @@ class LoggerRepositoryImplTest {
 		playerRepository.registrationPayer(player);
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, player.getUsername(), Status.SUCCESSFUL);
 		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
-		loggerRepository.recordAction(player.getPlayerID(), firstRecord);
-		loggerRepository.recordAction(player.getPlayerID(), secondRecord);
+		Log firstLog = Log.builder().log(firstRecord).playerID(player.getPlayerID()).build();
+		Log secondtLog = Log.builder().log(secondRecord).playerID(player.getPlayerID()).build();
+		loggerRepository.recordAction(firstLog);
+		loggerRepository.recordAction(secondtLog);
 
-		List<String> allLog = loggerRepository.findAllActivityRecords();
+		List<Log> allLog = loggerRepository.findAllActivityRecords();
 
-		AssertionsForClassTypes.assertThat(allLog).asList().contains(firstRecord, secondRecord);
+		Assertions.assertThat(allLog)
+				.extracting(Log::getLog)
+				.contains(firstRecord, secondRecord);
 	}
 
 	@Test
 	public void shouldRecordAction() {
 		String playerActionRecord = String.format(LOG_FORMAT, Operation.DEBIT, ADMIN, Status.SUCCESSFUL);
+		Log log = Log.builder().log(playerActionRecord).playerID(1).build();
 
-		loggerRepository.recordAction(1, playerActionRecord);
+		loggerRepository.recordAction(log);
 
-		List<String> playerAction = loggerRepository.findActivityRecordsForPlayer(1);
-		AssertionsForClassTypes.assertThat(playerAction).asList().contains(playerActionRecord);
+		List<Log> playerAction = loggerRepository.findActivityRecordsForPlayer(1);
+		AssertionsForClassTypes.assertThat(playerAction.get(playerAction.size() - 1).getLog())
+				.contains(playerActionRecord);
 	}
 
 	@Test
 	public void shouldReturnEmptyRecordAction() {
-		List<String> recordAction = loggerRepository.findActivityRecordsForPlayer(13);
+		List<Log> recordAction = loggerRepository.findActivityRecordsForPlayer(13);
 
 		AssertionsForClassTypes.assertThat(recordAction).asList().isEmpty();
 	}
@@ -107,11 +109,15 @@ class LoggerRepositoryImplTest {
 	public void shouldReturnRecordActionForPlayer() {
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, ADMIN, Status.SUCCESSFUL);
 		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
-		loggerRepository.recordAction(1, firstRecord);
-		loggerRepository.recordAction(1, secondRecord);
+		Log firstLog = Log.builder().log(firstRecord).playerID(1).build();
+		Log secondLog = Log.builder().log(secondRecord).playerID(1).build();
+		loggerRepository.recordAction(firstLog);
+		loggerRepository.recordAction(secondLog);
 
-		List<String> recordAction = loggerRepository.findActivityRecordsForPlayer(1);
+		List<Log> recordAction = loggerRepository.findActivityRecordsForPlayer(1);
 
-		AssertionsForClassTypes.assertThat(recordAction).asList().contains(firstRecord, secondRecord);
+		Assertions.assertThat(recordAction)
+				.extracting(Log::getLog)
+				.contains(firstRecord, secondRecord);
 	}
 }

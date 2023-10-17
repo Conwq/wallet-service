@@ -1,8 +1,9 @@
 package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.entity.Log;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
@@ -46,7 +47,9 @@ class LoggerServiceImplTest {
 
 	@Test
 	public void shouldShowAllLogs_successful() {
-		List<String> logsPlayer = new ArrayList<>(List.of("log #1", "log #2"));
+		Log firstLog = Log.builder().log("log #1").playerID(player.getPlayerID()).build();
+		Log secondLog = Log.builder().log("log #2").playerID(player.getPlayerID()).build();
+		List<Log> logsPlayer = new ArrayList<>(List.of(firstLog, secondLog));
 
 		Mockito.when(loggerRepository.findAllActivityRecords()).thenReturn(logsPlayer);
 
@@ -70,8 +73,10 @@ class LoggerServiceImplTest {
 	public void shouldShowPlayerLogs_successful() {
 		Mockito.when(playerRepository.findPlayer(Mockito.any(String.class))).
 				thenReturn(Optional.of(player));
+		Log firstLog = Log.builder().log("Transact #1").build();
+		Log secondLog = Log.builder().log("Transact #2").build();
 		Mockito.when(loggerRepository.findActivityRecordsForPlayer(player.getPlayerID()))
-				.thenReturn(new ArrayList<>(List.of("Transact #1", "Transact #2")));
+				.thenReturn(new ArrayList<>(List.of(firstLog, secondLog)));
 
 		loggerService.showLogsByUsername(player, player.getUsername());
 

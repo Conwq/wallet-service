@@ -9,11 +9,15 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
@@ -30,39 +34,30 @@ class TransactionRepositoryImplTest {
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;
 	private static Player player;
+	private static Transaction transaction;
 	private static final String ADMIN = "admin";
 	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
-	static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>(
-			"postgres:latest"
-	);
+	private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>("postgres:latest");
 
 	@BeforeAll
 	static void beforeAll() {
 		POSTGRESQL.start();
-
 		ConnectionProvider connectionProvider = new ConnectionProvider(
 				POSTGRESQL.getJdbcUrl(),
 				POSTGRESQL.getUsername(),
-				POSTGRESQL.getPassword()
-		);
-
+				POSTGRESQL.getPassword());
 		try (Connection connection = connectionProvider.takeConnection()) {
-			Database database = DatabaseFactory
-					.getInstance()
-					.findCorrectDatabaseImplementation(new JdbcConnection(connection));
-
-			Liquibase liquibase = new Liquibase(
-					PATH_TO_CHANGELOG,
-					new ClassLoaderResourceAccessor(),
-					database
-			);
-
+			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
+					new JdbcConnection(connection));
+			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
+					database);
 			liquibase.update();
+			playerRepository = new PlayerRepositoryImpl(connectionProvider);
+			transactionRepository = new TransactionRepositoryImpl(connectionProvider);
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
-		playerRepository = new PlayerRepositoryImpl(connectionProvider);
-		transactionRepository = new TransactionRepositoryImpl(connectionProvider);
+
 	}
 
 	@AfterAll
@@ -76,8 +71,14 @@ class TransactionRepositoryImplTest {
 				.username(ADMIN)
 				.password(ADMIN)
 				.role(Role.ADMIN).build();
-	}
 
+		transaction = Transaction.builder()
+				.token(TRANSACTION_TOKEN)
+				.operation(Operation.CREDIT.name())
+				.amount(0.0)
+				.playerID(player.getPlayerID())
+				.build();
+	}
 
 	@Test
 	public void mustReturnFalseAfterValidatingToken() {
@@ -88,20 +89,17 @@ class TransactionRepositoryImplTest {
 
 	@Test
 	public void shouldChangePlayerBalanceAfterDepositingAndGetTransactionHistory() {
-		transactionRepository.creditOrDebit(
-				BALANCE_PLAYER,
-				player.getPlayerID(),
-				TRANSACTION_TOKEN,
-				Operation.CREDIT
-		);
+		transaction.setRecord(String
+				.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
+		transactionRepository.creditOrDebit(transaction, BALANCE_PLAYER);
 
 		double playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+
 		List<String> playerTransactionHistory = transactionRepository
 				.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());
 		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(BALANCE_PLAYER);
 		AssertionsForClassTypes.assertThat(playerTransactionHistory).asString().contains(
-				String.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER)
-		);
+				String.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
 	}
 
 	@Test

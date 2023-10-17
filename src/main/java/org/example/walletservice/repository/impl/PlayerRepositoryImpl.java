@@ -66,19 +66,12 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			statementToSaveUser = connection.prepareStatement(
 					"INSERT INTO wallet_service.players(username, password, balance, role_id) " +
 							"VALUES(?, ?, 0.0, 1)", Statement.RETURN_GENERATED_KEYS);
-			statementCreateNewBalance = connection.prepareStatement(
-					"INSERT INTO wallet_service.transaction(player_id) VALUES (?)");
 			statementToSaveUser.setString(1, player.getUsername());
 			statementToSaveUser.setString(2, player.getPassword());
 			statementToSaveUser.executeUpdate();
 			resultSet = statementToSaveUser.getGeneratedKeys();
 			resultSet.next();
-
 			int playerID = resultSet.getInt(1);
-
-			statementCreateNewBalance.setInt(1, playerID);
-			statementCreateNewBalance.executeUpdate();
-
 			connection.commit();
 			return playerID;
 		} catch (SQLException e) {

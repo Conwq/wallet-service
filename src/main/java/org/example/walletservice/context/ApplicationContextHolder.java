@@ -14,7 +14,7 @@ import org.example.walletservice.repository.impl.TransactionRepositoryImpl;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.repository.manager.DBResourceManager;
 import org.example.walletservice.service.LoggerService;
-import org.example.walletservice.service.PlayerAccessService;
+import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.impl.LoggerServiceImpl;
 import org.example.walletservice.service.impl.PlayerServiceImpl;
@@ -56,10 +56,10 @@ public class ApplicationContextHolder {
 			transactionRepository,
 			playerRepository
 	);
-	final PlayerAccessService playerAccessService = new PlayerServiceImpl(playerRepository, loggerService);
+	final PlayerService playerService = new PlayerServiceImpl(playerRepository, loggerService);
 
 	final FrontController frontController = new FrontController(
-			playerAccessService,
+			playerService,
 			transactionService,
 			loggerService
 	);

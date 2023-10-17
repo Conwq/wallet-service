@@ -40,7 +40,7 @@ public final class WalletServiceApplication {
 		try {
 			connection = connectionProvider.takeConnection();
 			statement = connection.createStatement();
-			statement.executeUpdate("CREATE SCHEMA migration");
+			statement.executeUpdate("CREATE SCHEMA IF NOT EXISTS migration");
 			connection.commit();
 
 			Database database = DatabaseFactory.getInstance()
