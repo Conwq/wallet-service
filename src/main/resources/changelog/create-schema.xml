@@ -6,8 +6,6 @@
 
     <changeSet id="create-schema" author="Sergey.Patseev">
         <sql>
-            CREATE SCHEMA migration;
-
             CREATE SCHEMA wallet_service;
         </sql>
     </changeSet>

@@ -24,21 +24,26 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	@Override
 	public void creditOrDebit(double newPlayerAmount, int playerID, String transactionalToken, Operation operation) {
 		String operationValue = operation == Operation.CREDIT ? operation.toString() : Operation.DEBIT.toString();
-		try (Connection connection = connectionProvider.takeConnection();
-			 PreparedStatement statementToChangePlayerBalance = connection.prepareStatement(
-					 "UPDATE wallet_service.players SET balance = ? WHERE player_id = ?")
-		) {
+		Connection connection = null;
+		PreparedStatement statementToChangePlayerBalance = null;
+
+		try {
+			connection = connectionProvider.takeConnection();
+			statementToChangePlayerBalance = connection.prepareStatement(
+					"UPDATE wallet_service.players SET balance = ? WHERE player_id = ?");
+
 			statementToChangePlayerBalance.setDouble(1, newPlayerAmount);
 			statementToChangePlayerBalance.setInt(2, playerID);
 			statementToChangePlayerBalance.executeUpdate();
-			recordTransactionInPlayerHistory(
-					playerID,
-					operationValue,
-					transactionalToken,
-					newPlayerAmount
-			);
+			recordTransactionInPlayerHistory(connection, playerID, operationValue, transactionalToken,
+					newPlayerAmount);
+
+			connection.commit();
 		} catch (SQLException e) {
+			connectionProvider.rollbackCommit(connection);
 			throw new RuntimeException(e);
+		} finally {
+			connectionProvider.closeConnection(connection, statementToChangePlayerBalance);
 		}
 	}
 
@@ -47,9 +52,14 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	 */
 	@Override
 	public boolean checkTokenExistence(String transactionalToken) {
+		Connection connection = null;
+		PreparedStatement statement = null;
 		ResultSet resultSet = null;
-		try (Connection connection = connectionProvider.takeConnection(); PreparedStatement statement =
-				connection.prepareStatement("SELECT token FROM wallet_service.transaction WHERE token = ?")) {
+
+		try {
+			connection = connectionProvider.takeConnection();
+			statement = connection.prepareStatement(
+					"SELECT token FROM wallet_service.transaction WHERE token = ?");
 
 			statement.setString(1, transactionalToken);
 			resultSet = statement.executeQuery();
@@ -57,7 +67,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} finally {
-			connectionProvider.closeConnection(resultSet);
+			connectionProvider.closeConnection(connection, statement, resultSet);
 		}
 	}
 
@@ -66,10 +76,14 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	 */
 	@Override
 	public List<String> findPlayerTransactionalHistoryByPlayerID(int playerID) {
+		Connection connection = null;
+		PreparedStatement statement = null;
 		ResultSet resultSet = null;
-		try (Connection connection = connectionProvider.takeConnection();
-			 PreparedStatement statement = connection.prepareStatement(
-					 "SELECT record FROM wallet_service.transaction WHERE player_id = ?")) {
+
+		try {
+			connection = connectionProvider.takeConnection();
+			statement = connection.prepareStatement(
+					"SELECT record FROM wallet_service.transaction WHERE player_id = ?");
 
 			statement.setInt(1, playerID);
 			resultSet = statement.executeQuery();
@@ -83,7 +97,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} finally {
-			connectionProvider.closeConnection(resultSet);
+			connectionProvider.closeConnection(connection, statement, resultSet);
 		}
 	}
 
@@ -95,16 +109,14 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	 * @param transactionalToken Unique Transaction Token
 	 * @param newPlayerAmount    New player balance.
 	 */
-	private void recordTransactionInPlayerHistory(int playerID,
-												  String operation,
-												  String transactionalToken,
-												  double newPlayerAmount
-	) {
-		try (Connection connection = connectionProvider.takeConnection();
-			 PreparedStatement statement = connection.prepareStatement(
-					 "INSERT INTO wallet_service.transaction (record, player_id, token) VALUES (?, ?, ?)"
-			 )
-		) {
+	private void recordTransactionInPlayerHistory(Connection connection, int playerID, String operation,
+												  String transactionalToken, double newPlayerAmount) {
+		PreparedStatement statement = null;
+
+		try {
+			statement = connection.prepareStatement(
+					"INSERT INTO wallet_service.transaction (record, player_id, token) VALUES (?, ?, ?)");
+
 			statement.setString(1, String.format("*****************-%s-*****************\n" +
 							"\t-- Transaction number: %s\n" +
 							"\t-- Your balance after transaction: %s\n" +
@@ -114,7 +126,10 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			statement.setString(3, transactionalToken);
 			statement.executeUpdate();
 		} catch (SQLException e) {
+			connectionProvider.rollbackCommit(connection);
 			throw new RuntimeException(e);
+		} finally {
+			connectionProvider.closeConnection(statement);
 		}
 	}
 }

@@ -35,8 +35,10 @@ public class ApplicationContextHolder {
 	final Scanner scanner = new Scanner(System.in);
 	final Cleaner cleaner = new Cleaner();
 
-	final OperationChooserVerification operationChooserVerification =
-			new OperationChooserVerification(scanner, cleaner);
+	final OperationChooserVerification operationChooserVerification = new OperationChooserVerification(
+			scanner,
+			cleaner
+	);
 	final DBResourceManager resourceManager = new DBResourceManager();
 	final ConnectionProvider connectionProvider = new ConnectionProvider(
 			resourceManager.getValue(URL),
@@ -48,25 +50,38 @@ public class ApplicationContextHolder {
 	final TransactionRepository transactionRepository = new TransactionRepositoryImpl(connectionProvider);
 	final LoggerRepository loggerRepository = new LoggerRepositoryImpl(connectionProvider);
 
-	final LoggerService loggerService =
-			new LoggerServiceImpl(loggerRepository, playerRepository);
+	final LoggerService loggerService = new LoggerServiceImpl(loggerRepository, playerRepository);
 	final TransactionService transactionService = new TransactionServiceImpl(
 			loggerService,
 			transactionRepository,
 			playerRepository
 	);
-	final PlayerAccessService playerAccessService =
-			new PlayerServiceImpl(playerRepository, loggerService);
+	final PlayerAccessService playerAccessService = new PlayerServiceImpl(playerRepository, loggerService);
 
-	final FrontController frontController =
-			new FrontController(playerAccessService, transactionService, loggerService);
+	final FrontController frontController = new FrontController(
+			playerAccessService,
+			transactionService,
+			loggerService
+	);
 
-	final PlayerRegistrationHandler playerRegistrationHandler = new PlayerRegistrationHandler(frontController,
-			scanner, cleaner);
-	final PlayerSessionManager playerSessionManager = new PlayerSessionManager(cleaner, operationChooserVerification,
-			frontController, scanner, loggerService);
-	final MainMenu mainMenu = new MainMenu(playerRegistrationHandler, playerSessionManager,
-			operationChooserVerification, scanner);
+	final PlayerRegistrationHandler playerRegistrationHandler = new PlayerRegistrationHandler(
+			frontController,
+			scanner,
+			cleaner
+	);
+	final PlayerSessionManager playerSessionManager = new PlayerSessionManager(
+			cleaner,
+			operationChooserVerification,
+			frontController,
+			scanner,
+			loggerService
+	);
+	final MainMenu mainMenu = new MainMenu(
+			playerRegistrationHandler,
+			playerSessionManager,
+			operationChooserVerification,
+			scanner
+	);
 
 	private ApplicationContextHolder() {
 	}
@@ -78,36 +93,8 @@ public class ApplicationContextHolder {
 		return instance;
 	}
 
-	public Scanner getScanner() {
-		return scanner;
-	}
-
-	public Cleaner getCleaner() {
-		return cleaner;
-	}
-
-	public OperationChooserVerification getOperationChooserVerification() {
-		return operationChooserVerification;
-	}
-
-	public PlayerRepository getPlayerRepository() {
-		return playerRepository;
-	}
-
-	public PlayerAccessService getPlayerService() {
-		return playerAccessService;
-	}
-
-	public FrontController getPlayerController() {
-		return frontController;
-	}
-
-	public PlayerRegistrationHandler getPlayerRegistrationHandler() {
-		return playerRegistrationHandler;
-	}
-
-	public PlayerSessionManager getPlayerSessionManager() {
-		return playerSessionManager;
+	public ConnectionProvider getConnectionProvider() {
+		return connectionProvider;
 	}
 
 	public MainMenu getMainMenu() {

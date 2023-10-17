@@ -22,16 +22,23 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	@Override
 	public void recordAction(int playerID, String playerAction) {
-		try (Connection connection = connectionProvider.takeConnection();
-			 PreparedStatement statement = connection.prepareStatement(
-					 "INSERT INTO wallet_service.log(player_id, log) VALUES (?, ?)"
-			 )
-		) {
+		Connection connection = null;
+		PreparedStatement statement = null;
+
+		try {
+			connection = connectionProvider.takeConnection();
+			statement = connection.prepareStatement(
+					"INSERT INTO wallet_service.log(player_id, log) VALUES (?, ?)");
+
 			statement.setInt(1, playerID);
 			statement.setString(2, playerAction);
 			statement.executeUpdate();
+			connection.commit();
 		} catch (SQLException e) {
+			connectionProvider.rollbackCommit(connection);
 			throw new RuntimeException(e);
+		} finally {
+			connectionProvider.closeConnection(connection, statement);
 		}
 	}
 
@@ -40,11 +47,15 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	@Override
 	public List<String> findAllActivityRecords() {
+		Connection connection = null;
+		PreparedStatement statement = null;
 		ResultSet resultSet = null;
-		try (Connection connection = connectionProvider.takeConnection();
-			 PreparedStatement statement = connection.prepareStatement("SELECT log FROM wallet_service.log")
-		) {
+
+		try {
+			connection = connectionProvider.takeConnection();
+			statement = connection.prepareStatement("SELECT log FROM wallet_service.log");
 			resultSet = statement.executeQuery();
+
 			List<String> playerLogRecords = new ArrayList<>();
 			while (resultSet.next()) {
 				String logEntry = resultSet.getString("log");
@@ -54,7 +65,7 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} finally {
-			connectionProvider.closeConnection(resultSet);
+			connectionProvider.closeConnection(connection, statement, resultSet);
 		}
 	}
 
@@ -63,12 +74,14 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	@Override
 	public List<String> findActivityRecordsForPlayer(int playerID) {
+		Connection connection = null;
+		PreparedStatement statement = null;
 		ResultSet resultSet = null;
-		try (Connection connection = connectionProvider.takeConnection();
-			 PreparedStatement statement = connection.prepareStatement(
-					 "SELECT log FROM wallet_service.log WHERE player_id = ?"
-			 )
-		) {
+
+		try {
+			connection = connectionProvider.takeConnection();
+			statement = connection.prepareStatement("SELECT log FROM wallet_service.log WHERE player_id = ?");
+
 			statement.setInt(1, playerID);
 			resultSet = statement.executeQuery();
 			List<String> recordsPlayer = new ArrayList<>();
@@ -80,7 +93,7 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} finally {
-			connectionProvider.closeConnection(resultSet);
+			connectionProvider.closeConnection(connection, statement, resultSet);
 		}
 	}
 }

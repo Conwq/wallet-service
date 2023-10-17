@@ -32,11 +32,8 @@ public final class TransactionServiceImpl implements TransactionService {
 		if (inputPlayerAmount >= 0.0 && !transactionRepository.checkTokenExistence(transactionToken)) {
 			double playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 			double newPlayerBalance = playerBalance + inputPlayerAmount;
-			transactionRepository.creditOrDebit(newPlayerBalance,
-					player.getPlayerID(),
-					transactionToken,
-					Operation.CREDIT
-			);
+			transactionRepository.creditOrDebit(newPlayerBalance, player.getPlayerID(), transactionToken,
+					Operation.CREDIT);
 			System.out.println("\n*Credit successfully.*\n");
 			loggerService.recordActionInLog(Operation.CREDIT, player, Status.SUCCESSFUL);
 		} else {

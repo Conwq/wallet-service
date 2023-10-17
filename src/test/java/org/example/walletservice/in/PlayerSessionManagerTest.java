@@ -18,7 +18,6 @@ import java.io.PrintStream;
 import java.util.Scanner;
 
 class PlayerSessionManagerTest {
-
 	private PlayerSessionManager playerSessionManager;
 	private final Cleaner cleaner = Mockito.mock(Cleaner.class);
 	private final OperationChooserVerification operationChooser =
@@ -67,7 +66,7 @@ class PlayerSessionManagerTest {
 		Mockito.verify(cleaner, Mockito.times(1)).cleanBuffer(scanner);
 
 		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains("Enter username:", "Enter password:", String.format("Welcome back, %s!",USERNAME));
+				.contains("Enter username:", "Enter password:", String.format("Welcome back, %s!", USERNAME));
 		AssertionsForClassTypes.assertThat(outputStream.toString()).doesNotContain("5. Show logs");
 	}
 }

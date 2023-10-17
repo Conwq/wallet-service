@@ -13,5 +13,4 @@
     <include file="create-schema.xml" relativeToChangelogFile="true"/>
     <include file="create-tables.xml" relativeToChangelogFile="true"/>
     <include file="insert-data.xml" relativeToChangelogFile="true"/>
-    <include file="change-migration-schema.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

@@ -13,10 +13,7 @@ import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
@@ -46,7 +43,7 @@ class TransactionRepositoryImplTest {
 		ConnectionProvider connectionProvider = new ConnectionProvider(
 				POSTGRESQL.getJdbcUrl(),
 				POSTGRESQL.getUsername(),
-				POSTGRESQL.getUsername()
+				POSTGRESQL.getPassword()
 		);
 
 		try (Connection connection = connectionProvider.takeConnection()) {
@@ -75,13 +72,6 @@ class TransactionRepositoryImplTest {
 
 	@BeforeEach
 	void setUp() {
-		ConnectionProvider connectionProvider = new ConnectionProvider(
-				POSTGRESQL.getJdbcUrl(),
-				POSTGRESQL.getUsername(),
-				POSTGRESQL.getUsername()
-		);
-		playerRepository = new PlayerRepositoryImpl(connectionProvider);
-
 		player = Player.builder().playerID(1)
 				.username(ADMIN)
 				.password(ADMIN)
