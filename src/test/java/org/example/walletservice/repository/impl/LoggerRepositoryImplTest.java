@@ -78,57 +78,43 @@ class LoggerRepositoryImplTest {
 
 	@Test
 	public void shouldReturnAllActivity() {
-		//given
 		playerRepository.registrationPayer(player);
-
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, player.getUsername(), Status.SUCCESSFUL);
 		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
-
 		loggerRepository.recordAction(player.getPlayerID(), firstRecord);
 		loggerRepository.recordAction(player.getPlayerID(), secondRecord);
 
-		//when
 		List<String> allLog = loggerRepository.findAllActivityRecords();
 
-		//then
 		AssertionsForClassTypes.assertThat(allLog).asList().contains(firstRecord, secondRecord);
 	}
 
 	@Test
 	public void shouldRecordAction() {
-		//given
 		String playerActionRecord = String.format(LOG_FORMAT, Operation.DEBIT, ADMIN, Status.SUCCESSFUL);
 
-		//when
 		loggerRepository.recordAction(1, playerActionRecord);
 
-		//then
 		List<String> playerAction = loggerRepository.findActivityRecordsForPlayer(1);
 		AssertionsForClassTypes.assertThat(playerAction).asList().contains(playerActionRecord);
 	}
 
 	@Test
 	public void shouldReturnEmptyRecordAction() {
-		//when
 		List<String> recordAction = loggerRepository.findActivityRecordsForPlayer(13);
 
-		//then
 		AssertionsForClassTypes.assertThat(recordAction).asList().isEmpty();
 	}
 
 	@Test
 	public void shouldReturnRecordActionForPlayer() {
-		//given
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, ADMIN, Status.SUCCESSFUL);
 		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
-
 		loggerRepository.recordAction(1, firstRecord);
 		loggerRepository.recordAction(1, secondRecord);
 
-		//when
 		List<String> recordAction = loggerRepository.findActivityRecordsForPlayer(1);
 
-		//then
 		AssertionsForClassTypes.assertThat(recordAction).asList().contains(firstRecord, secondRecord);
 	}
 }

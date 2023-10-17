@@ -2,8 +2,8 @@ package org.example.walletservice.in;
 
 import org.example.walletservice.controller.FrontController;
 import org.example.walletservice.in.util.OperationChooserVerification;
-import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
@@ -103,14 +103,8 @@ public final class PlayerSessionManager {
 	private void executeCommandAccordingUserChoice(int userInputValue, Player player) {
 		switch (userInputValue) {
 			case 1 -> frontController.displayPlayerBalance(player);
-			case 2 -> {
-				System.out.print("Please enter the amount credit: ");
-				frontController.credit(player);
-			}
-			case 3 -> {
-				System.out.print("Enter the amount to withdraw funds: ");
-				frontController.debit(player);
-			}
+			case 2 -> executingCreditTransaction(player);
+			case 3 -> executingDebitTransaction(player);
 			case 4 -> frontController.displayPlayerTransactionalHistory(player);
 			case 5 -> displayLogOptions(player);
 		}
@@ -140,5 +134,45 @@ public final class PlayerSessionManager {
 			}
 		}
 		while (!exit);
+	}
+
+	/**
+	 * Executes a credit transaction for the specified player.
+	 * The method prompts the user to enter the credit amount and transaction number.
+	 *
+	 * @param player The player for whom the credit transaction is executed.
+	 */
+	private void executingCreditTransaction(Player player) {
+		System.out.print("Please enter the amount credit: ");
+		if (!scanner.hasNextDouble()) {
+			cleaner.cleanBuffer(scanner);
+			return;
+		}
+		double inputPlayerAmount = scanner.nextDouble();
+		System.out.print("Please enter transaction number: ");
+		cleaner.cleanBuffer(scanner);
+		String transactionalToken = scanner.nextLine();
+
+		frontController.credit(player, inputPlayerAmount, transactionalToken);
+	}
+
+	/**
+	 * Executes a debit transaction for the specified player.
+	 * The method prompts the user to enter the debit amount and transaction number.
+	 *
+	 * @param player The player for whom the debit transaction is executed.
+	 */
+	private void executingDebitTransaction(Player player) {
+		System.out.print("Enter the amount to withdraw funds: ");
+		if (!scanner.hasNextDouble()) {
+			cleaner.cleanBuffer(scanner);
+			return;
+		}
+		double inputPlayerAmount = scanner.nextDouble();
+		System.out.print("Please enter transaction number: ");
+		cleaner.cleanBuffer(scanner);
+		String transactionalToken = scanner.nextLine();
+
+		frontController.debit(player, inputPlayerAmount, transactionalToken);
 	}
 }

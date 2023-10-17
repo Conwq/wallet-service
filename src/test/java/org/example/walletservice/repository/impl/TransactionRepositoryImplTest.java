@@ -91,16 +91,13 @@ class TransactionRepositoryImplTest {
 
 	@Test
 	public void mustReturnFalseAfterValidatingToken() {
-		//when
 		boolean value = transactionRepository.checkTokenExistence(TRANSACTION_TOKEN);
 
-		//then
 		AssertionsForClassTypes.assertThat(value).isFalse();
 	}
 
 	@Test
 	public void shouldChangePlayerBalanceAfterDepositingAndGetTransactionHistory() {
-		//when
 		transactionRepository.creditOrDebit(
 				BALANCE_PLAYER,
 				player.getPlayerID(),
@@ -108,7 +105,6 @@ class TransactionRepositoryImplTest {
 				Operation.CREDIT
 		);
 
-		//then
 		double playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 		List<String> playerTransactionHistory = transactionRepository
 				.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());
@@ -120,10 +116,8 @@ class TransactionRepositoryImplTest {
 
 	@Test
 	public void mustReturnTrueAfterValidatingToken() {
-		//when
 		boolean value = transactionRepository.checkTokenExistence(TRANSACTION_TOKEN);
 
-		//then
 		AssertionsForClassTypes.assertThat(value).isTrue();
 	}
 }

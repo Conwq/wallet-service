@@ -50,8 +50,11 @@ public class ApplicationContextHolder {
 
 	final LoggerService loggerService =
 			new LoggerServiceImpl(loggerRepository, playerRepository);
-	final TransactionService transactionService = new TransactionServiceImpl(scanner,
-			loggerService, cleaner, transactionRepository, playerRepository);
+	final TransactionService transactionService = new TransactionServiceImpl(
+			loggerService,
+			transactionRepository,
+			playerRepository
+	);
 	final PlayerAccessService playerAccessService =
 			new PlayerServiceImpl(playerRepository, loggerService);
 

@@ -24,13 +24,13 @@ public final class OperationChooserVerification {
 	 */
 	public int userDataVerification(int numberCommandsToSelect) {
 		if (!scanner.hasNextInt()) {
-			System.out.println("*{{FAIL}} This is not a number, try again!*\n");
+			System.out.println("\n*{{FAIL}} This is not a number, try again!*\n");
 			cleaner.cleanBuffer(scanner);
 			return -1;
 		}
 		int userInputValue = scanner.nextInt();
 		if (userInputValue > numberCommandsToSelect || userInputValue < 1) {
-			System.out.println("*{{FAIL}} There is no such choice, try again!*\n");
+			System.out.println("\n*{{FAIL}} There is no such choice, try again!*\n");
 			cleaner.cleanBuffer(scanner);
 			return -1;
 		}

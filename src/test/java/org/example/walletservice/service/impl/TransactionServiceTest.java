@@ -1,12 +1,12 @@
 package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.TransactionService;
-import org.example.walletservice.util.Cleaner;
+import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,16 +18,12 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 class TransactionServiceTest {
-	private final Scanner scanner = Mockito.mock(Scanner.class);
-	private final LoggerServiceImpl LoggerServiceImpl = Mockito.mock(LoggerServiceImpl.class);
+	private final LoggerServiceImpl loggerService = Mockito.mock(LoggerServiceImpl.class);
 	private final TransactionRepository transactionRepository = Mockito.mock(TransactionRepository.class);
 	private final PlayerRepository playerRepository = Mockito.mock(PlayerRepository.class);
-	private final Cleaner cleaner = Mockito.mock(Cleaner.class);
 	private TransactionService transactionService;
-	private static final double BALANCE = 10000;
 	private static final double AMOUNT = 100.0;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
@@ -37,8 +33,11 @@ class TransactionServiceTest {
 
 	@BeforeEach
 	public void setUp() {
-		transactionService = new TransactionServiceImpl(scanner, LoggerServiceImpl, cleaner, transactionRepository,
-				playerRepository);
+		transactionService = new TransactionServiceImpl(
+				loggerService,
+				transactionRepository,
+				playerRepository
+		);
 
 		player = Player.builder()
 				.playerID(1)
@@ -62,57 +61,47 @@ class TransactionServiceTest {
 
 	@Test
 	public void shouldCredit_successful() {
-		Mockito.when(scanner.hasNextDouble()).thenReturn(true);
-		Mockito.when(scanner.nextDouble()).thenReturn(AMOUNT);
-		Mockito.when(scanner.nextLine()).thenReturn(TRANSACTIONAL_TOKEN);
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
 
-		transactionService.credit(player);
+		transactionService.credit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
-//		Mockito.verify(transactionRepository, Mockito.times(1))
-//				.credit(AMOUNT, player.getUsername(), TRANSACTIONAL_TOKEN);
+		Mockito.verify(transactionRepository, Mockito.times(1))
+				.creditOrDebit(AMOUNT, player.getPlayerID(), TRANSACTIONAL_TOKEN, Operation.CREDIT);
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Credit successfully.");
 	}
 
 	@Test
 	public void shouldNotCredit_transactionNumberNotUnique() {
-		Mockito.when(scanner.hasNextDouble()).thenReturn(true);
-		Mockito.when(scanner.nextDouble()).thenReturn(AMOUNT);
-		Mockito.when(scanner.nextLine()).thenReturn(TRANSACTIONAL_TOKEN);
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(true);
 
-		transactionService.credit(player);
+		transactionService.credit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
-//		AssertionsForClassTypes.assertThat(outputStream.toString())
-//				.contains("{{FAIL}} A transaction with this number already exists!");
-//		Mockito.verify(transactionRepository, Mockito.never()).credit(AMOUNT, player.getUsername(), TRANSACTIONAL_TOKEN);
+		AssertionsForClassTypes.assertThat(outputStream.toString())
+				.contains("{{FAIL}} A transaction with this number already exists!");
+		Mockito.verify(transactionRepository, Mockito.never())
+				.creditOrDebit(AMOUNT, player.getPlayerID(), TRANSACTIONAL_TOKEN, Operation.DEBIT);
 	}
 
 	@Test
 	public void shouldDebit_successful() {
-		Mockito.when(scanner.hasNextDouble()).thenReturn(true);
-		Mockito.when(scanner.nextDouble()).thenReturn(AMOUNT);
-		Mockito.when(scanner.nextLine()).thenReturn(TRANSACTIONAL_TOKEN);
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
 		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(200.0);
 
-		transactionService.debit(player);
+		transactionService.debit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
-//		Mockito.verify(transactionRepository, Mockito.times(1))
-//				.debit(AMOUNT, player.getUsername(), TRANSACTIONAL_TOKEN);
+		Mockito.verify(transactionRepository, Mockito.times(1))
+				.creditOrDebit(AMOUNT, player.getPlayerID(), TRANSACTIONAL_TOKEN, Operation.DEBIT);
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Debit successfully.");
 	}
 
 	@Test
 	public void shouldDebit_transactionNumberNotUnique() {
-		Mockito.when(scanner.hasNextDouble()).thenReturn(true);
-		Mockito.when(scanner.nextDouble()).thenReturn(AMOUNT);
-		Mockito.when(scanner.nextLine()).thenReturn(TRANSACTIONAL_TOKEN);
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(true);
 
-		transactionService.debit(player);
+		transactionService.debit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
-//		Mockito.verify(transactionRepository, Mockito.never()).debit(AMOUNT, player.getUsername(), TRANSACTIONAL_TOKEN);
+		Mockito.verify(transactionRepository, Mockito.never())
+				.creditOrDebit(AMOUNT, player.getPlayerID(), TRANSACTIONAL_TOKEN, Operation.DEBIT);
 		AssertionsForClassTypes.assertThat(outputStream.toString())
 				.contains("{{FAIL}} A transaction with this number already exists!");
 	}
