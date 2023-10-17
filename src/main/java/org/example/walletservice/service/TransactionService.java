@@ -10,16 +10,20 @@ public interface TransactionService {
 	/**
 	 * Credits a player's account.
 	 *
-	 * @param player The player to which the account is credited.
+	 * @param player            The player to which the account is credited.
+	 * @param inputPlayerAmount The amount entered by the player for a credit transaction.
+	 * @param transactionToken  Token for the current transaction.
 	 */
-	void credit(Player player);
+	void credit(Player player, double inputPlayerAmount, String transactionToken);
 
 	/**
 	 * Debits funds from a player's account.
 	 *
-	 * @param player The player from which funds are debited.
+	 * @param player            The player from which funds are debited.
+	 * @param inputPlayerAmount The amount entered by the player for a credit transaction.
+	 * @param transactionToken  Token for the current transaction.
 	 */
-	void debit(Player player);
+	void debit(Player player, double inputPlayerAmount, String transactionToken);
 
 	/**
 	 * Gets the transaction history of a player.

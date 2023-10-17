@@ -77,28 +77,22 @@ class PlayerRepositoryImplTest {
 
 	@Test
 	public void shouldFindPlayer_returnPlayer() {
-		//when
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(ADMIN);
 
-		//then
 		AssertionsForClassTypes.assertThat(optionalPlayer).isNotEmpty();
 	}
 
 	@Test
 	public void shouldFindPlayer_returnEmptyPlayer() {
-		//when
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(NOT_EXIST);
 
-		//then
 		AssertionsForClassTypes.assertThat(optionalPlayer).isEmpty();
 	}
 
 	@Test
 	public void shouldRegistrationPlayer_successful() {
-		//when
 		int expectedPlayerID = playerRepository.registrationPayer(player);
 
-		//then
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(player.getUsername());
 		Player expected = optionalPlayer.get();
 		AssertionsForClassTypes.assertThat(player).isEqualTo(expected);
@@ -107,15 +101,13 @@ class PlayerRepositoryImplTest {
 
 	@Test
 	public void shouldGetBalanceByPlayerID() {
-		//when
 		double expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayerID(1);
-		//then
+
 		AssertionsForClassTypes.assertThat(0.0).isEqualTo(expectedBalancePlayer);
 	}
 
 	@Test
 	public void shouldReceiveBalanceByPlayerIDAfterDepositing() {
-		//given
 		transactionRepository.creditOrDebit(
 				100.0,
 				player.getPlayerID(),
@@ -123,10 +115,8 @@ class PlayerRepositoryImplTest {
 				Operation.CREDIT
 		);
 
-		//when
 		double expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 
-		//then
 		AssertionsForClassTypes.assertThat(100.0).isEqualTo(expectedBalancePlayer);
 	}
 }

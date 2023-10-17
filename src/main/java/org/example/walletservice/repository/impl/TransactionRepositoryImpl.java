@@ -31,7 +31,6 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			statementToChangePlayerBalance.setDouble(1, newPlayerAmount);
 			statementToChangePlayerBalance.setInt(2, playerID);
 			statementToChangePlayerBalance.executeUpdate();
-
 			recordTransactionInPlayerHistory(
 					playerID,
 					operationValue,
@@ -58,13 +57,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} finally {
-			if (resultSet != null) {
-				try {
-					resultSet.close();
-				} catch (SQLException e) {
-					throw new RuntimeException(e);
-				}
-			}
+			connectionProvider.closeConnection(resultSet);
 		}
 	}
 
@@ -90,13 +83,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} finally {
-			if (resultSet != null) {
-				try {
-					resultSet.close();
-				} catch (SQLException e) {
-					throw new RuntimeException(e);
-				}
-			}
+			connectionProvider.closeConnection(resultSet);
 		}
 	}
 
@@ -115,10 +102,9 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	) {
 		try (Connection connection = connectionProvider.takeConnection();
 			 PreparedStatement statement = connection.prepareStatement(
-					 "INSERT INTO wallet_service.transaction (record, player_id, token) " +
-							 "VALUES (?, ?, ?)")
+					 "INSERT INTO wallet_service.transaction (record, player_id, token) VALUES (?, ?, ?)"
+			 )
 		) {
-
 			statement.setString(1, String.format("*****************-%s-*****************\n" +
 							"\t-- Transaction number: %s\n" +
 							"\t-- Your balance after transaction: %s\n" +

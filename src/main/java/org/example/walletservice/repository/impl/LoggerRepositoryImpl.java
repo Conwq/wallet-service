@@ -24,7 +24,9 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	public void recordAction(int playerID, String playerAction) {
 		try (Connection connection = connectionProvider.takeConnection();
 			 PreparedStatement statement = connection.prepareStatement(
-					 "INSERT INTO wallet_service.log(player_id, log) VALUES (?, ?)")) {
+					 "INSERT INTO wallet_service.log(player_id, log) VALUES (?, ?)"
+			 )
+		) {
 			statement.setInt(1, playerID);
 			statement.setString(2, playerAction);
 			statement.executeUpdate();
@@ -38,11 +40,11 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	@Override
 	public List<String> findAllActivityRecords() {
+		ResultSet resultSet = null;
 		try (Connection connection = connectionProvider.takeConnection();
-			 PreparedStatement statement = connection.prepareStatement(
-					 "SELECT log FROM wallet_service.log")) {
-
-			ResultSet resultSet = statement.executeQuery();
+			 PreparedStatement statement = connection.prepareStatement("SELECT log FROM wallet_service.log")
+		) {
+			resultSet = statement.executeQuery();
 			List<String> playerLogRecords = new ArrayList<>();
 			while (resultSet.next()) {
 				String logEntry = resultSet.getString("log");
@@ -51,6 +53,8 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 			return playerLogRecords;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		} finally {
+			connectionProvider.closeConnection(resultSet);
 		}
 	}
 
@@ -59,12 +63,14 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	@Override
 	public List<String> findActivityRecordsForPlayer(int playerID) {
+		ResultSet resultSet = null;
 		try (Connection connection = connectionProvider.takeConnection();
 			 PreparedStatement statement = connection.prepareStatement(
-					 "SELECT log FROM wallet_service.log WHERE player_id = ?")) {
-
+					 "SELECT log FROM wallet_service.log WHERE player_id = ?"
+			 )
+		) {
 			statement.setInt(1, playerID);
-			ResultSet resultSet = statement.executeQuery();
+			resultSet = statement.executeQuery();
 			List<String> recordsPlayer = new ArrayList<>();
 			while (resultSet.next()) {
 				String recordPlayer = resultSet.getString("log");
@@ -73,6 +79,8 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 			return recordsPlayer;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		} finally {
+			connectionProvider.closeConnection(resultSet);
 		}
 	}
 }

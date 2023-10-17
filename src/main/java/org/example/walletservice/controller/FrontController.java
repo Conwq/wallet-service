@@ -22,6 +22,9 @@ public final class FrontController {
 
 	/**
 	 * Player registration
+	 *
+	 * @param username Registration username
+	 * @param password Registration password
 	 */
 	public void registrationPlayer(String username, String password) {
 		playerAccessService.registrationPlayer(username, password);
@@ -29,6 +32,9 @@ public final class FrontController {
 
 	/**
 	 * Log in player
+	 *
+	 * @param username Login username
+	 * @param password Login password
 	 */
 	public Player logIn(String username, String password) {
 		return playerAccessService.logIn(username, password);
@@ -42,21 +48,31 @@ public final class FrontController {
 	}
 
 	/**
-	 * Increasing player balance
+	 * Credits the specified amount to the player's account.
+	 *
+	 * @param player            The player to credit the amount.
+	 * @param inputPlayerAmount The amount to be credited.
+	 * @param transactionToken  The transaction token associated with the credit operation.
 	 */
-	public void credit(Player player) {
-		transactionService.credit(player);
+	public void credit(Player player, double inputPlayerAmount, String transactionToken) {
+		transactionService.credit(player, inputPlayerAmount, transactionToken);
 	}
 
 	/**
-	 * Withdrawal from a player's account
+	 * Withdraws the specified amount from the player's account.
+	 *
+	 * @param player            The player from whom the amount is to be debited.
+	 * @param inputPlayerAmount The amount to be debited.
+	 * @param transactionToken  The transaction token associated with the debit operation.
 	 */
-	public void debit(Player player) {
-		transactionService.debit(player);
+	public void debit(Player player, double inputPlayerAmount, String transactionToken) {
+		transactionService.debit(player, inputPlayerAmount, transactionToken);
 	}
 
 	/**
-	 * Display the calling player's entire successful transaction history
+	 * Display the calling player's entire successful transaction history.
+	 *
+	 * @param player The player whose transaction history will be shown.
 	 */
 	public void displayPlayerTransactionalHistory(Player player) {
 		transactionService.displayPlayerTransactionalHistory(player);
