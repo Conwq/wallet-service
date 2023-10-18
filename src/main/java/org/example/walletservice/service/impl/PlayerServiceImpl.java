@@ -42,6 +42,10 @@ public final class PlayerServiceImpl implements PlayerService {
 				.role(Role.USER).build();
 
 		int playerID = playerRepository.registrationPayer(player);
+		if (playerID == -1) {
+			System.out.println("The database is not available at the moment. Try again later.");
+			return;
+		}
 		player.setPlayerID(playerID);
 
 		System.out.println("*User successfully registered!*\n");
@@ -75,8 +79,11 @@ public final class PlayerServiceImpl implements PlayerService {
 	@Override
 	public void displayPlayerBalance(Player player) {
 		double balance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+		if (balance == -1) {
+			System.out.println("The database is not available at the moment. Try again later.");
+			return;
+		}
 		System.out.printf("*Balance -- %s*\n", balance);
-
 		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
 	}
 }

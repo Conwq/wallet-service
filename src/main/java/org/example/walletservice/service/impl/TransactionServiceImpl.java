@@ -79,8 +79,7 @@ public final class TransactionServiceImpl implements TransactionService {
 				transactionRepository.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());
 
 		if (playerTransactionalHistory == null) {
-			System.out.println("\nUNKNOWN ERROR\n");
-			loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.FAIL);
+			System.out.println("The database is not available at the moment. Try again later.");
 			return;
 		}
 

@@ -39,38 +39,11 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			connection.commit();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			throw new RuntimeException(e);
+			System.out.println("The database is not available at the moment. Try again later.");
 		} finally {
 			connectionProvider.closeConnection(connection, statementToChangePlayerBalance);
 		}
 	}
-
-
-//	@Override
-//	public void creditOrDebit(double newPlayerAmount, int playerID, String transactionalToken, Operation operation) {
-//		String operationValue = operation == Operation.CREDIT ? operation.toString() : Operation.DEBIT.toString();
-//		Connection connection = null;
-//		PreparedStatement statementToChangePlayerBalance = null;
-//
-//		try {
-//			connection = connectionProvider.takeConnection();
-//			statementToChangePlayerBalance = connection.prepareStatement(
-//					"UPDATE wallet_service.players SET balance = ? WHERE player_id = ?");
-//
-//			statementToChangePlayerBalance.setDouble(1, newPlayerAmount);
-//			statementToChangePlayerBalance.setInt(2, playerID);
-//			statementToChangePlayerBalance.executeUpdate();
-//			recordTransactionInPlayerHistory(connection, playerID, operationValue, transactionalToken,
-//					newPlayerAmount);
-//
-//			connection.commit();
-//		} catch (SQLException e) {
-//			connectionProvider.rollbackCommit(connection);
-//			throw new RuntimeException(e);
-//		} finally {
-//			connectionProvider.closeConnection(connection, statementToChangePlayerBalance);
-//		}
-//	}
 
 	/**
 	 * {@inheritDoc}
@@ -120,7 +93,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			}
 			return transactionHistory;
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			return null;
 		} finally {
 			connectionProvider.closeConnection(connection, statement, resultSet);
 		}
@@ -147,7 +120,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			throw new RuntimeException(e);
+			System.out.println("The database is not available at the moment. Try again later.");
 		} finally {
 			connectionProvider.closeConnection(statement);
 		}

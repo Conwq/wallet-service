@@ -37,7 +37,7 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 			connection.commit();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			throw new RuntimeException(e);
+			System.out.println("There is an error with the database. Try again later.");
 		} finally {
 			connectionProvider.closeConnection(connection, statement);
 		}
@@ -63,7 +63,8 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 			}
 			return playerLogRecords;
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			System.out.println("There is an error with the database. Try again later.");
+			return null;
 		} finally {
 			connectionProvider.closeConnection(connection, statement, resultSet);
 		}
@@ -90,7 +91,7 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 			}
 			return recordsPlayer;
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			return null;
 		} finally {
 			connectionProvider.closeConnection(connection, statement, resultSet);
 		}

@@ -36,14 +36,14 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 
 			statement.setString(1, username);
 			resultSet = statement.executeQuery();
+			Player player = null;
 			if (resultSet.next()) {
-				Player player = Player.builder().playerID(resultSet.getInt("player_id"))
+				player = Player.builder().playerID(resultSet.getInt("player_id"))
 						.username(resultSet.getString("username"))
 						.password(resultSet.getString("password"))
 						.role(Role.valueOf(resultSet.getString("role_name").toUpperCase())).build();
-				return Optional.of(player);
 			}
-			return Optional.empty();
+			return Optional.ofNullable(player);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -76,7 +76,7 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			return playerID;
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			throw new RuntimeException(e);
+			return -1;
 		} finally {
 			connectionProvider.closeConnection(connection, statementToSaveUser, resultSet);
 			connectionProvider.closeConnection(statementCreateNewBalance);
@@ -105,7 +105,7 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			}
 			return 0.0;
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			return -1;
 		} finally {
 			connectionProvider.closeConnection(connection, statement, resultSet);
 		}

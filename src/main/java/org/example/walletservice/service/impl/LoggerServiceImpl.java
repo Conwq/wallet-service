@@ -44,6 +44,11 @@ public class LoggerServiceImpl implements LoggerService {
 	public void showAllLogs(Player player) {
 		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
 
+		if (playersRecords == null) {
+			System.out.println("The database is not available at the moment. Try again later.");
+			return;
+		}
+
 		if (playersRecords.isEmpty()) {
 			System.out.println("\n*No logs.*\n");
 			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
@@ -62,6 +67,7 @@ public class LoggerServiceImpl implements LoggerService {
 	@Override
 	public void showLogsByUsername(Player player, String inputUsernameForSearch) {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
+
 		if (optionalPlayer.isEmpty()) {
 			System.out.printf("*Player %s not found*\n", inputUsernameForSearch);
 			return;
@@ -70,6 +76,11 @@ public class LoggerServiceImpl implements LoggerService {
 		Player findPlayer = optionalPlayer.get();
 
 		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
+		if (playerLogs == null) {
+			System.out.println("The database is not available at the moment. Try again later.");
+			return;
+		}
+
 		if (playerLogs.isEmpty()) {
 			System.out.printf("*No logs for player %s*\n", inputUsernameForSearch);
 			return;
