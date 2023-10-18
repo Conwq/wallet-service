@@ -16,17 +16,15 @@ import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-class LoggerRepositoryImplTest {
+class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static LoggerRepository loggerRepository;
 	private static PlayerRepository playerRepository;
 	private static Player player;
@@ -34,15 +32,13 @@ class LoggerRepositoryImplTest {
 	private static final String ADMIN = "admin";
 	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
 	private static final String TEST = "test";
-	private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>("postgres:latest");
 
 	@BeforeAll
 	static void beforeAll() {
-		POSTGRESQL.start();
 		ConnectionProvider connectionProvider = new ConnectionProvider(
-				POSTGRESQL.getJdbcUrl(),
-				POSTGRESQL.getUsername(),
-				POSTGRESQL.getPassword());
+				POSTGRES.getJdbcUrl(),
+				POSTGRES.getUsername(),
+				POSTGRES.getPassword());
 		try (Connection connection = connectionProvider.takeConnection()) {
 			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
 					new JdbcConnection(connection));
@@ -54,11 +50,6 @@ class LoggerRepositoryImplTest {
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
-	}
-
-	@AfterAll
-	static void afterAll() {
-		POSTGRESQL.stop();
 	}
 
 	@BeforeEach

@@ -16,9 +16,5 @@
             <column name="balance" value="0.0"/>
             <column name="role_id" value="2"/>
         </insert>
-        <insert schemaName="wallet_service" tableName="transaction">
-            <column name="player_id" value="1"/>
-            <column name="token" value="0"/>
-        </insert>
     </changeSet>
 </databaseChangeLog>

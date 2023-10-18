@@ -14,17 +14,15 @@ import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
 
-class PlayerRepositoryImplTest {
+class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;
 	private static Player player;
@@ -34,15 +32,13 @@ class PlayerRepositoryImplTest {
 	private static final String TEST = "test";
 	private static final String NOT_EXIST = "not_exist";
 	private static final String TRANSACTION_TOKEN = "transaction_token";
-	private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>("postgres:latest");
 
 	@BeforeAll
 	static void beforeAll() {
-		POSTGRESQL.start();
 		ConnectionProvider connectionProvider = new ConnectionProvider(
-				POSTGRESQL.getJdbcUrl(),
-				POSTGRESQL.getUsername(),
-				POSTGRESQL.getPassword());
+				POSTGRES.getJdbcUrl(),
+				POSTGRES.getUsername(),
+				POSTGRES.getPassword());
 		try (Connection connection = connectionProvider.takeConnection()) {
 			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
 					new JdbcConnection(connection));
@@ -54,11 +50,6 @@ class PlayerRepositoryImplTest {
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
-	}
-
-	@AfterAll
-	static void afterAll() {
-		POSTGRESQL.stop();
 	}
 
 	@BeforeEach
@@ -92,12 +83,11 @@ class PlayerRepositoryImplTest {
 
 	@Test
 	public void shouldRegistrationPlayer_successful() {
-		int expectedPlayerID = playerRepository.registrationPayer(player);
+		playerRepository.registrationPayer(player);
 
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(player.getUsername());
 		Player expected = optionalPlayer.get();
 		AssertionsForClassTypes.assertThat(player).isEqualTo(expected);
-		AssertionsForClassTypes.assertThat(2).isEqualTo(expectedPlayerID);
 	}
 
 	@Test

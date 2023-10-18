@@ -14,17 +14,15 @@ import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-class TransactionRepositoryImplTest {
+class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static final String TRANSACTION_OUTPUT_FORMAT = "*****************-%s-*****************\n" +
 			"\t-- Transaction number: %s\n" +
 			"\t-- Your balance after transaction: %s\n" +
@@ -37,15 +35,14 @@ class TransactionRepositoryImplTest {
 	private static Transaction transaction;
 	private static final String ADMIN = "admin";
 	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
-	private static final PostgreSQLContainer<?> POSTGRESQL = new PostgreSQLContainer<>("postgres:latest");
 
 	@BeforeAll
 	static void beforeAll() {
-		POSTGRESQL.start();
+		POSTGRES.start();
 		ConnectionProvider connectionProvider = new ConnectionProvider(
-				POSTGRESQL.getJdbcUrl(),
-				POSTGRESQL.getUsername(),
-				POSTGRESQL.getPassword());
+				POSTGRES.getJdbcUrl(),
+				POSTGRES.getUsername(),
+				POSTGRES.getPassword());
 		try (Connection connection = connectionProvider.takeConnection()) {
 			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
 					new JdbcConnection(connection));
@@ -58,11 +55,6 @@ class TransactionRepositoryImplTest {
 			e.printStackTrace();
 		}
 
-	}
-
-	@AfterAll
-	static void afterAll() {
-		POSTGRESQL.stop();
 	}
 
 	@BeforeEach
@@ -81,8 +73,8 @@ class TransactionRepositoryImplTest {
 	}
 
 	@Test
-	public void mustReturnFalseAfterValidatingToken() {
-		boolean value = transactionRepository.checkTokenExistence(TRANSACTION_TOKEN);
+	public void shouldReturnFalseAfterValidatingToken() {
+		boolean value = transactionRepository.checkTokenExistence("new_token");
 
 		AssertionsForClassTypes.assertThat(value).isFalse();
 	}
