@@ -13,6 +13,8 @@ public final class PlayerRegistrationHandler {
 	private final FrontController frontController;
 	private final Scanner scanner;
 	private final Cleaner cleaner;
+	private static final String ENTER_USERNAME = "Enter username: ";
+	private static final String ENTER_PASSWORD = "Enter password: ";
 
 	public PlayerRegistrationHandler(FrontController frontController, Scanner scanner, Cleaner cleaner) {
 		this.frontController = frontController;
@@ -26,10 +28,10 @@ public final class PlayerRegistrationHandler {
 	public void registrationPlayer() {
 		cleaner.cleanBuffer(scanner);
 
-		System.out.print("Enter username: ");
+		System.out.print(ENTER_USERNAME);
 		String username = scanner.nextLine().trim();
 
-		System.out.print("Enter password: ");
+		System.out.print(ENTER_PASSWORD);
 		String password = scanner.nextLine().trim();
 
 		frontController.registrationPlayer(username, password);

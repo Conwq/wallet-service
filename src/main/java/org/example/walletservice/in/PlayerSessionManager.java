@@ -21,12 +21,33 @@ public final class PlayerSessionManager {
 	private final FrontController frontController;
 	private final Scanner scanner;
 	private final LoggerService loggerService;
+	private static final String WELCOME_BACK = "Welcome back, %s!\n\n";
+	private static final String GOODBYE = "Good bye, %s!\n";
+	private static final String LOG_OUT_TEMPLATE = "%d. Log out\n";
+	private static final String ENTER_WITHDRAW_AMOUNT = "Enter the amount to withdraw funds: ";
+	private static final String ENTER_CREDIT_AMOUNT = "Please enter the amount credit: ";
+	private static final String ENTER_TRANSACTION_NUMBER = "Please enter transaction number: ";
+	private static final String ENTER_USERNAME_PLAYER = "Enter the name of the user you want to see the logs: ";
+	private static final String SHOW_LOGS = "5. Show logs";
+	private static final String ENTER_USERNAME = "Enter username: ";
+	private static final String ENTER_PASSWORD = "Enter password: ";
+	private static final String LOG_MENU =
+					"""
+					1. All logs
+					2. Players logs
+					3. Back"
+					""";
+	private static final String MENU_AUTH_PLAYER =
+					"""
+					1. Balance
+					2. Credit
+					3. Debit
+					4. Show transactional history
+					""";
 
 	public PlayerSessionManager(Cleaner cleaner,
 								OperationChooserVerification operationChooserVerification,
-								FrontController frontController,
-								Scanner scanner,
-								LoggerService loggerService) {
+								FrontController frontController, Scanner scanner, LoggerService loggerService) {
 		this.cleaner = cleaner;
 		this.operationChooserVerification = operationChooserVerification;
 		this.frontController = frontController;
@@ -41,10 +62,10 @@ public final class PlayerSessionManager {
 	public void logIn() {
 		cleaner.cleanBuffer(scanner);
 
-		System.out.print("Enter username: ");
+		System.out.print(ENTER_USERNAME);
 		String username = scanner.nextLine();
 
-		System.out.print("Enter password: ");
+		System.out.print(ENTER_PASSWORD);
 		String password = scanner.nextLine();
 
 		Player player = frontController.logIn(username, password);
@@ -60,7 +81,7 @@ public final class PlayerSessionManager {
 	 * @param player An authorized player for whom menu items will be displayed depending on the role.
 	 */
 	private void displayOperationsMenuForAuthorizedPlayer(Player player) {
-		System.out.printf("Welcome back, %s!\n\n", player.getUsername());
+		System.out.printf(WELCOME_BACK, player.getUsername());
 		int numberCommandToSelect = player.getRole() == Role.ADMIN ? 6 : 5;
 
 		do {
@@ -71,7 +92,7 @@ public final class PlayerSessionManager {
 				continue;
 			}
 			if (userInputValue == numberCommandToSelect) {
-				System.out.printf("Good bye, %s!\n", player.getUsername());
+				System.out.printf(GOODBYE, player.getUsername());
 				loggerService.recordActionInLog(Operation.EXIT, player, Status.SUCCESSFUL);
 				break;
 			}
@@ -87,11 +108,11 @@ public final class PlayerSessionManager {
 	 * @param numberCommandToSelect The number representing the command to log out.
 	 */
 	private void displayMenuOptions(Player player, int numberCommandToSelect) {
-		System.out.println("1. Balance\n2. Credit\n3. Debit\n4. Show transactional history");
+		System.out.print(MENU_AUTH_PLAYER);
 		if (player.getRole() == Role.ADMIN) {
-			System.out.println("5. Show logs");
+			System.out.println(SHOW_LOGS);
 		}
-		System.out.printf("%d. Log out\n", numberCommandToSelect);
+		System.out.printf(LOG_OUT_TEMPLATE, numberCommandToSelect);
 	}
 
 	/**
@@ -118,16 +139,15 @@ public final class PlayerSessionManager {
 	 */
 	private void displayLogOptions(Player player) {
 		boolean exit = false;
-
 		do {
-			System.out.println("1. All logs\n2. Players logs\n3. Back");
+			System.out.println(LOG_MENU);
 
 			int userInputValue = operationChooserVerification.userDataVerification(3);
 			switch (userInputValue) {
 				case 1 -> frontController.showAllLogs(player);
 				case 2 -> {
 					cleaner.cleanBuffer(scanner);
-					System.out.print("Enter the name of the user you want to see the logs: ");
+					System.out.print(ENTER_USERNAME_PLAYER);
 					frontController.showLogsByUsername(player, scanner.nextLine());
 				}
 				case 3 -> exit = true;
@@ -143,17 +163,10 @@ public final class PlayerSessionManager {
 	 * @param player The player for whom the credit transaction is executed.
 	 */
 	private void executingCreditTransaction(Player player) {
-		System.out.print("Please enter the amount credit: ");
-		if (!scanner.hasNextDouble()) {
-			cleaner.cleanBuffer(scanner);
-			return;
+		UserInputData inputData = processUserInput(ENTER_CREDIT_AMOUNT);
+		if (inputData != null) {
+			frontController.credit(player, inputData.amount, inputData.transactionToken);
 		}
-		double inputPlayerAmount = scanner.nextDouble();
-		System.out.print("Please enter transaction number: ");
-		cleaner.cleanBuffer(scanner);
-		String transactionalToken = scanner.nextLine();
-
-		frontController.credit(player, inputPlayerAmount, transactionalToken);
 	}
 
 	/**
@@ -163,16 +176,35 @@ public final class PlayerSessionManager {
 	 * @param player The player for whom the debit transaction is executed.
 	 */
 	private void executingDebitTransaction(Player player) {
-		System.out.print("Enter the amount to withdraw funds: ");
+		UserInputData inputData = processUserInput(ENTER_WITHDRAW_AMOUNT);
+		if (inputData != null) {
+			frontController.debit(player, inputData.amount, inputData.transactionToken);
+		}
+	}
+
+	/**
+	 * Processing the user's input of the amount and transaction number.
+	 *
+	 * @param prompt Display the operation to the user.
+	 * @return An object containing user input data (transaction amount and token).
+	 */
+	private UserInputData processUserInput(String prompt) {
+		System.out.print(prompt);
 		if (!scanner.hasNextDouble()) {
 			cleaner.cleanBuffer(scanner);
-			return;
+			return null;
 		}
 		double inputPlayerAmount = scanner.nextDouble();
-		System.out.print("Please enter transaction number: ");
+		System.out.print(ENTER_TRANSACTION_NUMBER);
 		cleaner.cleanBuffer(scanner);
 		String transactionalToken = scanner.nextLine();
 
-		frontController.debit(player, inputPlayerAmount, transactionalToken);
+		return new UserInputData(inputPlayerAmount, transactionalToken);
+	}
+
+	/**
+	 * Represents the data entered by the user, including the amount and token of the transaction.
+	 */
+	private record UserInputData(double amount, String transactionToken) {
 	}
 }

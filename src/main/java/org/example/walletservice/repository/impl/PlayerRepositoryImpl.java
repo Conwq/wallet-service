@@ -13,6 +13,8 @@ import java.util.Optional;
  */
 public final class PlayerRepositoryImpl implements PlayerRepository {
 	private final ConnectionProvider connectionProvider;
+	private static final String ERROR_CONNECTION_DATABASE =
+			"There is an error with the database. Try again later.";
 	private static final String PLAYER_ID = "player_id";
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
@@ -50,6 +52,7 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			}
 			return Optional.ofNullable(player);
 		} catch (SQLException e) {
+			System.out.println(ERROR_CONNECTION_DATABASE);
 			throw new RuntimeException(e);
 		} finally {
 			connectionProvider.closeConnection(connection, statement, resultSet);
