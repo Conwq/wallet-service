@@ -14,20 +14,31 @@ import java.util.Optional;
 public class LoggerServiceImpl implements LoggerService {
 	private final LoggerRepository loggerRepository;
 	private final PlayerRepository playerRepository;
+	private static final String ERROR_CONNECTION_DATABASE =
+			"There is an error with the database. Try again later.";
+	private static final String LOG_TEMPLATE =
+			        """
+					**************************
+					-- Operation: %s;
+					-- User: %s;
+					-- Status: %s.
+					""";
+	private static final String NO_LOG = "*No logs.*\n";
+	private static final String PLAYER_NOT_FOUND_TEMPLATE = "*Player %s not found*\n";
+	private static final String NO_LOG_FOR_PLAYER_TEMPLATE = "*No logs for player %s*\n";
 
 	public LoggerServiceImpl(LoggerRepository loggerRepository, PlayerRepository playerRepository) {
 		this.loggerRepository = loggerRepository;
 		this.playerRepository = playerRepository;
 	}
 
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void recordActionInLog(Operation operation, Player player, Status status) {
-		String formatLog = String.format("*****************\n-- Operation: %s;\n-- User: %s;\n-- Status: %s.\n",
-				operation.toString(), player.getUsername(), status.toString());
+		String formatLog = String.format(LOG_TEMPLATE, operation.toString(), player.getUsername(),
+				status.toString());
 
 		Log log = Log.builder()
 				.log(formatLog)
@@ -45,12 +56,12 @@ public class LoggerServiceImpl implements LoggerService {
 		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
 
 		if (playersRecords == null) {
-			System.out.println("The database is not available at the moment. Try again later.");
+			System.out.println(ERROR_CONNECTION_DATABASE);
 			return;
 		}
 
 		if (playersRecords.isEmpty()) {
-			System.out.println("\n*No logs.*\n");
+			System.out.println(NO_LOG);
 			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
 			return;
 		}
@@ -69,7 +80,7 @@ public class LoggerServiceImpl implements LoggerService {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
 
 		if (optionalPlayer.isEmpty()) {
-			System.out.printf("*Player %s not found*\n", inputUsernameForSearch);
+			System.out.printf(PLAYER_NOT_FOUND_TEMPLATE, inputUsernameForSearch);
 			return;
 		}
 
@@ -77,12 +88,12 @@ public class LoggerServiceImpl implements LoggerService {
 
 		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
 		if (playerLogs == null) {
-			System.out.println("The database is not available at the moment. Try again later.");
+			System.out.println(ERROR_CONNECTION_DATABASE);
 			return;
 		}
 
 		if (playerLogs.isEmpty()) {
-			System.out.printf("*No logs for player %s*\n", inputUsernameForSearch);
+			System.out.printf(NO_LOG_FOR_PLAYER_TEMPLATE, inputUsernameForSearch);
 			return;
 		}
 		for (Log log : playerLogs) {

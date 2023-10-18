@@ -13,11 +13,16 @@ import java.util.List;
 
 public final class TransactionRepositoryImpl implements TransactionRepository {
 	private final ConnectionProvider connectionProvider;
+	private static final String ERROR_CONNECTION_DATABASE =
+			"There is an error with the database. Try again later.";
+	private static final String RECORD = "record";
 
 	public TransactionRepositoryImpl(ConnectionProvider connectionProvider) {
 		this.connectionProvider = connectionProvider;
 	}
 
+	private static final String REQUEST_TO_UPDATE_PLAYER_BALANCE =
+			"UPDATE wallet_service.players SET balance = ? WHERE player_id = ?";
 
 	/**
 	 * {@inheritDoc}
@@ -29,9 +34,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 
 		try {
 			connection = connectionProvider.takeConnection();
-			statementToChangePlayerBalance = connection.prepareStatement(
-					"UPDATE wallet_service.players SET balance = ? WHERE player_id = ?");
-
+			statementToChangePlayerBalance = connection.prepareStatement(REQUEST_TO_UPDATE_PLAYER_BALANCE);
 			statementToChangePlayerBalance.setDouble(1, newPlayerAmount);
 			statementToChangePlayerBalance.setInt(2, transaction.getPlayerID());
 			statementToChangePlayerBalance.executeUpdate();
@@ -39,11 +42,14 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			connection.commit();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			System.out.println("The database is not available at the moment. Try again later.");
+			System.out.println(ERROR_CONNECTION_DATABASE);
 		} finally {
 			connectionProvider.closeConnection(connection, statementToChangePlayerBalance);
 		}
 	}
+
+	private static final String TOKEN_REQUEST =
+			"SELECT token FROM wallet_service.transaction WHERE token = ?";
 
 	/**
 	 * {@inheritDoc}
@@ -56,8 +62,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 
 		try {
 			connection = connectionProvider.takeConnection();
-			statement = connection.prepareStatement(
-					"SELECT token FROM wallet_service.transaction WHERE token = ?");
+			statement = connection.prepareStatement(TOKEN_REQUEST);
 
 			statement.setString(1, transactionalToken);
 			resultSet = statement.executeQuery();
@@ -68,6 +73,9 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			connectionProvider.closeConnection(connection, statement, resultSet);
 		}
 	}
+
+	private static final String RECORD_REQUEST =
+			"SELECT record FROM wallet_service.transaction WHERE player_id = ?";
 
 	/**
 	 * {@inheritDoc}
@@ -80,15 +88,14 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 
 		try {
 			connection = connectionProvider.takeConnection();
-			statement = connection.prepareStatement(
-					"SELECT record FROM wallet_service.transaction WHERE player_id = ?");
+			statement = connection.prepareStatement(RECORD_REQUEST);
 
 			statement.setInt(1, playerID);
 			resultSet = statement.executeQuery();
 			List<String> transactionHistory = new ArrayList<>();
 			while (resultSet.next()) {
-				if (resultSet.getString("record") != null) {
-					transactionHistory.add(resultSet.getString("record"));
+				if (resultSet.getString(RECORD) != null) {
+					transactionHistory.add(resultSet.getString(RECORD));
 				}
 			}
 			return transactionHistory;
@@ -98,6 +105,10 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			connectionProvider.closeConnection(connection, statement, resultSet);
 		}
 	}
+
+	private static final String REQUEST_TO_ADD_TRANSACTION =
+			"INSERT INTO wallet_service.transaction (record, token, operation, amount, player_id) " +
+					"VALUES (?, ?, ?, ?, ?)";
 
 	/**
 	 * Records a transaction in the player's transaction history in the database.
@@ -109,9 +120,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 		PreparedStatement statement = null;
 
 		try {
-			statement = connection.prepareStatement(
-					"INSERT INTO wallet_service.transaction (record, token, operation, amount, player_id) " +
-							"VALUES (?, ?, ?, ?, ?)");
+			statement = connection.prepareStatement(REQUEST_TO_ADD_TRANSACTION);
 			statement.setString(1, transaction.getRecord());
 			statement.setString(2, transaction.getToken());
 			statement.setString(3, transaction.getOperation());
@@ -120,7 +129,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			System.out.println("The database is not available at the moment. Try again later.");
+			System.out.println(ERROR_CONNECTION_DATABASE);
 		} finally {
 			connectionProvider.closeConnection(statement);
 		}

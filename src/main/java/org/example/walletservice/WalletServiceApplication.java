@@ -25,7 +25,6 @@ public final class WalletServiceApplication {
 	}
 
 	public static void main(String... args) {
-
 		MainMenu mainMenu = context.getMainMenu();
 		mainMenu.start();
 	}
@@ -47,8 +46,8 @@ public final class WalletServiceApplication {
 					.findCorrectDatabaseImplementation(new JdbcConnection(connection));
 			database.setLiquibaseSchemaName("migration");
 
-			Liquibase liquibase = new Liquibase("changelog/changelog.xml", new ClassLoaderResourceAccessor(),
-					database);
+			Liquibase liquibase = new Liquibase("changelog/changelog.xml",
+					new ClassLoaderResourceAccessor(), database);
 			liquibase.getDatabase().setDefaultSchemaName("wallet_service");
 			liquibase.update();
 		} catch (Exception e) {

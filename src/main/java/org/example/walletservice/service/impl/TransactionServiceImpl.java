@@ -15,6 +15,27 @@ public final class TransactionServiceImpl implements TransactionService {
 	private final LoggerService loggerService;
 	private final TransactionRepository transactionRepository;
 	private final PlayerRepository playerRepository;
+	private static final String CREDIT_SUCCESSFUL = "*Credit successfully.*\n";
+	private static final String DEBIT_SUCCESSFUL = "*Debit successfully.*\n";
+	private static final String FAIL_NOT_UNIQUE_TRANSACTION_TOKEN =
+			"*{{FAIL}} A transaction with this number already exists!*\n";
+	private static final String FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT =
+			"*{{FAIL}} There are not enough funds in the account!*\n";
+	private static final String ERROR_CONNECTION_DATABASE =
+			"There is an error with the database. Try again later.";
+	private static final String TRANSACTIONS_EMPTY =
+					"""
+					**********************
+					Transactions is empty.
+					**********************
+					""";
+	private static final String TRANSACTION_RECORD_TEMPLATE =
+					"""
+					*****************-%s-*****************
+					\t-- Transaction number: %s
+					\t-- Your balance after transaction: %s
+					******************************************
+					""";
 
 	public TransactionServiceImpl(LoggerService loggerService, TransactionRepository transactionRepository,
 								  PlayerRepository playerRepository) {
@@ -36,10 +57,10 @@ public final class TransactionServiceImpl implements TransactionService {
 					inputPlayerAmount, player, newPlayerBalance);
 
 			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
-			System.out.println("*Credit successfully.*\n");
+			System.out.println(CREDIT_SUCCESSFUL);
 			loggerService.recordActionInLog(Operation.CREDIT, player, Status.SUCCESSFUL);
 		} else {
-			System.out.println("*{{FAIL}} A transaction with this number already exists!*\n");
+			System.out.println(FAIL_NOT_UNIQUE_TRANSACTION_TOKEN);
 			loggerService.recordActionInLog(Operation.CREDIT, player, Status.FAIL);
 		}
 	}
@@ -52,7 +73,7 @@ public final class TransactionServiceImpl implements TransactionService {
 		if (inputPlayerAmount >= 0.0 && !transactionRepository.checkTokenExistence(transactionToken)) {
 			double playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 			if (playerBalance - inputPlayerAmount < 0.0) {
-				System.out.println("*{{FAIL}} There are not enough funds in the account!*\n");
+				System.out.println(FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT);
 				loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
 				return;
 			}
@@ -62,10 +83,10 @@ public final class TransactionServiceImpl implements TransactionService {
 					inputPlayerAmount, player, newPlayerBalance);
 
 			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
-			System.out.println("*Debit successfully.*\n");
+			System.out.println(DEBIT_SUCCESSFUL);
 			loggerService.recordActionInLog(Operation.DEBIT, player, Status.SUCCESSFUL);
 		} else {
-			System.out.println("*{{FAIL}} A transaction with this number already exists!*\n");
+			System.out.println(FAIL_NOT_UNIQUE_TRANSACTION_TOKEN);
 			loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
 		}
 	}
@@ -79,14 +100,12 @@ public final class TransactionServiceImpl implements TransactionService {
 				transactionRepository.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());
 
 		if (playerTransactionalHistory == null) {
-			System.out.println("The database is not available at the moment. Try again later.");
+			System.out.println(ERROR_CONNECTION_DATABASE);
 			return;
 		}
 
 		if (playerTransactionalHistory.isEmpty()) {
-			System.out.println("**********************");
-			System.out.println("Transactions is empty.");
-			System.out.println("**********************\n");
+			System.out.println(TRANSACTIONS_EMPTY);
 			loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
 			return;
 		}
@@ -114,11 +133,7 @@ public final class TransactionServiceImpl implements TransactionService {
 				.operation(Operation.CREDIT.name())
 				.amount(inputPlayerAmount)
 				.playerID(player.getPlayerID())
-				.record(String.format("*****************-%s-*****************\n" +
-								"\t-- Transaction number: %s\n" +
-								"\t-- Your balance after transaction: %s\n" +
-								"******************************************\n",
-						operation.name(), token, newPlayerBalance))
+				.record(String.format(TRANSACTION_RECORD_TEMPLATE, operation.name(), token, newPlayerBalance))
 				.build();
 	}
 }
