@@ -11,6 +11,13 @@ import java.sql.*;
  * @param password The password for authenticating to the database.
  */
 public record ConnectionProvider(String url, String username, String password) {
+	static {
+		try {
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	/**
 	 * Retrieves a connection to the database. The connection has auto-commit turned off.

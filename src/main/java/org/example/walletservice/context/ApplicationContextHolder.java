@@ -1,10 +1,12 @@
 package org.example.walletservice.context;
 
-import org.example.walletservice.controller.FrontController;
-import org.example.walletservice.in.MainMenu;
-import org.example.walletservice.in.PlayerRegistrationHandler;
-import org.example.walletservice.in.PlayerSessionManager;
-import org.example.walletservice.in.util.OperationChooserVerification;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.ClassLoaderResourceAccessor;
+import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
@@ -19,32 +21,31 @@ import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.impl.LoggerServiceImpl;
 import org.example.walletservice.service.impl.PlayerServiceImpl;
 import org.example.walletservice.service.impl.TransactionServiceImpl;
-import org.example.walletservice.util.Cleaner;
 
-import java.util.Scanner;
+import java.sql.Connection;
+import java.sql.Statement;
 
 /**
  * Singleton class responsible for managing the application context.
  */
 public class ApplicationContextHolder {
-	private static ApplicationContextHolder instance;
+	private static ApplicationContextHolder instance = new ApplicationContextHolder();
+
+	static {
+		performingDatabaseMigration();
+	}
+
 	private static final String URL = "url";
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
 
-	final Scanner scanner = new Scanner(System.in);
-	final Cleaner cleaner = new Cleaner();
-
-	final OperationChooserVerification operationChooserVerification = new OperationChooserVerification(
-			scanner,
-			cleaner
-	);
+	final CommandProvider commandProvider = new CommandProvider();
+	final ObjectMapper objectMapper = new ObjectMapper();
 	final DBResourceManager resourceManager = new DBResourceManager();
 	final ConnectionProvider connectionProvider = new ConnectionProvider(
 			resourceManager.getValue(URL),
 			resourceManager.getValue(USERNAME),
-			resourceManager.getValue(PASSWORD)
-	);
+			resourceManager.getValue(PASSWORD));
 
 	final PlayerRepository playerRepository = new PlayerRepositoryImpl(connectionProvider);
 	final TransactionRepository transactionRepository = new TransactionRepositoryImpl(connectionProvider);
@@ -54,34 +55,8 @@ public class ApplicationContextHolder {
 	final TransactionService transactionService = new TransactionServiceImpl(
 			loggerService,
 			transactionRepository,
-			playerRepository
-	);
+			playerRepository);
 	final PlayerService playerService = new PlayerServiceImpl(playerRepository, loggerService);
-
-	final FrontController frontController = new FrontController(
-			playerService,
-			transactionService,
-			loggerService
-	);
-
-	final PlayerRegistrationHandler playerRegistrationHandler = new PlayerRegistrationHandler(
-			frontController,
-			scanner,
-			cleaner
-	);
-	final PlayerSessionManager playerSessionManager = new PlayerSessionManager(
-			cleaner,
-			operationChooserVerification,
-			frontController,
-			scanner,
-			loggerService
-	);
-	final MainMenu mainMenu = new MainMenu(
-			playerRegistrationHandler,
-			playerSessionManager,
-			operationChooserVerification,
-			scanner
-	);
 
 	private ApplicationContextHolder() {
 	}
@@ -93,11 +68,70 @@ public class ApplicationContextHolder {
 		return instance;
 	}
 
+	public DBResourceManager getResourceManager() {
+		return resourceManager;
+	}
+
+	public PlayerRepository getPlayerRepository() {
+		return playerRepository;
+	}
+
+	public TransactionRepository getTransactionRepository() {
+		return transactionRepository;
+	}
+
+	public CommandProvider getCommandProvider() {
+		return commandProvider;
+	}
+
+	public LoggerRepository getLoggerRepository() {
+		return loggerRepository;
+	}
+
+	public LoggerService getLoggerService() {
+		return loggerService;
+	}
+
+	public TransactionService getTransactionService() {
+		return transactionService;
+	}
+
+	public PlayerService getPlayerService() {
+		return playerService;
+	}
+
 	public ConnectionProvider getConnectionProvider() {
 		return connectionProvider;
 	}
 
-	public MainMenu getMainMenu() {
-		return mainMenu;
+	public ObjectMapper getObjectMapper() {
+		return objectMapper;
+	}
+
+	private static void performingDatabaseMigration(){
+		ConnectionProvider connectionProvider = instance.getConnectionProvider();
+		Connection connection = null;
+		Statement statement = null;
+
+		try {
+			connection = connectionProvider.takeConnection();
+			statement = connection.createStatement();
+			statement.executeUpdate("CREATE SCHEMA IF NOT EXISTS migration");
+			connection.commit();
+
+			Database database = DatabaseFactory.getInstance()
+					.findCorrectDatabaseImplementation(new JdbcConnection(connection));
+			database.setLiquibaseSchemaName("migration");
+
+			Liquibase liquibase = new Liquibase("changelog/changelog.xml",
+					new ClassLoaderResourceAccessor(), database);
+			liquibase.getDatabase().setDefaultSchemaName("wallet_service");
+			liquibase.update();
+		} catch (Exception e) {
+			connectionProvider.rollbackCommit(connection);
+			e.printStackTrace();
+		} finally {
+			connectionProvider.closeConnection(connection, statement);
+		}
 	}
 }

@@ -30,5 +30,5 @@ public interface PlayerRepository {
 	 * @param playerID The ID of the player whose balance you want to receive.
 	 * @return String representation of the player's balance.
 	 */
-	BigDecimal findPlayerBalanceByPlayerID(int playerID);
+	BigDecimal findPlayerBalanceByPlayer(Player player);
 }

@@ -1,5 +1,7 @@
 package org.example.walletservice.service.impl;
 
+import org.example.walletservice.model.dto.PlayerDto;
+import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.PlayerRepository;
@@ -26,16 +28,13 @@ public final class TransactionServiceImpl implements TransactionService {
 			"There is an error with the database. Try again later.";
 	private static final String TRANSACTIONS_EMPTY =
 					"""
-					**********************
 					Transactions is empty.
-					**********************
 					""";
 	private static final String TRANSACTION_RECORD_TEMPLATE =
 					"""
-					*****************-%s-*****************
-					\t-- Transaction number: %s
-					\t-- Your balance after transaction: %s
-					******************************************
+					                      - %s -
+					\t- Transaction number: %s -
+					\t- Your balance after transaction: %s -
 					""";
 
 	public TransactionServiceImpl(LoggerService loggerService, TransactionRepository transactionRepository,
@@ -49,10 +48,20 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void credit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
+	public void credit(PlayerDto playerDto, TransactionRequestDto transactionRequestDto) {
+		BigDecimal inputPlayerAmount = transactionRequestDto.inputPlayerAmount();
+		String transactionToken = transactionRequestDto.transactionToken();
+
+		Player player = Player.builder()
+				.playerID(playerDto.playerID())
+				.username(playerDto.username())
+				.role(playerDto.role())
+				.build();
+
 		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
 				!transactionRepository.checkTokenExistence(transactionToken)) {
-			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+
+			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 			BigDecimal newPlayerBalance = playerBalance.add(inputPlayerAmount);
 
 			Transaction transaction = createTransaction(transactionToken, Operation.CREDIT,
@@ -71,10 +80,19 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void debit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
+	public void debit(PlayerDto playerDto, TransactionRequestDto transactionRequestDto) {
+		BigDecimal inputPlayerAmount = transactionRequestDto.inputPlayerAmount();
+		String transactionToken = transactionRequestDto.transactionToken();
+
+		Player player = Player.builder()
+				.playerID(playerDto.playerID())
+				.username(playerDto.username())
+				.role(playerDto.role())
+				.build();
+
 		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
 				!transactionRepository.checkTokenExistence(transactionToken)) {
-			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 
 			BigDecimal newPlayerBalance = playerBalance.subtract(inputPlayerAmount);
 			if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
@@ -99,25 +117,28 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void displayPlayerTransactionalHistory(Player player) {
+	public List<String> getPlayerTransactionalHistory(PlayerDto playerDto) {
+		Player player = Player.builder()
+				.playerID(playerDto.playerID())
+				.username(playerDto.username())
+				.role(playerDto.role())
+				.build();
+
 		List<String> playerTransactionalHistory =
-				transactionRepository.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());
+				transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
 
 		if (playerTransactionalHistory == null) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
-			return;
+			return null;
 		}
 
 		if (playerTransactionalHistory.isEmpty()) {
 			System.out.println(TRANSACTIONS_EMPTY);
 			loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
-			return;
-		}
-
-		for (String transaction : playerTransactionalHistory) {
-			System.out.println(transaction);
+			return null;
 		}
 		loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
+		return playerTransactionalHistory;
 	}
 
 	/**

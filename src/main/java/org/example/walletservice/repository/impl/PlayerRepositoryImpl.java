@@ -101,7 +101,7 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public BigDecimal findPlayerBalanceByPlayerID(int playerID) {
+	public BigDecimal findPlayerBalanceByPlayer(Player player) {
 		final String REQUEST_FOR_USER_BALANCE = """
 				SELECT balance FROM wallet_service.players WHERE player_id = ?
 				""";
@@ -114,7 +114,7 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			connection = connectionProvider.takeConnection();
 			statement = connection.prepareStatement(REQUEST_FOR_USER_BALANCE);
 
-			statement.setInt(1, playerID);
+			statement.setInt(1, player.getPlayerID());
 			resultSet = statement.executeQuery();
 
 			if (resultSet.next()) {

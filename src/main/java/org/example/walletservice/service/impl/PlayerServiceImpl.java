@@ -1,6 +1,8 @@
 package org.example.walletservice.service.impl;
 
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.model.dto.PlayerDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
@@ -36,7 +38,9 @@ public final class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void registrationPlayer(String username, String password) {
+	public void registrationPlayer(PlayerRequestDto playerRequestDto) {
+		String username = playerRequestDto.username();
+		String password = playerRequestDto.password();
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
 
 		if (optionalPlayer.isPresent()) {
@@ -64,8 +68,8 @@ public final class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Player logIn(String username, String password) {
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
+	public PlayerDto logIn(PlayerRequestDto playerRequestDto) {
+		Optional<Player> optionalPlayer = playerRepository.findPlayer(playerRequestDto.username());
 
 		if (optionalPlayer.isEmpty()) {
 			System.out.println(PLAYER_NOT_FOUND);
@@ -73,25 +77,39 @@ public final class PlayerServiceImpl implements PlayerService {
 		}
 
 		Player player = optionalPlayer.get();
-		if (!player.getPassword().equals(password)) {
+
+		if (!player.getPassword().equals(playerRequestDto.password())) {
 			System.out.println(INCORRECT_PASSWORD);
 			return null;
 		}
+
+		PlayerDto playerDto = new PlayerDto(
+				player.getPlayerID(),
+				player.getUsername(),
+				player.getRole());
+
 		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
-		return player;
+		return playerDto;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void displayPlayerBalance(Player player) {
-		BigDecimal balance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+	public BigDecimal getPlayerBalance(PlayerDto playerDto) {
+
+		Player player = Player.builder()
+				.playerID(playerDto.playerID())
+				.username(playerDto.username())
+				.build();
+
+
+		BigDecimal balance = playerRepository.findPlayerBalanceByPlayer(player);
 		if (balance.equals(BigDecimal.valueOf(-1))) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
-			return;
+			return null;
 		}
-		System.out.printf(BALANCE_TEMPLATE, balance);
 		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
+		return balance;
 	}
 }

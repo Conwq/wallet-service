@@ -1,6 +1,9 @@
 package org.example.walletservice.service;
 
-import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.model.dto.PlayerDto;
+
+import java.math.BigDecimal;
 
 /**
  * The PlayerService interface provides methods for managing players in the system.
@@ -13,7 +16,7 @@ public interface PlayerService {
 	 * @param username The username for the new player.
 	 * @param password The password for the new player.
 	 */
-	void registrationPlayer(String username, String password);
+	void registrationPlayer(PlayerRequestDto playerRequestDto);
 
 	/**
 	 * Logs in an existing player to the system.
@@ -22,12 +25,12 @@ public interface PlayerService {
 	 * @param password The password for login.
 	 * @return An instance of a Player object that successfully logged on.
 	 */
-	Player logIn(String username, String password);
+	PlayerDto logIn(PlayerRequestDto playerRequestDto);
 
 	/**
 	 * Gets the balance of a player.
 	 *
 	 * @param player The player for whom the balance is requested.
 	 */
-	void displayPlayerBalance(Player player);
+	BigDecimal getPlayerBalance(PlayerDto playerDto);
 }

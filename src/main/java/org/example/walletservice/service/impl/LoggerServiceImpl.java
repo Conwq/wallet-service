@@ -1,5 +1,7 @@
 package org.example.walletservice.service.impl;
 
+import org.example.walletservice.model.dto.LogResponseDto;
+import org.example.walletservice.model.dto.PlayerDto;
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.LoggerRepository;
@@ -8,6 +10,7 @@ import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,10 +21,9 @@ public class LoggerServiceImpl implements LoggerService {
 			"There is an error with the database. Try again later.";
 	private static final String LOG_TEMPLATE =
 			        """
-					**************************
-					-- Operation: %s;
-					-- User: %s;
-					-- Status: %s.
+					-Operation: %s-
+					-User: %s-
+					-Status: %s-
 					""";
 	private static final String NO_LOG = "*No logs.*\n";
 	private static final String PLAYER_NOT_FOUND_TEMPLATE = "*Player %s not found*\n";
@@ -52,36 +54,50 @@ public class LoggerServiceImpl implements LoggerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void showAllLogs(Player player) {
+	public List<LogResponseDto> getAllLogs(PlayerDto playerDto) {
+		Player player = Player.builder()
+				.playerID(playerDto.playerID())
+				.username(playerDto.username())
+				.role(playerDto.role()).build();
+
 		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
 
 		if (playersRecords == null) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
-			return;
+			return null;
 		}
 
 		if (playersRecords.isEmpty()) {
 			System.out.println(NO_LOG);
 			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
-			return;
+			return null;
 		}
 
-		for (Log log : playersRecords) {
-			System.out.println(log.getLog());
+		List<LogResponseDto> logResponseDtos = new ArrayList<>(playersRecords.size());
+		for(Log log : playersRecords){
+			LogResponseDto responseDto = new LogResponseDto(log.getLog());
+			logResponseDtos.add(responseDto);
 		}
+
 		recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
+		return logResponseDtos;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void showLogsByUsername(Player player, String inputUsernameForSearch) {
+	public List<LogResponseDto> showLogsByUsername(PlayerDto playerDto, String inputUsernameForSearch) {
+		Player player = Player.builder()
+				.playerID(playerDto.playerID())
+				.username(playerDto.username())
+				.role(playerDto.role()).build();
+
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
 
 		if (optionalPlayer.isEmpty()) {
 			System.out.printf(PLAYER_NOT_FOUND_TEMPLATE, inputUsernameForSearch);
-			return;
+			return null;
 		}
 
 		Player findPlayer = optionalPlayer.get();
@@ -89,16 +105,21 @@ public class LoggerServiceImpl implements LoggerService {
 		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
 		if (playerLogs == null) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
-			return;
+			return null;
 		}
 
 		if (playerLogs.isEmpty()) {
 			System.out.printf(NO_LOG_FOR_PLAYER_TEMPLATE, inputUsernameForSearch);
-			return;
+			return null;
 		}
-		for (Log log : playerLogs) {
-			System.out.println(log.getLog());
+
+		List<LogResponseDto> logResponseDtos = new ArrayList<>(playerLogs.size());
+		for(Log log : playerLogs){
+			LogResponseDto responseDto = new LogResponseDto(log.getLog());
+			logResponseDtos.add(responseDto);
 		}
+
 		recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
+		return logResponseDtos;
 	}
 }

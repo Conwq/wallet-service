@@ -1,5 +1,6 @@
 package org.example.walletservice.repository.impl;
 
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
@@ -81,7 +82,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<String> findPlayerTransactionalHistoryByPlayerID(int playerID) {
+	public List<String> findPlayerTransactionalHistoryByPlayer(Player player) {
 		final String RECORD_REQUEST = """
 				SELECT record FROM wallet_service.transaction WHERE player_id = ?
 				""";
@@ -94,7 +95,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			connection = connectionProvider.takeConnection();
 			statement = connection.prepareStatement(RECORD_REQUEST);
 
-			statement.setInt(1, playerID);
+			statement.setInt(1, player.getPlayerID());
 			resultSet = statement.executeQuery();
 			List<String> transactionHistory = new ArrayList<>();
 			while (resultSet.next()) {
