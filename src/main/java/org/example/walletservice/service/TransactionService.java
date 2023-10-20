@@ -1,31 +1,36 @@
 package org.example.walletservice.service;
 
+import org.example.walletservice.model.entity.Player;
+
+import java.math.BigDecimal;
+
+/**
+ * Shows the amount of funds on the account, displays the history of transactions and makes a debit/credit.
+ */
 public interface TransactionService {
+
 	/**
 	 * Credits a player's account.
 	 *
-	 * @param username The username of the player object to which the account is credited.
+	 * @param player            The player to which the account is credited.
+	 * @param inputPlayerAmount The amount entered by the player for a credit transaction.
+	 * @param transactionToken  Token for the current transaction.
 	 */
-	void credit(String username);
+	void credit(Player player, BigDecimal inputPlayerAmount, String transactionToken);
 
 	/**
 	 * Debits funds from a player's account.
 	 *
-	 * @param username The username of the player from which funds are debited.
+	 * @param player            The player from which funds are debited.
+	 * @param inputPlayerAmount The amount entered by the player for a credit transaction.
+	 * @param transactionToken  Token for the current transaction.
 	 */
-	void debit(String username);
+	void debit(Player player, BigDecimal inputPlayerAmount, String transactionToken);
 
 	/**
 	 * Gets the transaction history of a player.
 	 *
-	 * @param username The username of the player for whom the transaction history is being requested.
+	 * @param player The player for whom the transaction history is being requested.
 	 */
-	void displayPlayerTransactionalHistoryByUsername(String username);
-
-	/**
-	 * Gets the balance of a player.
-	 *
-	 * @param username The username of the player object for which the balance is requested.
-	 */
-	void displayPlayerBalance(String username);
+	void displayPlayerTransactionalHistory(Player player);
 }

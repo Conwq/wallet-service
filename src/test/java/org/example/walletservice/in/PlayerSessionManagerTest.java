@@ -3,9 +3,8 @@ package org.example.walletservice.in;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.controller.FrontController;
 import org.example.walletservice.in.util.OperationChooserVerification;
-import org.example.walletservice.model.Player;
-import org.example.walletservice.model.Role;
-import org.example.walletservice.service.PlayerActionLoggerService;
+import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.util.Cleaner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,25 +18,26 @@ import java.io.PrintStream;
 import java.util.Scanner;
 
 class PlayerSessionManagerTest {
-
 	private PlayerSessionManager playerSessionManager;
 	private final Cleaner cleaner = Mockito.mock(Cleaner.class);
 	private final OperationChooserVerification operationChooser =
 			Mockito.mock(OperationChooserVerification.class);
 	private final FrontController frontController = Mockito.mock(FrontController.class);
 	private final Scanner scanner = Mockito.mock(Scanner.class);
-	private final PlayerActionLoggerService playerActionLoggerService = Mockito.mock(PlayerActionLoggerService.class);
+	private final LoggerService loggerService = Mockito.mock(LoggerService.class);
 	private final InputStream origIn = System.in;
 	private final PrintStream origOut = System.out;
 	private static final String USERNAME = "user123";
 	private static final String PASSWORD = "13213";
-	private static final Player PLAYER = new Player(USERNAME, PASSWORD, Role.USER);
+	private static final Player PLAYER = Player.builder().playerID(1)
+			.username(USERNAME)
+			.password(PASSWORD).build();
 	private ByteArrayOutputStream outputStream;
 
 	@BeforeEach
 	void setUp() {
 		playerSessionManager =
-				new PlayerSessionManager(cleaner, operationChooser, frontController, scanner, playerActionLoggerService);
+				new PlayerSessionManager(cleaner, operationChooser, frontController, scanner, loggerService);
 
 		outputStream = new ByteArrayOutputStream();
 		System.setOut(new PrintStream(outputStream));
@@ -66,7 +66,7 @@ class PlayerSessionManagerTest {
 		Mockito.verify(cleaner, Mockito.times(1)).cleanBuffer(scanner);
 
 		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains("Enter username:", "Enter password:", String.format("Welcome back, %s!",USERNAME));
+				.contains("Enter username:", "Enter password:", String.format("Welcome back, %s!", USERNAME));
 		AssertionsForClassTypes.assertThat(outputStream.toString()).doesNotContain("5. Show logs");
 	}
 }

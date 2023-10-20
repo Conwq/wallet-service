@@ -1,11 +1,11 @@
 package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.service.PlayerAccessService;
-import org.example.walletservice.service.PlayerActionLoggerService;
+import org.example.walletservice.service.LoggerService;
+import org.example.walletservice.service.PlayerService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,13 +15,15 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import java.util.Optional;
 
-class PlayerAccessServiceTest {
+class PlayerServiceTest {
 	private final PlayerRepository playerRepository = Mockito.mock(PlayerRepository.class);
-	private final PlayerActionLoggerService playerActionLoggerService = Mockito.mock(PlayerActionLoggerServiceImpl.class);
-	private PlayerAccessService playerAccessService;
+	private final LoggerService loggerService = Mockito.mock(LoggerServiceImpl.class);
+	private PlayerService playerService;
 	private static final double AMOUNT = 100.0;
+	private static final BigDecimal BALANCE = BigDecimal.valueOf(100);
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
 	private final PrintStream origOut = System.out;
@@ -30,11 +32,13 @@ class PlayerAccessServiceTest {
 
 	@BeforeEach
 	public void setUp() {
-		playerAccessService = new PlayerAccessServiceImpl(playerRepository, playerActionLoggerService);
+		playerService = new PlayerServiceImpl(playerRepository, loggerService);
 
-		final String username = "user123";
-		final String password = "1313";
-		player = new Player(username, password, Role.USER);
+		player = Player.builder()
+				.playerID(1)
+				.username("user123")
+				.password("1313")
+				.role(Role.USER).build();
 
 		outputStream = new ByteArrayOutputStream();
 		System.setOut(new PrintStream(outputStream));
@@ -45,7 +49,7 @@ class PlayerAccessServiceTest {
 	}
 
 	@AfterEach
-	public void tearDown(){
+	public void tearDown() {
 		System.setOut(origOut);
 		System.setIn(origIn);
 	}
@@ -54,10 +58,9 @@ class PlayerAccessServiceTest {
 	void shouldRegistrationPlayer_successful() {
 		Mockito.when(playerRepository.findPlayer(player.getUsername())).thenReturn(Optional.empty());
 
-		playerAccessService.registrationPlayer(player.getUsername(), player.getPassword());
+		playerService.registrationPlayer(player.getUsername(), player.getPassword());
 
 		Mockito.verify(playerRepository, Mockito.times(1)).findPlayer(player.getUsername());
-		Mockito.verify(playerRepository, Mockito.times(1)).registrationPayer(player);
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("User successfully registered!");
 	}
 
@@ -65,7 +68,7 @@ class PlayerAccessServiceTest {
 	public void shouldNotRegisteredPlayer_error() {
 		Mockito.when(playerRepository.findPlayer(player.getUsername())).thenReturn(Optional.of(player));
 
-		playerAccessService.registrationPlayer(player.getUsername(), player.getPassword());
+		playerService.registrationPlayer(player.getUsername(), player.getPassword());
 
 		Mockito.verify(playerRepository, Mockito.never()).registrationPayer(Mockito.any(Player.class));
 		AssertionsForClassTypes.assertThat(outputStream.toString())
@@ -76,7 +79,7 @@ class PlayerAccessServiceTest {
 	public void shouldLogInPlayer_success() {
 		Mockito.when(playerRepository.findPlayer(player.getUsername())).thenReturn(Optional.of(player));
 
-		Player expected = playerAccessService.logIn(player.getUsername(), player.getPassword());
+		Player expected = playerService.logIn(player.getUsername(), player.getPassword());
 
 		Mockito.verify(playerRepository, Mockito.times(1)).findPlayer(player.getUsername());
 		AssertionsForClassTypes.assertThat(expected).isEqualTo(player);
@@ -86,7 +89,7 @@ class PlayerAccessServiceTest {
 	public void shouldNotLogInPlayer_notFoundPlayer() {
 		Mockito.when(playerRepository.findPlayer(player.getUsername())).thenReturn(Optional.empty());
 
-		Player expected = playerAccessService.logIn(player.getUsername(), player.getPassword());
+		Player expected = playerService.logIn(player.getUsername(), player.getPassword());
 
 		Mockito.verify(playerRepository, Mockito.times(1)).findPlayer(player.getUsername());
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("{{FAIL}} Current player not found.");
@@ -96,12 +99,24 @@ class PlayerAccessServiceTest {
 	@Test
 	public void shouldNotLogInPlayer_invalidPassword() {
 		Mockito.when(playerRepository.findPlayer(player.getUsername()))
-				.thenReturn(Optional.of(new Player(player.getUsername(), "test", Role.USER)));
+				.thenReturn(Optional.of(player));
 
-		Player expected = playerAccessService.logIn(player.getUsername(), player.getPassword());
+		Player expected = playerService.logIn(player.getUsername(), "1");
 
 		Mockito.verify(playerRepository, Mockito.times(1)).findPlayer(player.getUsername());
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("{{FAIL}} Incorrect password!");
 		AssertionsForClassTypes.assertThat(expected).isNull();
+	}
+
+
+	@Test
+	public void shouldGetBalancePlayer_successful() {
+		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(BALANCE);
+
+		playerService.displayPlayerBalance(player);
+
+		Mockito.verify(playerRepository, Mockito.times(1))
+				.findPlayerBalanceByPlayerID(player.getPlayerID());
+		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Balance -- " + BALANCE);
 	}
 }

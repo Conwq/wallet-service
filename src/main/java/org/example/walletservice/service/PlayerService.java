@@ -1,11 +1,11 @@
 package org.example.walletservice.service;
 
-import org.example.walletservice.model.Player;
+import org.example.walletservice.model.entity.Player;
 
 /**
- * The PlayerAccessService interface provides methods for managing players in the system.
+ * The PlayerService interface provides methods for managing players in the system.
  */
-public interface PlayerAccessService {
+public interface PlayerService {
 
 	/**
 	 * Registers a new player in the system.
@@ -24,4 +24,10 @@ public interface PlayerAccessService {
 	 */
 	Player logIn(String username, String password);
 
+	/**
+	 * Gets the balance of a player.
+	 *
+	 * @param player The player for whom the balance is requested.
+	 */
+	void displayPlayerBalance(Player player);
 }

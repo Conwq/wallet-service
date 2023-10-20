@@ -1,24 +1,23 @@
 package org.example.walletservice.context;
 
 import org.example.walletservice.controller.FrontController;
-import org.example.walletservice.database.PlayerActionLoggerDatabase;
-import org.example.walletservice.database.PlayerDatabase;
-import org.example.walletservice.database.TransactionDatabase;
 import org.example.walletservice.in.MainMenu;
 import org.example.walletservice.in.PlayerRegistrationHandler;
 import org.example.walletservice.in.PlayerSessionManager;
 import org.example.walletservice.in.util.OperationChooserVerification;
-import org.example.walletservice.repository.PlayerActionLoggerRepository;
+import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.repository.impl.PlayerActionLoggerRepositoryImpl;
+import org.example.walletservice.repository.impl.LoggerRepositoryImpl;
 import org.example.walletservice.repository.impl.PlayerRepositoryImpl;
 import org.example.walletservice.repository.impl.TransactionRepositoryImpl;
-import org.example.walletservice.service.PlayerAccessService;
-import org.example.walletservice.service.PlayerActionLoggerService;
+import org.example.walletservice.repository.manager.ConnectionProvider;
+import org.example.walletservice.repository.manager.DBResourceManager;
+import org.example.walletservice.service.LoggerService;
+import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.TransactionService;
-import org.example.walletservice.service.impl.PlayerAccessServiceImpl;
-import org.example.walletservice.service.impl.PlayerActionLoggerServiceImpl;
+import org.example.walletservice.service.impl.LoggerServiceImpl;
+import org.example.walletservice.service.impl.PlayerServiceImpl;
 import org.example.walletservice.service.impl.TransactionServiceImpl;
 import org.example.walletservice.util.Cleaner;
 
@@ -29,40 +28,60 @@ import java.util.Scanner;
  */
 public class ApplicationContextHolder {
 	private static ApplicationContextHolder instance;
+	private static final String URL = "url";
+	private static final String USERNAME = "username";
+	private static final String PASSWORD = "password";
 
 	final Scanner scanner = new Scanner(System.in);
 	final Cleaner cleaner = new Cleaner();
 
-	final OperationChooserVerification operationChooserVerification =
-			new OperationChooserVerification(scanner, cleaner);
+	final OperationChooserVerification operationChooserVerification = new OperationChooserVerification(
+			scanner,
+			cleaner
+	);
+	final DBResourceManager resourceManager = new DBResourceManager();
+	final ConnectionProvider connectionProvider = new ConnectionProvider(
+			resourceManager.getValue(URL),
+			resourceManager.getValue(USERNAME),
+			resourceManager.getValue(PASSWORD)
+	);
 
-	final PlayerDatabase playerDatabase = new PlayerDatabase();
-	final TransactionDatabase transactionDatabase = new TransactionDatabase();
-	final PlayerActionLoggerDatabase playerActionLoggerDatabase = new PlayerActionLoggerDatabase();
+	final PlayerRepository playerRepository = new PlayerRepositoryImpl(connectionProvider);
+	final TransactionRepository transactionRepository = new TransactionRepositoryImpl(connectionProvider);
+	final LoggerRepository loggerRepository = new LoggerRepositoryImpl(connectionProvider);
 
-	final PlayerRepository playerRepository = new PlayerRepositoryImpl(playerDatabase, transactionDatabase);
-	final TransactionRepository transactionRepository = new TransactionRepositoryImpl(transactionDatabase);
-	final PlayerActionLoggerRepository playerActionLoggerRepository =
-			new PlayerActionLoggerRepositoryImpl(playerActionLoggerDatabase);
+	final LoggerService loggerService = new LoggerServiceImpl(loggerRepository, playerRepository);
+	final TransactionService transactionService = new TransactionServiceImpl(
+			loggerService,
+			transactionRepository,
+			playerRepository
+	);
+	final PlayerService playerService = new PlayerServiceImpl(playerRepository, loggerService);
 
+	final FrontController frontController = new FrontController(
+			playerService,
+			transactionService,
+			loggerService
+	);
 
-	final PlayerActionLoggerServiceImpl playerActionLoggerService2 =
-			new PlayerActionLoggerServiceImpl(playerActionLoggerRepository);
-	final TransactionService transactionService = new TransactionServiceImpl(scanner,
-			playerActionLoggerService2, cleaner, transactionRepository);
-	final PlayerAccessService playerAccessService =
-			new PlayerAccessServiceImpl(playerRepository, playerActionLoggerService2);
-	final PlayerActionLoggerService playerActionLoggerService =
-			new PlayerActionLoggerServiceImpl(playerActionLoggerRepository);
-	final FrontController frontController =
-			new FrontController(playerAccessService, transactionService, playerActionLoggerService);
-
-	final PlayerRegistrationHandler playerRegistrationHandler = new PlayerRegistrationHandler(frontController,
-			scanner, cleaner);
-	final PlayerSessionManager playerSessionManager = new PlayerSessionManager(cleaner, operationChooserVerification,
-			frontController, scanner, playerActionLoggerService);
-	final MainMenu mainMenu = new MainMenu(playerRegistrationHandler, playerSessionManager,
-			operationChooserVerification, scanner);
+	final PlayerRegistrationHandler playerRegistrationHandler = new PlayerRegistrationHandler(
+			frontController,
+			scanner,
+			cleaner
+	);
+	final PlayerSessionManager playerSessionManager = new PlayerSessionManager(
+			cleaner,
+			operationChooserVerification,
+			frontController,
+			scanner,
+			loggerService
+	);
+	final MainMenu mainMenu = new MainMenu(
+			playerRegistrationHandler,
+			playerSessionManager,
+			operationChooserVerification,
+			scanner
+	);
 
 	private ApplicationContextHolder() {
 	}
@@ -74,40 +93,8 @@ public class ApplicationContextHolder {
 		return instance;
 	}
 
-	public Scanner getScanner() {
-		return scanner;
-	}
-
-	public Cleaner getCleaner() {
-		return cleaner;
-	}
-
-	public PlayerActionLoggerServiceImpl getTransactionLog() {
-		return playerActionLoggerService2;
-	}
-
-	public OperationChooserVerification getOperationChooserVerification() {
-		return operationChooserVerification;
-	}
-
-	public PlayerRepository getPlayerRepository() {
-		return playerRepository;
-	}
-
-	public PlayerAccessService getPlayerService() {
-		return playerAccessService;
-	}
-
-	public FrontController getPlayerController() {
-		return frontController;
-	}
-
-	public PlayerRegistrationHandler getPlayerRegistrationHandler() {
-		return playerRegistrationHandler;
-	}
-
-	public PlayerSessionManager getPlayerSessionManager() {
-		return playerSessionManager;
+	public ConnectionProvider getConnectionProvider() {
+		return connectionProvider;
 	}
 
 	public MainMenu getMainMenu() {

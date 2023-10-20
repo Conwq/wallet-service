@@ -1,94 +1,104 @@
 package org.example.walletservice.repository.impl;
 
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.LiquibaseException;
+import liquibase.resource.ClassLoaderResourceAccessor;
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.database.TransactionDatabase;
-import org.example.walletservice.model.Player;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.entity.Transaction;
+import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
+import org.example.walletservice.repository.manager.ConnectionProvider;
+import org.example.walletservice.service.enums.Operation;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
-class TransactionRepositoryImplTest {
-	private TransactionRepository transactionRepository;
-	private final TransactionDatabase transactionDatabase = Mockito.mock(TransactionDatabase.class);
-	private static final double AMOUNT = 100.0;
+class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
+	private static final String TRANSACTION_OUTPUT_FORMAT = "*****************-%s-*****************\n" +
+			"\t-- Transaction number: %s\n" +
+			"\t-- Your balance after transaction: %s\n" +
+			"******************************************\n";
 	private static final String TRANSACTION_TOKEN = "transaction_token";
-	private Player player;
+	private static final BigDecimal BALANCE_PLAYER = BigDecimal.valueOf(1000);
+	private static PlayerRepository playerRepository;
+	private static TransactionRepository transactionRepository;
+	private static Player player;
+	private static Transaction transaction;
+	private static final String ADMIN = "admin";
+	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
+
+	@BeforeAll
+	static void beforeAll() {
+		POSTGRES.start();
+		ConnectionProvider connectionProvider = new ConnectionProvider(
+				POSTGRES.getJdbcUrl(),
+				POSTGRES.getUsername(),
+				POSTGRES.getPassword());
+		try (Connection connection = connectionProvider.takeConnection()) {
+			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
+					new JdbcConnection(connection));
+			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
+					database);
+			liquibase.update();
+			playerRepository = new PlayerRepositoryImpl(connectionProvider);
+			transactionRepository = new TransactionRepositoryImpl(connectionProvider);
+		} catch (SQLException | LiquibaseException e) {
+			e.printStackTrace();
+		}
+
+	}
 
 	@BeforeEach
-	public void setUp(){
-		transactionRepository = new TransactionRepositoryImpl(transactionDatabase);
+	void setUp() {
+		player = Player.builder().playerID(1)
+				.username(ADMIN)
+				.password(ADMIN)
+				.role(Role.ADMIN).build();
 
-		String username = "user123";
-		String password = "1313";
-		player = new Player(username, password, Role.USER);
-		player.setBalance(AMOUNT);
+		transaction = Transaction.builder()
+				.token(TRANSACTION_TOKEN)
+				.operation(Operation.CREDIT.name())
+				.amount(BigDecimal.ZERO)
+				.playerID(player.getPlayerID())
+				.build();
 	}
 
 	@Test
-	public void shouldGetPlayerBalance_successful() {
-		Mockito.when(transactionDatabase.findPlayerBalanceByUsername(player.getUsername())).thenReturn(AMOUNT);
+	public void shouldReturnFalseAfterValidatingToken() {
+		boolean value = transactionRepository.checkTokenExistence("new_token");
 
-		double expected = transactionRepository.findPlayerBalanceByUsername(player.getUsername());
-		AssertionsForClassTypes.assertThat(expected).isEqualTo(AMOUNT);
+		AssertionsForClassTypes.assertThat(value).isFalse();
 	}
 
 	@Test
-	public void shouldCredit_successful(){
-		List<String> transactionHistory = new ArrayList<>();
+	public void shouldChangePlayerBalanceAfterDepositingAndGetTransactionHistory() {
+		transaction.setRecord(String
+				.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
+		transactionRepository.creditOrDebit(transaction, BALANCE_PLAYER);
 
-		Mockito.when(transactionDatabase.findPlayerBalanceByUsername(player.getUsername())).thenReturn(0.0)
-				.thenReturn(AMOUNT);
-		Mockito.when(transactionDatabase.findPlayersTransactionHistoryByUsername(player.getUsername()))
-				.thenReturn(transactionHistory);
+		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 
-		transactionRepository.credit(AMOUNT, player.getUsername(), TRANSACTION_TOKEN);
-
-		Mockito.verify(transactionDatabase, Mockito.times(1))
-				.savePlayersNewAmountFunds(player.getUsername(), AMOUNT);
-		Mockito.verify(transactionDatabase, Mockito.times(1))
-				.saveTransactionToken(TRANSACTION_TOKEN);
-		Mockito.verify(transactionDatabase, Mockito.times(1))
-				.savePlayersTransactionHistory(player.getUsername(), transactionHistory);
+		List<String> playerTransactionHistory = transactionRepository
+				.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());
+		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(BALANCE_PLAYER);
+		AssertionsForClassTypes.assertThat(playerTransactionHistory).asString().contains(
+				String.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
 	}
 
 	@Test
-	public void shouldDebit_successful(){
-		List<String> transactionHistory = new ArrayList<>();
+	public void mustReturnTrueAfterValidatingToken() {
+		boolean value = transactionRepository.checkTokenExistence(TRANSACTION_TOKEN);
 
-		Mockito.when(transactionDatabase.findPlayersTransactionHistoryByUsername(player.getUsername()))
-				.thenReturn(transactionHistory);
-
-		Mockito.when(transactionDatabase.findPlayerBalanceByUsername(player.getUsername())).thenReturn(AMOUNT);
-
-		transactionRepository.debit(50.0, player.getUsername(), TRANSACTION_TOKEN);
-
-		AssertionsForClassTypes.assertThat(AMOUNT - 50.0).isEqualTo(50.0);
-		Mockito.verify(transactionDatabase, Mockito.times(1))
-				.savePlayersNewAmountFunds(player.getUsername(), 50.0);
-		Mockito.verify(transactionDatabase, Mockito.times(1))
-				.saveTransactionToken(TRANSACTION_TOKEN);
-		Mockito.verify(transactionDatabase, Mockito.times(1))
-				.savePlayersTransactionHistory(player.getUsername(), transactionHistory);
-	}
-
-	@Test
-	public void shouldGetTransactionalHistory_successful(){
-		List<String> transactionalHistory = new ArrayList<>(){{
-			add("Transactional #1");
-			add("Transactional #2");
-			add("Transactional #3");
-		}};
-
-		Mockito.when(transactionDatabase.findPlayersTransactionHistoryByUsername(player.getUsername()))
-				.thenReturn(transactionalHistory);
-
-		List<String> expected = transactionRepository.findPlayerTransactionalHistoryByUsername(player.getUsername());
-
-		AssertionsForClassTypes.assertThat(expected).isEqualTo(transactionalHistory);
+		AssertionsForClassTypes.assertThat(value).isTrue();
 	}
 }

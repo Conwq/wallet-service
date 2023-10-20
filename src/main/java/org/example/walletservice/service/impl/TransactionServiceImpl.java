@@ -1,49 +1,69 @@
 package org.example.walletservice.service.impl;
 
+import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.entity.Transaction;
+import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.service.PlayerActionLoggerService;
+import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.example.walletservice.util.Cleaner;
 
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Scanner;
 
 public final class TransactionServiceImpl implements TransactionService {
-	private final Scanner scanner;
-	private final PlayerActionLoggerService playerActionLoggerService;
-	private final Cleaner cleaner;
+	private final LoggerService loggerService;
 	private final TransactionRepository transactionRepository;
+	private final PlayerRepository playerRepository;
+	private static final String CREDIT_SUCCESSFUL = "*Credit successfully.*\n";
+	private static final String DEBIT_SUCCESSFUL = "*Debit successfully.*\n";
+	private static final String FAIL_NOT_UNIQUE_TRANSACTION_TOKEN =
+			"*{{FAIL}} A transaction with this number already exists!*\n";
+	private static final String FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT =
+			"*{{FAIL}} There are not enough funds in the account!*\n";
+	private static final String ERROR_CONNECTION_DATABASE =
+			"There is an error with the database. Try again later.";
+	private static final String TRANSACTIONS_EMPTY =
+					"""
+					**********************
+					Transactions is empty.
+					**********************
+					""";
+	private static final String TRANSACTION_RECORD_TEMPLATE =
+					"""
+					*****************-%s-*****************
+					\t-- Transaction number: %s
+					\t-- Your balance after transaction: %s
+					******************************************
+					""";
 
-	public TransactionServiceImpl(Scanner scanner, PlayerActionLoggerService playerActionLoggerService,
-								  Cleaner cleaner, TransactionRepository transactionRepository) {
-		this.scanner = scanner;
-		this.playerActionLoggerService = playerActionLoggerService;
-		this.cleaner = cleaner;
+	public TransactionServiceImpl(LoggerService loggerService, TransactionRepository transactionRepository,
+								  PlayerRepository playerRepository) {
+		this.loggerService = loggerService;
 		this.transactionRepository = transactionRepository;
+		this.playerRepository = playerRepository;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void credit(String username) {
-		System.out.print("Please enter the amount credit: ");
+	public void credit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
+		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
+				!transactionRepository.checkTokenExistence(transactionToken)) {
+			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+			BigDecimal newPlayerBalance = playerBalance.add(inputPlayerAmount);
 
-		double amountTransaction;
-		String transactionalToken;
-		if (scanner.hasNextDouble() && ((amountTransaction = scanner.nextDouble()) >= 0.0)
-				&& (transactionalToken = checkingEnteredUserToken()) != null) {
+			Transaction transaction = createTransaction(transactionToken, Operation.CREDIT,
+					inputPlayerAmount, player, newPlayerBalance);
 
-			transactionRepository.credit(amountTransaction, username, transactionalToken);
-
-			System.out.println("\n*Credit successfully.*\n");
-
-			playerActionLoggerService.recordAction(Operation.CREDIT, username, Status.SUCCESSFUL);
+			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
+			System.out.println(CREDIT_SUCCESSFUL);
+			loggerService.recordActionInLog(Operation.CREDIT, player, Status.SUCCESSFUL);
 		} else {
-			System.out.println("\n*{{FAIL}} A transaction with this number already exists!*\n");
-			playerActionLoggerService.recordAction(Operation.CREDIT, username, Status.FAIL);
+			System.out.println(FAIL_NOT_UNIQUE_TRANSACTION_TOKEN);
+			loggerService.recordActionInLog(Operation.CREDIT, player, Status.FAIL);
 		}
 	}
 
@@ -51,30 +71,27 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void debit(String username) {
-		System.out.print("Enter the amount to withdraw funds: ");
+	public void debit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
+		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
+				!transactionRepository.checkTokenExistence(transactionToken)) {
+			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 
-		double inputPlayerAmount;
-		String transactionalToken;
-		if (scanner.hasNextDouble() && ((inputPlayerAmount = scanner.nextDouble()) >= 0.0)
-				&& (transactionalToken = checkingEnteredUserToken()) != null) {
-
-			double currentAmountOfFundsInAccount = transactionRepository.findPlayerBalanceByUsername(username);
-
-			if (currentAmountOfFundsInAccount - inputPlayerAmount < 0.0) {
-				System.out.println("\n*{{FAIL}} There are not enough funds in the account!*\n");
-
-				playerActionLoggerService.recordAction(Operation.DEBIT, username, Status.FAIL);
+			BigDecimal newPlayerBalance = playerBalance.subtract(inputPlayerAmount);
+			if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
+				System.out.println(FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT);
+				loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
 				return;
 			}
 
-			transactionRepository.debit(inputPlayerAmount, username, transactionalToken);
-			System.out.println("\n*Debit successfully.*\n");
+			Transaction transaction = createTransaction(transactionToken, Operation.DEBIT,
+					inputPlayerAmount, player, newPlayerBalance);
 
-			playerActionLoggerService.recordAction(Operation.DEBIT, username, Status.SUCCESSFUL);
+			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
+			System.out.println(DEBIT_SUCCESSFUL);
+			loggerService.recordActionInLog(Operation.DEBIT, player, Status.SUCCESSFUL);
 		} else {
-			System.out.println("\n*{{FAIL}} A transaction with this number already exists!*\n");
-			playerActionLoggerService.recordAction(Operation.DEBIT, username, Status.FAIL);
+			System.out.println(FAIL_NOT_UNIQUE_TRANSACTION_TOKEN);
+			loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
 		}
 	}
 
@@ -82,52 +99,45 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void displayPlayerTransactionalHistoryByUsername(String username) {
+	public void displayPlayerTransactionalHistory(Player player) {
 		List<String> playerTransactionalHistory =
-				transactionRepository.findPlayerTransactionalHistoryByUsername(username);
+				transactionRepository.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());
 
 		if (playerTransactionalHistory == null) {
-			System.out.println("\nUNKNOWN ERROR\n");
+			System.out.println(ERROR_CONNECTION_DATABASE);
 			return;
 		}
 
 		if (playerTransactionalHistory.isEmpty()) {
-			System.out.println("\n**********************");
-			System.out.println("Transactions is empty.");
-			System.out.println("**********************\n");
+			System.out.println(TRANSACTIONS_EMPTY);
+			loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
 			return;
 		}
 
 		for (String transaction : playerTransactionalHistory) {
 			System.out.println(transaction);
 		}
-		playerActionLoggerService.recordAction(Operation.TRANSACTIONAL_HISTORY, username, Status.SUCCESSFUL);
+		loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
 	}
 
 	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void displayPlayerBalance(String username) {
-		double balance = transactionRepository.findPlayerBalanceByUsername(username);
-		System.out.printf("\n*Balance -- %s*\n\n", balance);
-
-		playerActionLoggerService.recordAction(Operation.VIEW_BALANCE, username, Status.SUCCESSFUL);
-	}
-
-	/**
-	 * Checks the user's entered transaction number for uniqueness.
+	 * Creates a Transaction object based on the provided parameters.
 	 *
-	 * @return transaction number or {@code null} if it already exists.
+	 * @param token             The unique identifier for the transaction.
+	 * @param operation         The operation type (e.g., CREDIT, DEBIT).
+	 * @param inputPlayerAmount The amount involved in the transaction.
+	 * @param player            The Player associated with the transaction.
+	 * @param newPlayerBalance  The new balance of the Player after the transaction.
+	 * @return A Transaction object representing the transaction details.
 	 */
-	private String checkingEnteredUserToken() {
-		cleaner.cleanBuffer(scanner);
-		System.out.print("Please enter transaction number: ");
-		String transactionalToken = scanner.nextLine();
-
-		if (transactionRepository.checkTokenExistence(transactionalToken)) {
-			return null;
-		}
-		return transactionalToken;
+	private Transaction createTransaction(String token, Operation operation, BigDecimal inputPlayerAmount,
+										  Player player, BigDecimal newPlayerBalance) {
+		return Transaction.builder()
+				.token(token)
+				.operation(Operation.CREDIT.name())
+				.amount(inputPlayerAmount)
+				.playerID(player.getPlayerID())
+				.record(String.format(TRANSACTION_RECORD_TEMPLATE, operation.name(), token, newPlayerBalance))
+				.build();
 	}
 }
