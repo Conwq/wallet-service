@@ -2,6 +2,7 @@ package org.example.walletservice.repository;
 
 import org.example.walletservice.model.entity.Transaction;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ public interface TransactionRepository {
 	 * @param transaction     The Transaction object containing details of the credit or debit operation.
 	 * @param newPlayerAmount The new balance of the player after the transaction.
 	 */
-	void creditOrDebit(Transaction transaction, double newPlayerAmount);
+	void creditOrDebit(Transaction transaction, BigDecimal newPlayerAmount);
 
 	/**
 	 * Checks for the presence of a unique transaction ID.

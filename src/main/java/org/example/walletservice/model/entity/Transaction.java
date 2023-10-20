@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * A data class representing a transaction.
  * This class is annotated with Lombok annotations for generating boilerplate code.
@@ -16,6 +18,6 @@ public class Transaction {
 	private String record;
 	private String token;
 	private String operation;
-	private double amount;
+	private BigDecimal amount;
 	private int playerID;
 }

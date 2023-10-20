@@ -9,6 +9,7 @@ import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.util.Cleaner;
 
+import java.math.BigDecimal;
 import java.util.Scanner;
 
 /**
@@ -190,11 +191,11 @@ public final class PlayerSessionManager {
 	 */
 	private UserInputData processUserInput(String prompt) {
 		System.out.print(prompt);
-		if (!scanner.hasNextDouble()) {
+		if (!scanner.hasNextBigDecimal()) {
 			cleaner.cleanBuffer(scanner);
 			return null;
 		}
-		double inputPlayerAmount = scanner.nextDouble();
+		BigDecimal inputPlayerAmount = scanner.nextBigDecimal();
 		System.out.print(ENTER_TRANSACTION_NUMBER);
 		cleaner.cleanBuffer(scanner);
 		String transactionalToken = scanner.nextLine();
@@ -205,6 +206,6 @@ public final class PlayerSessionManager {
 	/**
 	 * Represents the data entered by the user, including the amount and token of the transaction.
 	 */
-	private record UserInputData(double amount, String transactionToken) {
+	private record UserInputData(BigDecimal amount, String transactionToken) {
 	}
 }

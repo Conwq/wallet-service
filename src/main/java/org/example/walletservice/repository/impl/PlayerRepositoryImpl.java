@@ -5,6 +5,7 @@ import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.Optional;
 
@@ -25,15 +26,18 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 		this.connectionProvider = connectionProvider;
 	}
 
-	private static final String QUERY_TO_GET_USER_BY_USERNAME = "SELECT * FROM wallet_service.players " +
-			"JOIN wallet_service.roles ON wallet_service.players.role_id = wallet_service.roles.role_id " +
-			"WHERE wallet_service.players.username = ?";
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Optional<Player> findPlayer(String username) {
+		final String QUERY_TO_GET_USER_BY_USERNAME = """
+				SELECT * FROM wallet_service.players
+				JOIN wallet_service.roles ON wallet_service.players.role_id = wallet_service.roles.role_id
+				WHERE wallet_service.players.username = ?
+				""";
+
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
@@ -59,14 +63,16 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 		}
 	}
 
-	private static final String REQUEST_TO_ADD_PLAYER =
-			"INSERT INTO wallet_service.players(username, password, balance, role_id) VALUES(?, ?, 0.0, 1)";
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public int registrationPayer(Player player) {
+		final String REQUEST_TO_ADD_PLAYER = """
+				INSERT INTO wallet_service.players(username, password, balance, role_id) 
+				VALUES(?, ?, 0.0, 1)
+				""";
+
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
@@ -90,14 +96,16 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 		}
 	}
 
-	private static final String REQUEST_FOR_USER_BALANCE =
-			"SELECT balance FROM wallet_service.players WHERE player_id = ?";
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public double findPlayerBalanceByPlayerID(int playerID) {
+	public BigDecimal findPlayerBalanceByPlayerID(int playerID) {
+		final String REQUEST_FOR_USER_BALANCE = """
+				SELECT balance FROM wallet_service.players WHERE player_id = ?
+				""";
+
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
@@ -110,11 +118,11 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			resultSet = statement.executeQuery();
 
 			if (resultSet.next()) {
-				return resultSet.getDouble(BALANCE);
+				return resultSet.getBigDecimal(BALANCE);
 			}
-			return 0.0;
+			return BigDecimal.ZERO;
 		} catch (SQLException e) {
-			return -1;
+			return BigDecimal.valueOf(-1);
 		} finally {
 			connectionProvider.closeConnection(connection, statement, resultSet);
 		}

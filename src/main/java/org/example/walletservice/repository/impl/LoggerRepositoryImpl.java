@@ -4,10 +4,7 @@ import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,14 +20,16 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 		this.connectionProvider = connectionProvider;
 	}
 
-	private static final String REQUEST_TO_ADD_PLAYER_ACTIONS =
-			"INSERT INTO wallet_service.log(log, player_id) VALUES (?, ?)";
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void recordAction(Log log) {
+		final String REQUEST_TO_ADD_PLAYER_ACTIONS = """
+				INSERT INTO wallet_service.log(log, player_id) 
+				VALUES (?, ?)
+				""";
+
 		Connection connection = null;
 		PreparedStatement statement = null;
 
@@ -50,21 +49,18 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 		}
 	}
 
-	private static final String REQUEST_TO_RECEIVE_ALL_ACTIONS = "SELECT * FROM wallet_service.log";
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public List<Log> findAllActivityRecords() {
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
+		final String REQUEST_TO_RECEIVE_ALL_ACTIONS = """
+				SELECT * FROM wallet_service.log
+				""";
 
-		try {
-			connection = connectionProvider.takeConnection();
-			statement = connection.prepareStatement(REQUEST_TO_RECEIVE_ALL_ACTIONS);
-			resultSet = statement.executeQuery();
+		try (Connection connection = connectionProvider.takeConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet resultSet = statement.executeQuery(REQUEST_TO_RECEIVE_ALL_ACTIONS)) {
 
 			List<Log> playerLogRecords = new ArrayList<>();
 			while (resultSet.next()) {
@@ -73,19 +69,19 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 			return playerLogRecords;
 		} catch (SQLException e) {
 			return null;
-		} finally {
-			connectionProvider.closeConnection(connection, statement, resultSet);
 		}
 	}
 
-	private static final String REQUEST_TO_RECEIVE_ALL_PLAYER_ACTIONS =
-			"SELECT * FROM wallet_service.log WHERE player_id = ?";
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public List<Log> findActivityRecordsForPlayer(int playerID) {
+		final String REQUEST_TO_RECEIVE_ALL_PLAYER_ACTIONS = """
+				SELECT * FROM wallet_service.log WHERE player_id = ?
+				""";
+
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;

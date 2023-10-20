@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import org.example.walletservice.model.Role;
 
+import java.math.BigDecimal;
+
 /**
  * Represents a player in the wallet service with information such as username,
  * password, balance, and transactional history.
@@ -17,5 +19,5 @@ public final class Player {
 	private String username;
 	private String password;
 	private Role role;
-	private double balance;
+	private BigDecimal balance;
 }

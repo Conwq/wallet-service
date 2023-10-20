@@ -8,6 +8,7 @@ import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
@@ -85,8 +86,8 @@ public final class PlayerServiceImpl implements PlayerService {
 	 */
 	@Override
 	public void displayPlayerBalance(Player player) {
-		double balance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
-		if (balance == -1) {
+		BigDecimal balance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+		if (balance.equals(BigDecimal.valueOf(-1))) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
 			return;
 		}

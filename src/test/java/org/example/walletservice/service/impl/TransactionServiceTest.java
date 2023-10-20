@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,7 @@ class TransactionServiceTest {
 	private final TransactionRepository transactionRepository = Mockito.mock(TransactionRepository.class);
 	private final PlayerRepository playerRepository = Mockito.mock(PlayerRepository.class);
 	private TransactionService transactionService;
-	private static final double AMOUNT = 100.0;
+	private static final BigDecimal AMOUNT = BigDecimal.valueOf(100.0);
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
 	private final PrintStream origOut = System.out;
@@ -62,11 +63,13 @@ class TransactionServiceTest {
 	@Test
 	public void shouldCredit_successful() {
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
+		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID()))
+						.thenReturn(AMOUNT);
 
 		transactionService.credit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
 		Mockito.verify(transactionRepository, Mockito.times(1))
-				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(Double.class));
+				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(BigDecimal.class));
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Credit successfully.");
 	}
 
@@ -79,18 +82,19 @@ class TransactionServiceTest {
 		AssertionsForClassTypes.assertThat(outputStream.toString())
 				.contains("{{FAIL}} A transaction with this number already exists!");
 		Mockito.verify(transactionRepository, Mockito.never())
-				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(Double.class));
+				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(BigDecimal.class));
 	}
 
 	@Test
 	public void shouldDebit_successful() {
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
-		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(200.0);
+		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID()))
+				.thenReturn(BigDecimal.valueOf(200));
 
 		transactionService.debit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
 		Mockito.verify(transactionRepository, Mockito.times(1))
-				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(Double.class));
+				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(BigDecimal.class));
 		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Debit successfully.");
 	}
 
@@ -101,7 +105,7 @@ class TransactionServiceTest {
 		transactionService.debit(player, AMOUNT, TRANSACTIONAL_TOKEN);
 
 		Mockito.verify(transactionRepository, Mockito.never())
-				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(Double.class));
+				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(BigDecimal.class));
 		AssertionsForClassTypes.assertThat(outputStream.toString())
 				.contains("{{FAIL}} A transaction with this number already exists!");
 	}

@@ -9,6 +9,7 @@ import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public final class TransactionServiceImpl implements TransactionService {
@@ -48,10 +49,11 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void credit(Player player, double inputPlayerAmount, String transactionToken) {
-		if (inputPlayerAmount >= 0.0 && !transactionRepository.checkTokenExistence(transactionToken)) {
-			double playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
-			double newPlayerBalance = playerBalance + inputPlayerAmount;
+	public void credit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
+		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
+				!transactionRepository.checkTokenExistence(transactionToken)) {
+			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+			BigDecimal newPlayerBalance = playerBalance.add(inputPlayerAmount);
 
 			Transaction transaction = createTransaction(transactionToken, Operation.CREDIT,
 					inputPlayerAmount, player, newPlayerBalance);
@@ -69,15 +71,17 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void debit(Player player, double inputPlayerAmount, String transactionToken) {
-		if (inputPlayerAmount >= 0.0 && !transactionRepository.checkTokenExistence(transactionToken)) {
-			double playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
-			if (playerBalance - inputPlayerAmount < 0.0) {
+	public void debit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
+		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
+				!transactionRepository.checkTokenExistence(transactionToken)) {
+			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+
+			BigDecimal newPlayerBalance = playerBalance.subtract(inputPlayerAmount);
+			if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
 				System.out.println(FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT);
 				loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
 				return;
 			}
-			double newPlayerBalance = playerBalance - inputPlayerAmount;
 
 			Transaction transaction = createTransaction(transactionToken, Operation.DEBIT,
 					inputPlayerAmount, player, newPlayerBalance);
@@ -126,8 +130,8 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * @param newPlayerBalance  The new balance of the Player after the transaction.
 	 * @return A Transaction object representing the transaction details.
 	 */
-	private Transaction createTransaction(String token, Operation operation, double inputPlayerAmount,
-										  Player player, double newPlayerBalance) {
+	private Transaction createTransaction(String token, Operation operation, BigDecimal inputPlayerAmount,
+										  Player player, BigDecimal newPlayerBalance) {
 		return Transaction.builder()
 				.token(token)
 				.operation(Operation.CREDIT.name())

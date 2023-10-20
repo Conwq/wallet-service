@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -28,7 +29,7 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 			"\t-- Your balance after transaction: %s\n" +
 			"******************************************\n";
 	private static final String TRANSACTION_TOKEN = "transaction_token";
-	private static final double BALANCE_PLAYER = 1000.0;
+	private static final BigDecimal BALANCE_PLAYER = BigDecimal.valueOf(1000);
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;
 	private static Player player;
@@ -67,7 +68,7 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 		transaction = Transaction.builder()
 				.token(TRANSACTION_TOKEN)
 				.operation(Operation.CREDIT.name())
-				.amount(0.0)
+				.amount(BigDecimal.ZERO)
 				.playerID(player.getPlayerID())
 				.build();
 	}
@@ -85,7 +86,7 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 				.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
 		transactionRepository.creditOrDebit(transaction, BALANCE_PLAYER);
 
-		double playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 
 		List<String> playerTransactionHistory = transactionRepository
 				.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());

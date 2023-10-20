@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -32,6 +33,7 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static final String TEST = "test";
 	private static final String NOT_EXIST = "not_exist";
 	private static final String TRANSACTION_TOKEN = "transaction_token";
+	private static final BigDecimal BALANCE = BigDecimal.valueOf(100);
 
 	@BeforeAll
 	static void beforeAll() {
@@ -62,7 +64,7 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 		transaction = Transaction.builder()
 				.token(TRANSACTION_TOKEN)
 				.operation(Operation.CREDIT.name())
-				.amount(0.0)
+				.amount(BigDecimal.ZERO)
 				.playerID(player.getPlayerID())
 				.build();
 	}
@@ -92,17 +94,17 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@Test
 	public void shouldGetBalanceByPlayerID() {
-		double expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayerID(1);
+		BigDecimal expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayerID(1);
 
-		AssertionsForClassTypes.assertThat(0.0).isEqualTo(expectedBalancePlayer);
+		AssertionsForClassTypes.assertThat(BigDecimal.ZERO).isEqualTo(expectedBalancePlayer);
 	}
 
 	@Test
 	public void shouldReceiveBalanceByPlayerIDAfterDepositing() {
-		transactionRepository.creditOrDebit(transaction, 100.0);
+		transactionRepository.creditOrDebit(transaction, BALANCE);
 
-		double expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+		BigDecimal expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
 
-		AssertionsForClassTypes.assertThat(100.0).isEqualTo(expectedBalancePlayer);
+		AssertionsForClassTypes.assertThat(BALANCE).isEqualTo(expectedBalancePlayer);
 	}
 }

@@ -5,6 +5,8 @@ import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.TransactionService;
 
+import java.math.BigDecimal;
+
 /**
  * Controller class to perform player operations.
  */
@@ -54,7 +56,7 @@ public final class FrontController {
 	 * @param inputPlayerAmount The amount to be credited.
 	 * @param transactionToken  The transaction token associated with the credit operation.
 	 */
-	public void credit(Player player, double inputPlayerAmount, String transactionToken) {
+	public void credit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
 		transactionService.credit(player, inputPlayerAmount, transactionToken);
 	}
 
@@ -65,7 +67,7 @@ public final class FrontController {
 	 * @param inputPlayerAmount The amount to be debited.
 	 * @param transactionToken  The transaction token associated with the debit operation.
 	 */
-	public void debit(Player player, double inputPlayerAmount, String transactionToken) {
+	public void debit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
 		transactionService.debit(player, inputPlayerAmount, transactionToken);
 	}
 

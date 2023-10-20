@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 class PlayerServiceTest {
@@ -22,6 +23,7 @@ class PlayerServiceTest {
 	private final LoggerService loggerService = Mockito.mock(LoggerServiceImpl.class);
 	private PlayerService playerService;
 	private static final double AMOUNT = 100.0;
+	private static final BigDecimal BALANCE = BigDecimal.valueOf(100);
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
 	private final PrintStream origOut = System.out;
@@ -109,13 +111,12 @@ class PlayerServiceTest {
 
 	@Test
 	public void shouldGetBalancePlayer_successful() {
-		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(100.0);
+		Mockito.when(playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID())).thenReturn(BALANCE);
 
 		playerService.displayPlayerBalance(player);
 
 		Mockito.verify(playerRepository, Mockito.times(1))
 				.findPlayerBalanceByPlayerID(player.getPlayerID());
-		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Balance -- " + 100.0);
+		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Balance -- " + BALANCE);
 	}
-
 }
