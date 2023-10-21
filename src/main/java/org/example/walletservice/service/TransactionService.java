@@ -1,10 +1,8 @@
 package org.example.walletservice.service;
 
-import org.example.walletservice.model.dto.PlayerDto;
+import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.TransactionRequestDto;
-import org.example.walletservice.model.entity.Player;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -19,7 +17,7 @@ public interface TransactionService {
 	 * @param inputPlayerAmount The amount entered by the player for a credit transaction.
 	 * @param transactionToken  Token for the current transaction.
 	 */
-	void credit(PlayerDto playerDto, TransactionRequestDto transactionRequest);
+	void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequest);
 
 	/**
 	 * Debits funds from a player's account.
@@ -28,12 +26,12 @@ public interface TransactionService {
 	 * @param inputPlayerAmount The amount entered by the player for a credit transaction.
 	 * @param transactionToken  Token for the current transaction.
 	 */
-	void debit(PlayerDto playerDto, TransactionRequestDto transactionRequest);
+	void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequest);
 
 	/**
 	 * Gets the transaction history of a player.
 	 *
 	 * @param player The player for whom the transaction history is being requested.
 	 */
-	List<String> getPlayerTransactionalHistory(PlayerDto playerDto);
+	List<String> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto);
 }

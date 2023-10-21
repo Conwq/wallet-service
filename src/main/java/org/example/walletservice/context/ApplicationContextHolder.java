@@ -7,6 +7,8 @@ import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.example.walletservice.in.command.CommandProvider;
+import org.example.walletservice.model.mapper.PlayerMapper;
+import org.example.walletservice.model.mapper.PlayerMapperImpl;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
@@ -39,6 +41,7 @@ public class ApplicationContextHolder {
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
 
+	final PlayerMapper playerMapper = new PlayerMapperImpl();
 	final CommandProvider commandProvider = new CommandProvider();
 	final ObjectMapper objectMapper = new ObjectMapper();
 	final DBResourceManager resourceManager = new DBResourceManager();
@@ -56,7 +59,7 @@ public class ApplicationContextHolder {
 			loggerService,
 			transactionRepository,
 			playerRepository);
-	final PlayerService playerService = new PlayerServiceImpl(playerRepository, loggerService);
+	final PlayerService playerService = new PlayerServiceImpl(playerRepository, loggerService, playerMapper);
 
 	private ApplicationContextHolder() {
 	}
@@ -112,7 +115,6 @@ public class ApplicationContextHolder {
 		ConnectionProvider connectionProvider = instance.getConnectionProvider();
 		Connection connection = null;
 		Statement statement = null;
-
 		try {
 			connection = connectionProvider.takeConnection();
 			statement = connection.createStatement();

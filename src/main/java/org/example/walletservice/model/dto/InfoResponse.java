@@ -1,4 +1,8 @@
 package org.example.walletservice.model.dto;
 
-public class InfoResponse {
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.time.LocalDateTime;
+
+public record InfoResponse(int status, String message) {
 }

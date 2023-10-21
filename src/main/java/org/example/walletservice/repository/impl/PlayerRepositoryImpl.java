@@ -49,10 +49,11 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			resultSet = statement.executeQuery();
 			Player player = null;
 			if (resultSet.next()) {
-				player = Player.builder().playerID(resultSet.getInt(PLAYER_ID))
-						.username(resultSet.getString(USERNAME))
-						.password(resultSet.getString(PASSWORD))
-						.role(Role.valueOf(resultSet.getString(ROLE_NAME).toUpperCase())).build();
+				player = new Player();
+				player.setPlayerID(resultSet.getInt(PLAYER_ID));
+				player.setUsername(resultSet.getString(USERNAME));
+				player.setPassword(resultSet.getString(PASSWORD));
+				player.setRole(Role.valueOf(resultSet.getString(ROLE_NAME).toUpperCase()));
 			}
 			return Optional.ofNullable(player);
 		} catch (SQLException e) {

@@ -1,6 +1,6 @@
 package org.example.walletservice.service.impl;
 
-import org.example.walletservice.model.dto.PlayerDto;
+import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
@@ -48,15 +48,14 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void credit(PlayerDto playerDto, TransactionRequestDto transactionRequestDto) {
+	public void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
 		BigDecimal inputPlayerAmount = transactionRequestDto.inputPlayerAmount();
 		String transactionToken = transactionRequestDto.transactionToken();
 
-		Player player = Player.builder()
-				.playerID(playerDto.playerID())
-				.username(playerDto.username())
-				.role(playerDto.role())
-				.build();
+		Player player = new Player();
+		player.setPlayerID(authPlayerDto.playerID());
+		player.setUsername(authPlayerDto.username());
+		player.setRole(authPlayerDto.role());
 
 		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
 				!transactionRepository.checkTokenExistence(transactionToken)) {
@@ -80,15 +79,14 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void debit(PlayerDto playerDto, TransactionRequestDto transactionRequestDto) {
+	public void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
 		BigDecimal inputPlayerAmount = transactionRequestDto.inputPlayerAmount();
 		String transactionToken = transactionRequestDto.transactionToken();
 
-		Player player = Player.builder()
-				.playerID(playerDto.playerID())
-				.username(playerDto.username())
-				.role(playerDto.role())
-				.build();
+		Player player = new Player();
+		player.setPlayerID(authPlayerDto.playerID());
+		player.setUsername(authPlayerDto.username());
+		player.setRole(authPlayerDto.role());
 
 		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
 				!transactionRepository.checkTokenExistence(transactionToken)) {
@@ -117,12 +115,11 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<String> getPlayerTransactionalHistory(PlayerDto playerDto) {
-		Player player = Player.builder()
-				.playerID(playerDto.playerID())
-				.username(playerDto.username())
-				.role(playerDto.role())
-				.build();
+	public List<String> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
+		Player player = new Player();
+		player.setPlayerID(authPlayerDto.playerID());
+		player.setUsername(authPlayerDto.username());
+		player.setRole(authPlayerDto.role());
 
 		List<String> playerTransactionalHistory =
 				transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
@@ -153,12 +150,15 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	private Transaction createTransaction(String token, Operation operation, BigDecimal inputPlayerAmount,
 										  Player player, BigDecimal newPlayerBalance) {
-		return Transaction.builder()
-				.token(token)
-				.operation(Operation.CREDIT.name())
-				.amount(inputPlayerAmount)
-				.playerID(player.getPlayerID())
-				.record(String.format(TRANSACTION_RECORD_TEMPLATE, operation.name(), token, newPlayerBalance))
-				.build();
+
+		Transaction transaction = new Transaction();
+		transaction.setToken(token);
+		transaction.setOperation(Operation.CREDIT.name());
+		transaction.setAmount(inputPlayerAmount);
+		transaction.setPlayerID(player.getPlayerID());
+		transaction.setRecord(String.format(TRANSACTION_RECORD_TEMPLATE, operation.name(), token, newPlayerBalance));
+
+
+		return transaction;
 	}
 }

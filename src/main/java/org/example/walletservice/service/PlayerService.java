@@ -1,7 +1,7 @@
 package org.example.walletservice.service;
 
 import org.example.walletservice.model.dto.PlayerRequestDto;
-import org.example.walletservice.model.dto.PlayerDto;
+import org.example.walletservice.model.dto.AuthPlayerDto;
 
 import java.math.BigDecimal;
 
@@ -25,12 +25,12 @@ public interface PlayerService {
 	 * @param password The password for login.
 	 * @return An instance of a Player object that successfully logged on.
 	 */
-	PlayerDto logIn(PlayerRequestDto playerRequestDto);
+	AuthPlayerDto logIn(PlayerRequestDto playerRequestDto);
 
 	/**
 	 * Gets the balance of a player.
 	 *
 	 * @param player The player for whom the balance is requested.
 	 */
-	BigDecimal getPlayerBalance(PlayerDto playerDto);
+	BigDecimal getPlayerBalance(AuthPlayerDto authPlayerDto);
 }

@@ -58,17 +58,17 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@BeforeEach
 	void setUp() {
-		player = Player.builder().playerID(2)
-				.username(TEST)
-				.password(TEST)
-				.role(Role.USER).build();
-
-		transaction = Transaction.builder()
-				.token(TRANSACTION_TOKEN)
-				.operation(Operation.CREDIT.name())
-				.amount(BigDecimal.ZERO)
-				.playerID(player.getPlayerID())
-				.build();
+//		player = Player.builder().playerID(2)
+//				.username(TEST)
+//				.password(TEST)
+//				.role(Role.USER).build();
+//
+//		transaction = Transaction.builder()
+//				.token(TRANSACTION_TOKEN)
+//				.operation(Operation.CREDIT.name())
+//				.amount(BigDecimal.ZERO)
+//				.playerID(player.getPlayerID())
+//				.build();
 	}
 
 	@Test

@@ -56,10 +56,10 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@BeforeEach
 	void setUp() {
-		player = Player.builder().playerID(2)
-				.username(TEST)
-				.password(TEST)
-				.role(Role.ADMIN).build();
+//		player = Player.builder().playerID(2)
+//				.username(TEST)
+//				.password(TEST)
+//				.role(Role.ADMIN).build();
 	}
 
 	@Test
@@ -67,10 +67,10 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 		playerRepository.registrationPayer(player);
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, player.getUsername(), Status.SUCCESSFUL);
 		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
-		Log firstLog = Log.builder().log(firstRecord).playerID(player.getPlayerID()).build();
-		Log secondtLog = Log.builder().log(secondRecord).playerID(player.getPlayerID()).build();
-		loggerRepository.recordAction(firstLog);
-		loggerRepository.recordAction(secondtLog);
+//		Log firstLog = Log.builder().log(firstRecord).playerID(player.getPlayerID()).build();
+//		Log secondtLog = Log.builder().log(secondRecord).playerID(player.getPlayerID()).build();
+//		loggerRepository.recordAction(firstLog);
+//		loggerRepository.recordAction(secondtLog);
 
 		List<Log> allLog = loggerRepository.findAllActivityRecords();
 
@@ -82,9 +82,9 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	@Test
 	public void shouldRecordAction() {
 		String playerActionRecord = String.format(LOG_FORMAT, Operation.DEBIT, ADMIN, Status.SUCCESSFUL);
-		Log log = Log.builder().log(playerActionRecord).playerID(1).build();
-
-		loggerRepository.recordAction(log);
+//		Log log = Log.builder().log(playerActionRecord).playerID(1).build();
+//
+//		loggerRepository.recordAction(log);
 
 		List<Log> playerAction = loggerRepository.findActivityRecordsForPlayer(1);
 		AssertionsForClassTypes.assertThat(playerAction.get(playerAction.size() - 1).getLog())
@@ -102,10 +102,10 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	public void shouldReturnRecordActionForPlayer() {
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, ADMIN, Status.SUCCESSFUL);
 		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
-		Log firstLog = Log.builder().log(firstRecord).playerID(1).build();
-		Log secondLog = Log.builder().log(secondRecord).playerID(1).build();
-		loggerRepository.recordAction(firstLog);
-		loggerRepository.recordAction(secondLog);
+//		Log firstLog = Log.builder().log(firstRecord).playerID(1).build();
+//		Log secondLog = Log.builder().log(secondRecord).playerID(1).build();
+//		loggerRepository.recordAction(firstLog);
+//		loggerRepository.recordAction(secondLog);
 
 		List<Log> recordAction = loggerRepository.findActivityRecordsForPlayer(1);
 

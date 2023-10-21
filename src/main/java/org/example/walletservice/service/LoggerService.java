@@ -1,8 +1,7 @@
 package org.example.walletservice.service;
 
 import org.example.walletservice.model.dto.LogResponseDto;
-import org.example.walletservice.model.dto.PlayerDto;
-import org.example.walletservice.model.entity.Log;
+import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
@@ -28,7 +27,7 @@ public interface LoggerService {
 	 *
 	 * @return list all logs.
 	 */
-	List<LogResponseDto> getAllLogs(PlayerDto playerDto);
+	List<LogResponseDto> getAllLogs(AuthPlayerDto authPlayerDto);
 
 	/**
 	 * Retrieves the transaction logs for a specific player.
@@ -36,5 +35,5 @@ public interface LoggerService {
 	 * @param player Player whose logs are to be retrieved.
 	 * @return A list of transaction logs for the specified player, or null if the player's logs are not found.
 	 */
-	List<LogResponseDto> showLogsByUsername(PlayerDto playerDto, String inputUsernameForSearch);
+	List<LogResponseDto> showLogsByUsername(AuthPlayerDto authPlayerDto, String inputUsernameForSearch);
 }

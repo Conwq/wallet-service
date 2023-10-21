@@ -1,14 +1,15 @@
 package org.example.walletservice.service.impl;
 
-import org.example.walletservice.model.Role;
+import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
-import org.example.walletservice.model.dto.PlayerDto;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
+import org.example.walletservice.service.exception.PlayerNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -21,17 +22,19 @@ import java.util.Optional;
 public final class PlayerServiceImpl implements PlayerService {
 	private final PlayerRepository playerRepository;
 	private final LoggerService loggerService;
+	private final PlayerMapper playerMapper;
 	private static final String ERROR_CONNECTION_DATABASE =
 			"There is an error with the database. Try again later.";
 	private static final String USER_EXIST_ERROR = "*{{FAIL}} This user is already registered. Try again.*\n";
 	private static final String SUCCESSFUL_REGISTRATION = "*User successfully registered!*\n";
 	private static final String PLAYER_NOT_FOUND = "*{{FAIL}} Current player not found. Please try again.*\n";
 	private static final String INCORRECT_PASSWORD = "*{{FAIL}} Incorrect password!*\n";
-	private static final String BALANCE_TEMPLATE = "*Balance -- %s*\n";
 
-	public PlayerServiceImpl(PlayerRepository playerRepository, LoggerService loggerService) {
+	public PlayerServiceImpl(PlayerRepository playerRepository, LoggerService loggerService,
+							 PlayerMapper playerMapper) {
 		this.playerRepository = playerRepository;
 		this.loggerService = loggerService;
+		this.playerMapper = playerMapper;
 	}
 
 	/**
@@ -40,26 +43,18 @@ public final class PlayerServiceImpl implements PlayerService {
 	@Override
 	public void registrationPlayer(PlayerRequestDto playerRequestDto) {
 		String username = playerRequestDto.username();
-		String password = playerRequestDto.password();
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
-
 		if (optionalPlayer.isPresent()) {
 			System.out.println(USER_EXIST_ERROR);
 			return;
 		}
-
-		Player player = Player.builder()
-				.username(username)
-				.password(password)
-				.role(Role.USER).build();
-
+		Player player = playerMapper.toEntityFromRequest(playerRequestDto);
 		int playerID = playerRepository.registrationPayer(player);
 		if (playerID == -1) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
 			return;
 		}
 		player.setPlayerID(playerID);
-
 		System.out.println(SUCCESSFUL_REGISTRATION);
 		loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.SUCCESSFUL);
 	}
@@ -68,42 +63,26 @@ public final class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public PlayerDto logIn(PlayerRequestDto playerRequestDto) {
+	public AuthPlayerDto logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(playerRequestDto.username());
-
 		if (optionalPlayer.isEmpty()) {
-			System.out.println(PLAYER_NOT_FOUND);
-			return null;
+			throw new PlayerNotFoundException(PLAYER_NOT_FOUND);
 		}
-
 		Player player = optionalPlayer.get();
-
 		if (!player.getPassword().equals(playerRequestDto.password())) {
-			System.out.println(INCORRECT_PASSWORD);
-			return null;
+			throw new PlayerNotFoundException(INCORRECT_PASSWORD);
 		}
-
-		PlayerDto playerDto = new PlayerDto(
-				player.getPlayerID(),
-				player.getUsername(),
-				player.getRole());
-
+		AuthPlayerDto authPlayerDto = playerMapper.toAuthPlayerDto(player);
 		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
-		return playerDto;
+		return authPlayerDto;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public BigDecimal getPlayerBalance(PlayerDto playerDto) {
-
-		Player player = Player.builder()
-				.playerID(playerDto.playerID())
-				.username(playerDto.username())
-				.build();
-
-
+	public BigDecimal getPlayerBalance(AuthPlayerDto authPlayerDto) {
+		Player player = playerMapper.toEntity(authPlayerDto);
 		BigDecimal balance = playerRepository.findPlayerBalanceByPlayer(player);
 		if (balance.equals(BigDecimal.valueOf(-1))) {
 			System.out.println(ERROR_CONNECTION_DATABASE);

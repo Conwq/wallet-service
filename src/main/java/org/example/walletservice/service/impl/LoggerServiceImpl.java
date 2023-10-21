@@ -1,7 +1,7 @@
 package org.example.walletservice.service.impl;
 
 import org.example.walletservice.model.dto.LogResponseDto;
-import org.example.walletservice.model.dto.PlayerDto;
+import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.LoggerRepository;
@@ -42,10 +42,9 @@ public class LoggerServiceImpl implements LoggerService {
 		String formatLog = String.format(LOG_TEMPLATE, operation.toString(), player.getUsername(),
 				status.toString());
 
-		Log log = Log.builder()
-				.log(formatLog)
-				.playerID(player.getPlayerID())
-				.build();
+		Log log = new Log();
+		log.setLog(formatLog);
+		log.setPlayerID(player.getPlayerID());
 
 		loggerRepository.recordAction(log);
 	}
@@ -54,11 +53,11 @@ public class LoggerServiceImpl implements LoggerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<LogResponseDto> getAllLogs(PlayerDto playerDto) {
-		Player player = Player.builder()
-				.playerID(playerDto.playerID())
-				.username(playerDto.username())
-				.role(playerDto.role()).build();
+	public List<LogResponseDto> getAllLogs(AuthPlayerDto authPlayerDto) {
+		Player player = new Player();
+		player.setPlayerID(authPlayerDto.playerID());
+		player.setUsername(authPlayerDto.username());
+		player.setRole(authPlayerDto.role());
 
 		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
 
@@ -87,11 +86,11 @@ public class LoggerServiceImpl implements LoggerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<LogResponseDto> showLogsByUsername(PlayerDto playerDto, String inputUsernameForSearch) {
-		Player player = Player.builder()
-				.playerID(playerDto.playerID())
-				.username(playerDto.username())
-				.role(playerDto.role()).build();
+	public List<LogResponseDto> showLogsByUsername(AuthPlayerDto authPlayerDto, String inputUsernameForSearch) {
+		Player player = new Player();
+		player.setPlayerID(authPlayerDto.playerID());
+		player.setUsername(authPlayerDto.username());
+		player.setRole(authPlayerDto.role());
 
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
 

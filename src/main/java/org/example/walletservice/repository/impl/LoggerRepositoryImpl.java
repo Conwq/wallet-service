@@ -111,8 +111,10 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 * @return Log object.
 	 */
 	private Log mapToLog(ResultSet resultSet) throws SQLException {
-		return Log.builder().logID(resultSet.getInt(LOG_ID))
-				.log(resultSet.getString(LOG))
-				.playerID(resultSet.getInt(PLAYER_ID)).build();
+		Log log = new Log();
+		log.setLogID(resultSet.getInt(LOG_ID));
+		log.setLog(resultSet.getString(LOG));
+		log.setPlayerID(resultSet.getInt(PLAYER_ID));
+		return log;
 	}
 }

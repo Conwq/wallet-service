@@ -10,8 +10,10 @@ import jakarta.servlet.http.HttpSession;
 import org.example.walletservice.context.ApplicationContextHolder;
 import org.example.walletservice.in.command.Command;
 import org.example.walletservice.in.command.CommandProvider;
-import org.example.walletservice.model.dto.PlayerDto;
+import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.PlayerService;
 
 import java.io.BufferedReader;
@@ -23,6 +25,9 @@ import java.math.BigDecimal;
  */
 @WebServlet("/players")
 public final class PlayerController extends HttpServlet {
+	private static final String CONTENT_TYPE = "application/json";
+	private static final String COMMAND = "command";
+	private static final String AUTH_PLAYER_PARAM = "authPlayer";
 	private final PlayerService playerService;
 	private final ObjectMapper objectMapper;
 	private final CommandProvider commandProvider;
@@ -36,8 +41,7 @@ public final class PlayerController extends HttpServlet {
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
-		Command command = commandProvider.getCommand(req.getParameter("command"));
-
+		Command command = commandProvider.getCommand(req.getParameter(COMMAND));
 		try (BufferedReader reader = req.getReader()) {
 			StringBuilder jsonObject = new StringBuilder();
 			while (reader.ready()) {
@@ -47,9 +51,14 @@ public final class PlayerController extends HttpServlet {
 			switch (command) {
 				case SIGN_IN -> {
 					HttpSession session = req.getSession(true);
-					PlayerDto playerDto = playerService.logIn(playerRequestDto);
-					session.setAttribute("authPlayer", playerDto);
-					resp.setStatus(HttpServletResponse.SC_OK);
+					try {
+						AuthPlayerDto authPlayerDto = playerService.logIn(playerRequestDto);
+						session.setAttribute(AUTH_PLAYER_PARAM, authPlayerDto);
+						resp.setStatus(HttpServletResponse.SC_OK);
+					}
+					catch (PlayerNotFoundException e){
+						generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+					}
 				}
 				case REGISTRATION -> {
 					playerService.registrationPlayer(playerRequestDto);
@@ -64,14 +73,20 @@ public final class PlayerController extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		PlayerDto playerDto = (PlayerDto) req.getSession().getAttribute("authPlayer");
-		if (playerDto == null) {
-
+		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
+		if (authPlayerDto == null) {
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
-		BigDecimal playerBalance = playerService.getPlayerBalance(playerDto);
+		BigDecimal playerBalance = playerService.getPlayerBalance(authPlayerDto);
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.getOutputStream().write(
 				this.objectMapper.writeValueAsBytes(String.format("Your balance -> %s", playerBalance)));
+	}
+
+	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {
+		InfoResponse infoResponse = new InfoResponse(status, message);
+		resp.setStatus(status);
+		resp.setContentType(CONTENT_TYPE);
+		resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));
 	}
 }
