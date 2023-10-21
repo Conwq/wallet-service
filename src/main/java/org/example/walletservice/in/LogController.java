@@ -23,6 +23,7 @@ import java.util.List;
 public class LogController extends HttpServlet {
 	private static final String AUTH_PLAYER_PARAM = "authPlayer";
 	private static final String COMMAND = "command";
+	private static final String USERNAME = "username";
 	private static final String CONTENT_TYPE = "application/json";
 	private final LoggerService loggerService;
 	private final ObjectMapper objectMapper;
@@ -50,7 +51,7 @@ public class LogController extends HttpServlet {
 				}
 				case SHOW_PLAYER_LOG -> {
 					try {
-						String inputUsernameForSearch = req.getParameter("username");
+						String inputUsernameForSearch = req.getParameter(USERNAME);
 						List<LogResponseDto> logList = loggerService.getLogsByUsername(authPlayerDto, inputUsernameForSearch);
 						generateResponse(resp, HttpServletResponse.SC_OK, logList);
 					}

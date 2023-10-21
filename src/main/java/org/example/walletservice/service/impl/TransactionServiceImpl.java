@@ -12,8 +12,10 @@ import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
+import org.example.walletservice.service.exception.InvalidInputDataException;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 public final class TransactionServiceImpl implements TransactionService {
@@ -25,17 +27,17 @@ public final class TransactionServiceImpl implements TransactionService {
 	private static final String CREDIT_SUCCESSFUL = "*Credit successfully.*\n";
 	private static final String DEBIT_SUCCESSFUL = "*Debit successfully.*\n";
 	private static final String FAIL_NOT_UNIQUE_TRANSACTION_TOKEN =
-			"*{{FAIL}} A transaction with this number already exists!*\n";
+			"A transaction with this number already exists!";
 	private static final String FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT =
 			"*{{FAIL}} There are not enough funds in the account!*\n";
 	private static final String ERROR_CONNECTION_DATABASE =
 			"There is an error with the database. Try again later.";
 	private static final String TRANSACTIONS_EMPTY =
-					"""
+			"""
 					Transactions is empty.
 					""";
 	private static final String TRANSACTION_RECORD_TEMPLATE =
-					"""
+			"""
 					                      - %s -
 					\t- Transaction number: %s -
 					\t- Your balance after transaction: %s -
@@ -56,22 +58,16 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
-		BigDecimal inputPlayerAmount = transactionRequestDto.inputPlayerAmount();
-		String transactionToken = transactionRequestDto.transactionToken();
 		Player player = playerMapper.toEntity(authPlayerDto);
+		validatingInputData(player, transactionRequestDto, Operation.CREDIT);
 
-		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
-				!transactionRepository.checkTokenExistence(transactionToken)) {
-			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
-			BigDecimal newPlayerBalance = playerBalance.add(inputPlayerAmount);
-			Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player,
-					Operation.CREDIT, newPlayerBalance);
-			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
-			loggerService.recordActionInLog(Operation.CREDIT, player, Status.SUCCESSFUL);
-		} else {
-			System.out.println(FAIL_NOT_UNIQUE_TRANSACTION_TOKEN);
-			loggerService.recordActionInLog(Operation.CREDIT, player, Status.FAIL);
-		}
+		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
+		BigDecimal newPlayerBalance = playerBalance.add(transactionRequestDto.inputPlayerAmount());
+		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.CREDIT,
+				newPlayerBalance);
+		transactionRepository.creditOrDebit(transaction, newPlayerBalance);
+		System.out.println(CREDIT_SUCCESSFUL);
+		loggerService.recordActionInLog(Operation.CREDIT, player, Status.SUCCESSFUL);
 	}
 
 	/**
@@ -79,30 +75,21 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
-		BigDecimal inputPlayerAmount = transactionRequestDto.inputPlayerAmount();
-		String transactionToken = transactionRequestDto.transactionToken();
 		Player player = playerMapper.toEntity(authPlayerDto);
+		validatingInputData(player, transactionRequestDto, Operation.DEBIT);
 
-		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
-				!transactionRepository.checkTokenExistence(transactionToken)) {
-			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
-			BigDecimal newPlayerBalance = playerBalance.subtract(inputPlayerAmount);
-			if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
-				System.out.println(FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT);
-				loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
-				return;
-			}
-
-			Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player,
-					Operation.DEBIT, newPlayerBalance);
-
-			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
-			System.out.println(DEBIT_SUCCESSFUL);
-			loggerService.recordActionInLog(Operation.DEBIT, player, Status.SUCCESSFUL);
-		} else {
-			System.out.println(FAIL_NOT_UNIQUE_TRANSACTION_TOKEN);
+		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
+		BigDecimal newPlayerBalance = playerBalance.subtract(transactionRequestDto.inputPlayerAmount());
+		if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
+			System.out.println(FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT);
 			loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
+			return;
 		}
+		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.DEBIT,
+				newPlayerBalance);
+		transactionRepository.creditOrDebit(transaction, newPlayerBalance);
+		System.out.println(DEBIT_SUCCESSFUL);
+		loggerService.recordActionInLog(Operation.DEBIT, player, Status.SUCCESSFUL);
 	}
 
 	/**
@@ -111,21 +98,31 @@ public final class TransactionServiceImpl implements TransactionService {
 	@Override
 	public List<String> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
 		Player player = playerMapper.toEntity(authPlayerDto);
-
-		List<String> playerTransactionalHistory =
-				transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
-
+		List<String> playerTransactionalHistory = transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
 		if (playerTransactionalHistory == null) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
 			return null;
 		}
-
 		if (playerTransactionalHistory.isEmpty()) {
 			System.out.println(TRANSACTIONS_EMPTY);
 			loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
-			return null;
+			return new ArrayList<>(List.of(TRANSACTIONS_EMPTY));
 		}
+		System.out.println("All transaction history has been viewed");
 		loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
 		return playerTransactionalHistory;
+	}
+
+	private void validatingInputData(Player player, TransactionRequestDto transactionRequestDto, Operation operation) {
+		if (transactionRequestDto.inputPlayerAmount().compareTo(BigDecimal.ZERO) < 0) {
+			System.out.println("The amount to be entered cannot be less than 0");
+			loggerService.recordActionInLog(operation, player, Status.FAIL);
+			throw new InvalidInputDataException("The amount to be entered cannot be less than 0");
+		}
+		if (transactionRepository.checkTokenExistence(transactionRequestDto.transactionToken())) {
+			System.out.println("A transaction with this number already exists!");
+			loggerService.recordActionInLog(operation, player, Status.FAIL);
+			throw new InvalidInputDataException("A transaction with this number already exists!");
+		}
 	}
 }

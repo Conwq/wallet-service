@@ -1,7 +1,7 @@
 package org.example.walletservice.service.impl;
 
-import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.mapper.LogMapper;
@@ -25,7 +25,7 @@ public class LoggerServiceImpl implements LoggerService {
 	private static final String ERROR_CONNECTION_DATABASE =
 			"There is an error with the database. Try again later.";
 	private static final String LOG_TEMPLATE =
-			        """
+			"""
 					-Operation: %s-
 					-User: %s-
 					-Status: %s-
@@ -69,6 +69,7 @@ public class LoggerServiceImpl implements LoggerService {
 			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
 			return new ArrayList<>(List.of(new LogResponseDto(NO_LOG)));
 		}
+		System.out.println("All logs viewed.");
 		recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
 		return playersRecords.stream().map(logMapper::toDto).toList();
 	}
@@ -81,13 +82,11 @@ public class LoggerServiceImpl implements LoggerService {
 			throws PlayerNotFoundException {
 		Player player = playerMapper.toEntity(authPlayerDto);
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
-		if (optionalPlayer.isEmpty()) {
-			String playerNotFound = String.format(PLAYER_NOT_FOUND_TEMPLATE, inputUsernameForSearch);
-			System.out.printf(playerNotFound);
-			throw new PlayerNotFoundException(playerNotFound);
-		}
+		checkingForExistenceOfUser(optionalPlayer, inputUsernameForSearch);
 		Player findPlayer = optionalPlayer.get();
+
 		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
+
 		if (playerLogs == null) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
 			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.FAIL);
@@ -99,12 +98,17 @@ public class LoggerServiceImpl implements LoggerService {
 			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
 			return new ArrayList<>(List.of(new LogResponseDto(noLogForPlayer)));
 		}
-		List<LogResponseDto> logResponseDtos = new ArrayList<>(playerLogs.size());
-		for(Log log : playerLogs){
-			LogResponseDto responseDto = logMapper.toDto(log);
-			logResponseDtos.add(responseDto);
-		}
+		System.out.printf("Player logs viewed %s.\n", inputUsernameForSearch);
 		recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
-		return logResponseDtos;
+		return playerLogs.stream().map(logMapper::toDto).toList();
+	}
+
+	private void checkingForExistenceOfUser(Optional<Player> optionalPlayer, String inputUsernameForSearch)
+			throws PlayerNotFoundException {
+		if (optionalPlayer.isEmpty()) {
+			String playerNotFound = String.format(PLAYER_NOT_FOUND_TEMPLATE, inputUsernameForSearch);
+			System.out.printf(playerNotFound);
+			throw new PlayerNotFoundException(playerNotFound);
+		}
 	}
 }

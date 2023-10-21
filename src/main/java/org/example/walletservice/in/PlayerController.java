@@ -57,16 +57,20 @@ public final class PlayerController extends HttpServlet {
 						HttpSession session = req.getSession(true);
 						session.setAttribute(AUTH_PLAYER_PARAM, authPlayerDto);
 						resp.setStatus(HttpServletResponse.SC_OK);
-					} catch (InvalidInputDataException | PlayerAlreadyExistException e) {
+					} catch (InvalidInputDataException e) {
 						generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+					} catch (PlayerNotFoundException e) {
+						generateResponse(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
 					}
 				}
 				case REGISTRATION -> {
 					try {
 						playerService.registrationPlayer(playerRequestDto);
 						resp.setStatus(HttpServletResponse.SC_CREATED);
-					} catch (InvalidInputDataException | PlayerAlreadyExistException e) {
+					} catch (InvalidInputDataException e) {
 						generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+					} catch (PlayerAlreadyExistException e) {
+						generateResponse(resp, HttpServletResponse.SC_CONFLICT, e.getMessage());
 					}
 				}
 			}

@@ -99,15 +99,17 @@ public final class PlayerServiceImpl implements PlayerService {
 		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
 		return balance;
 	}
-t add
-	public void inputValidation (PlayerRequestDto playerRequestDto) throws InvalidInputDataException{
+
+	public void inputValidation(PlayerRequestDto playerRequestDto) throws InvalidInputDataException {
 		String username = playerRequestDto.username();
 		String password = playerRequestDto.password();
 
-		if(username == null || password == null){
+		if (username == null || password == null) {
+			System.out.println("Username or password can`t be empty.");
 			throw new InvalidInputDataException("Username or password can`t be empty.");
 		}
 		if (username.length() < 1 || password.length() < 1) {
+			System.out.println("The length of the username or password cannot be less than 1.");
 			throw new InvalidInputDataException("The length of the username or password cannot be less than 1");
 		}
 	}

@@ -6,11 +6,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.example.walletservice.context.ApplicationContextHolder;
 import org.example.walletservice.in.command.Command;
 import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.service.TransactionService;
 
@@ -36,20 +36,24 @@ public class TransactionController extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		HttpSession session = req.getSession();
-		AuthPlayerDto authPlayerDto = (AuthPlayerDto) session.getAttribute(AUTH_PLAYER_PARAM);
+		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
+		if (authPlayerDto == null) {
+			String noAccessToContent = "You need to log in. This resource is not available to you.";
+			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, noAccessToContent);
+		}
 		List<String> playerTransactionHistory = transactionService.getPlayerTransactionalHistory(authPlayerDto);
-		resp.setStatus(HttpServletResponse.SC_OK);
-		resp.setContentType(CONTENT_TYPE);
-		resp.getOutputStream().write(this.objectMapper.writeValueAsBytes(playerTransactionHistory));
+		generateResponse(resp, HttpServletResponse.SC_OK, playerTransactionHistory);
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		Command command = commandProvider.getCommand(req.getParameter(COMMAND));
-
 		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
+		if (authPlayerDto == null) {
+			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, "Log in to perform this operation");
+			return;
+		}
 		try (BufferedReader reader = req.getReader()) {
+			Command command = commandProvider.getCommand(req.getParameter(COMMAND));
 			StringBuilder jsonObject = new StringBuilder();
 			while (reader.ready()) {
 				jsonObject.append(reader.readLine());
@@ -59,16 +63,29 @@ public class TransactionController extends HttpServlet {
 			switch (command) {
 				case CREDIT -> {
 					transactionService.credit(authPlayerDto, transactionRequest);
+					generateResponse(resp, HttpServletResponse.SC_OK, "Credit successfully.");
 					resp.setStatus(HttpServletResponse.SC_OK);
 				}
 				case DEBIT -> {
 					transactionService.debit(authPlayerDto, transactionRequest);
-					resp.setStatus(HttpServletResponse.SC_OK);
+					generateResponse(resp, HttpServletResponse.SC_OK, "Debit successfully.");
 				}
-				default -> resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (NullPointerException e) {
+			generateResponse(resp, HttpServletResponse.SC_NOT_FOUND, "Content doesn't exist.");
 		}
+	}
+
+	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {
+		InfoResponse infoResponse = new InfoResponse(status, message);
+		resp.setStatus(status);
+		resp.setContentType(CONTENT_TYPE);
+		resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));
+	}
+
+	private void generateResponse(HttpServletResponse resp, int status, List<String> content) throws IOException {
+		resp.setStatus(status);
+		resp.setContentType(CONTENT_TYPE);
+		resp.getOutputStream().write(objectMapper.writeValueAsBytes(content));
 	}
 }
