@@ -13,9 +13,10 @@ import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.service.PlayerService;
+import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
-import org.example.walletservice.service.PlayerService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,9 +42,9 @@ public final class PlayerController extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
-		Command command = commandProvider.getCommand(req.getParameter(COMMAND));
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try (BufferedReader reader = req.getReader()) {
+			Command command = commandProvider.getCommand(req.getParameter(COMMAND));
 			StringBuilder jsonObject = new StringBuilder();
 			while (reader.ready()) {
 				jsonObject.append(reader.readLine());
@@ -51,13 +52,12 @@ public final class PlayerController extends HttpServlet {
 			PlayerRequestDto playerRequestDto = objectMapper.readValue(jsonObject.toString(), PlayerRequestDto.class);
 			switch (command) {
 				case SIGN_IN -> {
-					HttpSession session = req.getSession(true);
 					try {
 						AuthPlayerDto authPlayerDto = playerService.logIn(playerRequestDto);
+						HttpSession session = req.getSession(true);
 						session.setAttribute(AUTH_PLAYER_PARAM, authPlayerDto);
 						resp.setStatus(HttpServletResponse.SC_OK);
-					}
-					catch (PlayerNotFoundException e){
+					} catch (InvalidInputDataException | PlayerAlreadyExistException e) {
 						generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
 					}
 				}
@@ -65,15 +65,13 @@ public final class PlayerController extends HttpServlet {
 					try {
 						playerService.registrationPlayer(playerRequestDto);
 						resp.setStatus(HttpServletResponse.SC_CREATED);
-					}
-					catch (PlayerAlreadyExistException e) {
+					} catch (InvalidInputDataException | PlayerAlreadyExistException e) {
 						generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
 					}
 				}
-				default -> resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (NullPointerException e) {
+			generateResponse(resp, HttpServletResponse.SC_NOT_FOUND, "Content doesn't exist.");
 		}
 	}
 
@@ -85,8 +83,9 @@ public final class PlayerController extends HttpServlet {
 		}
 		BigDecimal playerBalance = playerService.getPlayerBalance(authPlayerDto);
 		resp.setStatus(HttpServletResponse.SC_OK);
-		resp.getOutputStream().write(
-				this.objectMapper.writeValueAsBytes(String.format("Your balance -> %s", playerBalance)));
+		resp.getOutputStream()
+				.write(this.objectMapper
+						.writeValueAsBytes(String.format("%s, your balance -> %s", authPlayerDto.username(), playerBalance)));
 	}
 
 	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {

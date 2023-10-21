@@ -9,8 +9,9 @@ import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.example.walletservice.service.exception.PlayerNotFoundException;
+import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
+import org.example.walletservice.service.exception.PlayerNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -43,6 +44,7 @@ public final class PlayerServiceImpl implements PlayerService {
 	 */
 	@Override
 	public void registrationPlayer(PlayerRequestDto playerRequestDto) {
+		inputValidation(playerRequestDto);
 		String username = playerRequestDto.username();
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
 		if (optionalPlayer.isPresent()) {
@@ -65,7 +67,8 @@ public final class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public AuthPlayerDto logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException {
+	public AuthPlayerDto logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException, InvalidInputDataException {
+		inputValidation(playerRequestDto);
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(playerRequestDto.username());
 		if (optionalPlayer.isEmpty()) {
 			System.out.println(PLAYER_NOT_FOUND);
@@ -78,7 +81,7 @@ public final class PlayerServiceImpl implements PlayerService {
 			throw new PlayerNotFoundException(INCORRECT_PASSWORD);
 		}
 		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
-		return  playerMapper.toAuthPlayerDto(player);
+		return playerMapper.toAuthPlayerDto(player);
 	}
 
 	/**
@@ -95,5 +98,17 @@ public final class PlayerServiceImpl implements PlayerService {
 		}
 		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
 		return balance;
+	}
+t add
+	public void inputValidation (PlayerRequestDto playerRequestDto) throws InvalidInputDataException{
+		String username = playerRequestDto.username();
+		String password = playerRequestDto.password();
+
+		if(username == null || password == null){
+			throw new InvalidInputDataException("Username or password can`t be empty.");
+		}
+		if (username.length() < 1 || password.length() < 1) {
+			throw new InvalidInputDataException("The length of the username or password cannot be less than 1");
+		}
 	}
 }

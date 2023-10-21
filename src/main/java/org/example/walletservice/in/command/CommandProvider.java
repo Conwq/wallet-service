@@ -11,9 +11,14 @@ public class CommandProvider {
 		put("debit", Command.DEBIT);
 		put("show_all_log", Command.SHOW_ALL_LOG);
 		put("show_player_log", Command.SHOW_PLAYER_LOG);
+		put("no_command", Command.NO_COMMAND);
 	}};
 
 	public Command getCommand(String key) {
-		return commands.get(key);
+		try {
+			return commands.get(key);
+		} catch (NullPointerException | ClassCastException e) {
+			return commands.get("no_command");
+		}
 	}
 }

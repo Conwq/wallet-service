@@ -6,5 +6,7 @@ public enum Command {
 	CREDIT,
 	DEBIT,
 	SHOW_ALL_LOG,
-	SHOW_PLAYER_LOG
+	SHOW_PLAYER_LOG,
+
+	NO_COMMAND
 }
