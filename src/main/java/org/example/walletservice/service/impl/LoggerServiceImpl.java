@@ -22,17 +22,15 @@ public class LoggerServiceImpl implements LoggerService {
 	private final PlayerRepository playerRepository;
 	private final LogMapper logMapper;
 	private final PlayerMapper playerMapper;
-	private static final String ERROR_CONNECTION_DATABASE =
-			"There is an error with the database. Try again later.";
 	private static final String LOG_TEMPLATE =
 			"""
 					-Operation: %s-
 					-User: %s-
 					-Status: %s-
 					""";
-	private static final String NO_LOG = "*No logs.*\n";
-	private static final String PLAYER_NOT_FOUND_TEMPLATE = "*Player %s not found*\n";
-	private static final String NO_LOG_FOR_PLAYER_TEMPLATE = "*No logs for player %s*\n";
+	private static final String NO_LOG = "No logs.\n";
+	private static final String PLAYER_NOT_FOUND_TEMPLATE = "Player %s not found\n";
+	private static final String NO_LOG_FOR_PLAYER_TEMPLATE = "No logs for player %s\n";
 
 	public LoggerServiceImpl(LoggerRepository loggerRepository, PlayerRepository playerRepository,
 							 LogMapper logMapper, PlayerMapper playerMapper) {
@@ -60,16 +58,16 @@ public class LoggerServiceImpl implements LoggerService {
 		Player player = playerMapper.toEntity(authPlayerDto);
 		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
 		if (playersRecords == null) {
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
 			return null;
 		}
 		if (playersRecords.isEmpty()) {
-			System.out.println(NO_LOG);
+			System.out.println("[SUCCESSFUL] Getting logs.");
 			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
 			return new ArrayList<>(List.of(new LogResponseDto(NO_LOG)));
 		}
-		System.out.println("All logs viewed.");
+		System.out.println("[SUCCESSFUL] All logs viewed.");
 		recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
 		return playersRecords.stream().map(logMapper::toDto).toList();
 	}
@@ -88,17 +86,17 @@ public class LoggerServiceImpl implements LoggerService {
 		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
 
 		if (playerLogs == null) {
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.FAIL);
 			return null;
 		}
 		if (playerLogs.isEmpty()) {
-			String noLogForPlayer = String.format(NO_LOG_FOR_PLAYER_TEMPLATE, inputUsernameForSearch);
-			System.out.printf(noLogForPlayer);
+			System.out.printf("[SUCCESSFUL] Player logs viewed %s.\n", inputUsernameForSearch);
 			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
-			return new ArrayList<>(List.of(new LogResponseDto(noLogForPlayer)));
+			return new ArrayList<>(List.of(new LogResponseDto(String.format(NO_LOG_FOR_PLAYER_TEMPLATE,
+					inputUsernameForSearch))));
 		}
-		System.out.printf("Player logs viewed %s.\n", inputUsernameForSearch);
+		System.out.printf("[SUCCESSFUL] Player logs viewed %s.\n", inputUsernameForSearch);
 		recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
 		return playerLogs.stream().map(logMapper::toDto).toList();
 	}
@@ -107,7 +105,7 @@ public class LoggerServiceImpl implements LoggerService {
 			throws PlayerNotFoundException {
 		if (optionalPlayer.isEmpty()) {
 			String playerNotFound = String.format(PLAYER_NOT_FOUND_TEMPLATE, inputUsernameForSearch);
-			System.out.printf(playerNotFound);
+			System.out.println("[FAIL] Current player not found.");
 			throw new PlayerNotFoundException(playerNotFound);
 		}
 	}

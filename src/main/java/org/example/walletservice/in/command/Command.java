@@ -1,5 +1,8 @@
 package org.example.walletservice.in.command;
 
+/**
+ * Enum representing different player commands.
+ */
 public enum Command {
 	REGISTRATION,
 	SIGN_IN,

@@ -13,25 +13,24 @@ public interface TransactionService {
 	/**
 	 * Credits a player's account.
 	 *
-	 * @param player            The player to which the account is credited.
-	 * @param inputPlayerAmount The amount entered by the player for a credit transaction.
-	 * @param transactionToken  Token for the current transaction.
+	 * @param authPlayerDto      The authenticated player to which the account is credited.
+	 * @param transactionRequest The transaction data, including the amount and transaction token.
 	 */
 	void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequest);
 
 	/**
 	 * Debits funds from a player's account.
 	 *
-	 * @param player            The player from which funds are debited.
-	 * @param inputPlayerAmount The amount entered by the player for a credit transaction.
-	 * @param transactionToken  Token for the current transaction.
+	 * @param authPlayerDto      The authenticated player from which funds are debited.
+	 * @param transactionRequest The transaction data, including the amount and transaction token.
 	 */
 	void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequest);
 
 	/**
 	 * Gets the transaction history of a player.
 	 *
-	 * @param player The player for whom the transaction history is being requested.
+	 * @param authPlayerDto The authenticated player for whom the transaction history is being requested.
+	 * @return A list of strings representing the player's transaction history.
 	 */
 	List<String> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto);
 }

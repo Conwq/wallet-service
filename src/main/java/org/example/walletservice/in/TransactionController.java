@@ -18,6 +18,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Controller class to handle transaction-related operations.
+ */
 @WebServlet("/transaction")
 public class TransactionController extends HttpServlet {
 	private static final String AUTH_PLAYER_PARAM = "authPlayer";
@@ -34,10 +37,19 @@ public class TransactionController extends HttpServlet {
 		this.commandProvider = context.getCommandProvider();
 	}
 
+	/**
+	 * Handles HTTP GET requests for retrieving player transaction history.
+	 *
+	 * @param req  The HttpServletRequest object.
+	 * @param resp The HttpServletResponse object.
+	 * @throws ServletException If a servlet-specific error occurs.
+	 * @throws IOException      If an I/O error occurs.
+	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
 		if (authPlayerDto == null) {
+			System.out.println("[FAIL] Transaction receipt error.");
 			String noAccessToContent = "You need to log in. This resource is not available to you.";
 			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, noAccessToContent);
 		}
@@ -45,10 +57,19 @@ public class TransactionController extends HttpServlet {
 		generateResponse(resp, HttpServletResponse.SC_OK, playerTransactionHistory);
 	}
 
+	/**
+	 * Handles HTTP POST requests for performing credit or debit transactions.
+	 *
+	 * @param req  The HttpServletRequest object.
+	 * @param resp The HttpServletResponse object.
+	 * @throws ServletException If a servlet-specific error occurs.
+	 * @throws IOException      If an I/O error occurs.
+	 */
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
 		if (authPlayerDto == null) {
+			System.out.println("[FAIL] Performing an operation by an unregistered user.");
 			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, "Log in to perform this operation");
 			return;
 		}
@@ -61,21 +82,51 @@ public class TransactionController extends HttpServlet {
 			TransactionRequestDto transactionRequest = objectMapper.readValue(
 					jsonObject.toString(), TransactionRequestDto.class);
 			switch (command) {
-				case CREDIT -> {
-					transactionService.credit(authPlayerDto, transactionRequest);
-					generateResponse(resp, HttpServletResponse.SC_OK, "Credit successfully.");
-					resp.setStatus(HttpServletResponse.SC_OK);
-				}
-				case DEBIT -> {
-					transactionService.debit(authPlayerDto, transactionRequest);
-					generateResponse(resp, HttpServletResponse.SC_OK, "Debit successfully.");
-				}
+				case CREDIT -> creditExecution(resp, authPlayerDto, transactionRequest);
+				case DEBIT -> debitExecution(resp, authPlayerDto, transactionRequest);
 			}
 		} catch (NullPointerException e) {
+			System.out.println("[FAIL] Accessing a non-existent resource.");
 			generateResponse(resp, HttpServletResponse.SC_NOT_FOUND, "Content doesn't exist.");
 		}
 	}
 
+	/**
+	 * Executes the credit transaction operation and generates a response.
+	 *
+	 * @param resp               The HttpServletResponse object.
+	 * @param authPlayerDto      The authenticated player DTO.
+	 * @param transactionRequest The transaction request DTO.
+	 * @throws IOException If an I/O error occurs.
+	 */
+	public void creditExecution(HttpServletResponse resp, AuthPlayerDto authPlayerDto,
+								TransactionRequestDto transactionRequest) throws IOException {
+		transactionService.credit(authPlayerDto, transactionRequest);
+		generateResponse(resp, HttpServletResponse.SC_OK, "Credit successfully.");
+	}
+
+	/**
+	 * Executes the debit transaction operation and generates a response.
+	 *
+	 * @param resp               The HttpServletResponse object.
+	 * @param authPlayerDto      The authenticated player DTO.
+	 * @param transactionRequest The transaction request DTO.
+	 * @throws IOException If an I/O error occurs.
+	 */
+	public void debitExecution(HttpServletResponse resp, AuthPlayerDto authPlayerDto,
+							   TransactionRequestDto transactionRequest) throws IOException {
+		transactionService.debit(authPlayerDto, transactionRequest);
+		generateResponse(resp, HttpServletResponse.SC_OK, "Debit successfully.");
+	}
+
+	/**
+	 * Generates a JSON response for the HttpServletResponse with the given status and message.
+	 *
+	 * @param resp    The HttpServletResponse object.
+	 * @param status  The HTTP status code.
+	 * @param message The message to be included in the response.
+	 * @throws IOException If an I/O error occurs.
+	 */
 	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {
 		InfoResponse infoResponse = new InfoResponse(status, message);
 		resp.setStatus(status);
@@ -83,6 +134,14 @@ public class TransactionController extends HttpServlet {
 		resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));
 	}
 
+	/**
+	 * Generates a JSON response for the HttpServletResponse with the given status and list of content.
+	 *
+	 * @param resp    The HttpServletResponse object.
+	 * @param status  The HTTP status code.
+	 * @param content The list of content entries to be included in the response.
+	 * @throws IOException If an I/O error occurs.
+	 */
 	private void generateResponse(HttpServletResponse resp, int status, List<String> content) throws IOException {
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);

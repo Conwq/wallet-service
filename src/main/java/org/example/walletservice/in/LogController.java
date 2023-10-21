@@ -10,15 +10,18 @@ import org.example.walletservice.context.ApplicationContextHolder;
 import org.example.walletservice.in.command.Command;
 import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.LogResponseDto;
-import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Controller class to handle log-related operations.
+ */
 @WebServlet("/log")
 public class LogController extends HttpServlet {
 	private static final String AUTH_PLAYER_PARAM = "authPlayer";
@@ -36,37 +39,54 @@ public class LogController extends HttpServlet {
 		this.commandProvider = context.getCommandProvider();
 	}
 
+	/**
+	 * Handles HTTP GET requests for log-related operations.
+	 *
+	 * @param req  The HttpServletRequest object.
+	 * @param resp The HttpServletResponse object.
+	 * @throws ServletException If a servlet-specific error occurs.
+	 * @throws IOException      If an I/O error occurs.
+	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
 		if (authPlayerDto == null) {
-			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE,
-					"You need to log in as an administrator.");
+			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, "Need to log in as an administrator.");
 		} else if (authPlayerDto.role() == Role.ADMIN) {
-			Command command = commandProvider.getCommand(req.getParameter(COMMAND));
-			switch (command) {
-				case SHOW_ALL_LOG -> {
-					List<LogResponseDto> logList = loggerService.getAllLogs(authPlayerDto);
-					generateResponse(resp, HttpServletResponse.SC_OK, logList);
-				}
-				case SHOW_PLAYER_LOG -> {
-					try {
-						String inputUsernameForSearch = req.getParameter(USERNAME);
-						List<LogResponseDto> logList = loggerService.getLogsByUsername(authPlayerDto, inputUsernameForSearch);
+			try {
+				Command command = commandProvider.getCommand(req.getParameter(COMMAND));
+				switch (command) {
+					case SHOW_ALL_LOG -> {
+						List<LogResponseDto> logList = loggerService.getAllLogs(authPlayerDto);
 						generateResponse(resp, HttpServletResponse.SC_OK, logList);
 					}
-					catch (PlayerNotFoundException e) {
-						generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+					case SHOW_PLAYER_LOG -> {
+						try {
+							String inputUsernameForSearch = req.getParameter(USERNAME);
+							List<LogResponseDto> logList = loggerService
+									.getLogsByUsername(authPlayerDto, inputUsernameForSearch);
+							generateResponse(resp, HttpServletResponse.SC_OK, logList);
+						} catch (PlayerNotFoundException e) {
+							generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+						}
 					}
 				}
-				default -> resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			} catch (NullPointerException e) {
+				generateResponse(resp, HttpServletResponse.SC_NOT_FOUND, "Content doesn't exist.");
 			}
 		} else {
-			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE,
-					"You do not have access to this resource.");
+			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, "You do not have access to this resource.");
 		}
 	}
 
+	/**
+	 * Generates a JSON response for the HttpServletResponse with the given status and message.
+	 *
+	 * @param resp    The HttpServletResponse object.
+	 * @param status  The HTTP status code.
+	 * @param message The message to be included in the response.
+	 * @throws IOException If an I/O error occurs.
+	 */
 	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {
 		InfoResponse infoResponse = new InfoResponse(status, message);
 		resp.setStatus(status);
@@ -74,6 +94,14 @@ public class LogController extends HttpServlet {
 		resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));
 	}
 
+	/**
+	 * Generates a JSON response for the HttpServletResponse with the given status and list of log entries.
+	 *
+	 * @param resp   The HttpServletResponse object.
+	 * @param status The HTTP status code.
+	 * @param logList The list of log entries to be included in the response.
+	 * @throws IOException If an I/O error occurs.
+	 */
 	private void generateResponse(HttpServletResponse resp, int status, List<LogResponseDto> logList) throws IOException {
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);

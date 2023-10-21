@@ -3,6 +3,9 @@ package org.example.walletservice.in.command;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Provider class for mapping command strings to Command enum values.
+ */
 public class CommandProvider {
 	private final Map<String, Command> commands = new HashMap() {{
 		put("registration", Command.REGISTRATION);
@@ -14,6 +17,12 @@ public class CommandProvider {
 		put("no_command", Command.NO_COMMAND);
 	}};
 
+	/**
+	 * Gets the Command enum value for a given command string.
+	 *
+	 * @param key The command string.
+	 * @return The corresponding Command enum value.
+	 */
 	public Command getCommand(String key) {
 		try {
 			return commands.get(key);

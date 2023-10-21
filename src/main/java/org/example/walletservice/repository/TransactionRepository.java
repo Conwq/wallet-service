@@ -30,7 +30,7 @@ public interface TransactionRepository {
 	/**
 	 * Retrieves the player's transaction history.
 	 *
-	 * @param playerID The ID of the player.
+	 * @param player The player whose transaction history you want to find.
 	 * @return A card representing the player's transactional history.
 	 */
 	List<String> findPlayerTransactionalHistoryByPlayer(Player player);

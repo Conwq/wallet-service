@@ -25,12 +25,9 @@ public final class PlayerServiceImpl implements PlayerService {
 	private final PlayerRepository playerRepository;
 	private final LoggerService loggerService;
 	private final PlayerMapper playerMapper;
-	private static final String ERROR_CONNECTION_DATABASE =
-			"There is an error with the database. Try again later.";
-	private static final String USER_EXIST_EXCEPTION = "*{{FAIL}} This user is already registered. Try again.*\n";
-	private static final String SUCCESSFUL_REGISTRATION = "*User successfully registered!*\n";
-	private static final String PLAYER_NOT_FOUND = "*{{FAIL}} Current player not found. Please try again.*\n";
-	private static final String INCORRECT_PASSWORD = "*{{FAIL}} Incorrect password!*\n";
+	private static final String PLAYER_EXIST_EXCEPTION = "This user is already registered. Try again.\n";
+	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.\n";
+	private static final String INCORRECT_PASSWORD = "Incorrect password!\n";
 
 	public PlayerServiceImpl(PlayerRepository playerRepository, LoggerService loggerService,
 							 PlayerMapper playerMapper) {
@@ -48,18 +45,18 @@ public final class PlayerServiceImpl implements PlayerService {
 		String username = playerRequestDto.username();
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
 		if (optionalPlayer.isPresent()) {
-			System.out.println(USER_EXIST_EXCEPTION);
-			throw new PlayerAlreadyExistException(USER_EXIST_EXCEPTION);
+			System.out.println("[FAIL] Registration was unsuccessful - a player with this username exists.");
+			throw new PlayerAlreadyExistException(PLAYER_EXIST_EXCEPTION);
 		}
 		Player player = playerMapper.toEntityFromRequest(playerRequestDto);
 		int playerID = playerRepository.registrationPayer(player);
 		if (playerID == -1) {
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 			loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.FAIL);
 			return;
 		}
 		player.setPlayerID(playerID);
-		System.out.println(SUCCESSFUL_REGISTRATION);
+		System.out.println("[SUCCESSFUL] Registration was successful.");
 		loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.SUCCESSFUL);
 	}
 
@@ -71,15 +68,16 @@ public final class PlayerServiceImpl implements PlayerService {
 		inputValidation(playerRequestDto);
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(playerRequestDto.username());
 		if (optionalPlayer.isEmpty()) {
-			System.out.println(PLAYER_NOT_FOUND);
+			System.out.println("[FAIL] Sign in was unsuccessful - a player with this username not exists.");
 			throw new PlayerNotFoundException(PLAYER_NOT_FOUND);
 		}
 		Player player = optionalPlayer.get();
 		if (!player.getPassword().equals(playerRequestDto.password())) {
-			System.out.println(INCORRECT_PASSWORD);
+			System.out.println("[FAIL] Sign in was unsuccessful - invalid password.");
 			loggerService.recordActionInLog(Operation.LOG_IN, player, Status.FAIL);
 			throw new PlayerNotFoundException(INCORRECT_PASSWORD);
 		}
+		System.out.println("[SUCCESSFUL] Sign in was successful.");
 		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
 		return playerMapper.toAuthPlayerDto(player);
 	}
@@ -92,10 +90,11 @@ public final class PlayerServiceImpl implements PlayerService {
 		Player player = playerMapper.toEntity(authPlayerDto);
 		BigDecimal balance = playerRepository.findPlayerBalanceByPlayer(player);
 		if (balance.equals(BigDecimal.valueOf(-1))) {
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 			loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.FAIL);
 			return null;
 		}
+		System.out.println("[SUCCESSFUL] Receiving the balance was successful.");
 		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
 		return balance;
 	}
@@ -105,11 +104,11 @@ public final class PlayerServiceImpl implements PlayerService {
 		String password = playerRequestDto.password();
 
 		if (username == null || password == null) {
-			System.out.println("Username or password can`t be empty.");
+			System.out.println("[FAIL] Invalid data - username or password can`t be empty.");
 			throw new InvalidInputDataException("Username or password can`t be empty.");
 		}
 		if (username.length() < 1 || password.length() < 1) {
-			System.out.println("The length of the username or password cannot be less than 1.");
+			System.out.println("[FAIL] Invalid data - the length of the username or password cannot be less than 1.");
 			throw new InvalidInputDataException("The length of the username or password cannot be less than 1");
 		}
 	}
