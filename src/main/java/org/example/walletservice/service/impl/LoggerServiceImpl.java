@@ -28,9 +28,9 @@ public class LoggerServiceImpl implements LoggerService {
 					-User: %s-
 					-Status: %s-
 					""";
-	private static final String NO_LOG = "No logs.\n";
-	private static final String PLAYER_NOT_FOUND_TEMPLATE = "Player %s not found\n";
-	private static final String NO_LOG_FOR_PLAYER_TEMPLATE = "No logs for player %s\n";
+	private static final String NO_LOG = "No logs.";
+	private static final String PLAYER_NOT_FOUND_TEMPLATE = "Player %s not found";
+	private static final String NO_LOG_FOR_PLAYER_TEMPLATE = "No logs for player %s";
 
 	public LoggerServiceImpl(LoggerRepository loggerRepository, PlayerRepository playerRepository,
 							 LogMapper logMapper, PlayerMapper playerMapper) {

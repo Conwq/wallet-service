@@ -16,7 +16,6 @@ import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -25,18 +24,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
-	private static final String TRANSACTION_OUTPUT_FORMAT = """
-								  - %s -
-			- Transaction number: %s -
-			- Transaction amount: %s -
-			- Your balance after transaction: %s -
-			""";
 	private static final String TRANSACTION_TOKEN = "transaction_token";
 	private static final BigDecimal BALANCE_PLAYER = BigDecimal.valueOf(1000);
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;
 	private static Player player;
-	private static Transaction transaction;
 	private static final String ADMIN = "admin";
 	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
 
@@ -67,12 +59,6 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 		player.setUsername(ADMIN);
 		player.setPassword(ADMIN);
 		player.setRole(Role.ADMIN);
-
-		transaction = new Transaction();
-		transaction.setToken(TRANSACTION_TOKEN);
-		transaction.setOperation(Operation.CREDIT.name());
-		transaction.setAmount(BigDecimal.ZERO);
-		transaction.setPlayerID(player.getPlayerID());
 	}
 
 	@Test
@@ -83,11 +69,13 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
-	@Disabled
-	public void shouldChangePlayerBalanceAfterDepositingAndGetTransactionHistory() {
-		transaction.setRecord(String.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN,
-				0, BALANCE_PLAYER));
-		transaction.setTransactionID(0);
+	public void shouldChangePlayerBalanceAfterDepositing() {
+		Transaction transaction = new Transaction();
+		transaction.setToken(TRANSACTION_TOKEN);
+		transaction.setOperation(Operation.CREDIT.name());
+		transaction.setAmount(new BigDecimal(100));
+		transaction.setPlayerID(1);
+		transaction.setRecord("record");
 
 		transactionRepository.creditOrDebit(transaction, BALANCE_PLAYER);
 
@@ -95,11 +83,11 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 		List<Transaction> playerTransactionHistory = transactionRepository
 				.findPlayerTransactionalHistoryByPlayer(player);
-		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(BALANCE_PLAYER);
-		AssertionsForClassTypes.assertThat(playerTransactionHistory).isEqualTo(transaction);
 
 		System.out.println(playerTransactionHistory);
-		System.out.println(transaction);
+		System.out.println(List.of(transaction));
+
+		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(BALANCE_PLAYER);
 	}
 
 	@Test

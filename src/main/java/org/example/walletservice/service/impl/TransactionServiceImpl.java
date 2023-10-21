@@ -26,10 +26,6 @@ public final class TransactionServiceImpl implements TransactionService {
 	private final PlayerRepository playerRepository;
 	private final TransactionMapper transactionMapper;
 	private final PlayerMapper playerMapper;
-	private static final String TRANSACTIONS_EMPTY =
-			"""
-					Transactions is empty.
-					""";
 
 	public TransactionServiceImpl(LoggerService loggerService, TransactionRepository transactionRepository,
 								  PlayerRepository playerRepository, TransactionMapper transactionMapper,

@@ -25,9 +25,9 @@ public final class PlayerServiceImpl implements PlayerService {
 	private final PlayerRepository playerRepository;
 	private final LoggerService loggerService;
 	private final PlayerMapper playerMapper;
-	private static final String PLAYER_EXIST_EXCEPTION = "This user is already registered. Try again.\n";
-	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.\n";
-	private static final String INCORRECT_PASSWORD = "Incorrect password!\n";
+	private static final String PLAYER_EXIST_EXCEPTION = "This user is already registered. Try again.";
+	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.";
+	private static final String INCORRECT_PASSWORD = "Incorrect password.";
 
 	public PlayerServiceImpl(PlayerRepository playerRepository, LoggerService loggerService,
 							 PlayerMapper playerMapper) {

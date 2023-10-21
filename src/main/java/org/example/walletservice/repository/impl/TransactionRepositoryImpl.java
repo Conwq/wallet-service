@@ -45,7 +45,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			connection.commit();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 		} finally {
 			connectionProvider.closeConnection(connection, statementToChangePlayerBalance);
 		}
@@ -72,6 +72,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			resultSet = statement.executeQuery();
 			return resultSet.next();
 		} catch (SQLException e) {
+			System.out.println("[FAIL] Database error.");
 			throw new RuntimeException(e);
 		} finally {
 			connectionProvider.closeConnection(connection, statement, resultSet);
@@ -137,7 +138,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 		} finally {
 			connectionProvider.closeConnection(statement);
 		}

@@ -13,8 +13,6 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	private static final String LOG = "log";
 	private static final String LOG_ID = "log_id";
 	private static final String PLAYER_ID = "player_id";
-	private static final String ERROR_CONNECTION_DATABASE =
-			"There is an error with the database. Try again later.";
 
 	public LoggerRepositoryImpl(ConnectionProvider connectionProvider) {
 		this.connectionProvider = connectionProvider;
@@ -43,7 +41,7 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 			connection.commit();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 		} finally {
 			connectionProvider.closeConnection(connection, statement);
 		}
