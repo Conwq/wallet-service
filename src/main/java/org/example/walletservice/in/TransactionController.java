@@ -13,6 +13,8 @@ import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.service.TransactionService;
+import org.example.walletservice.service.exception.InvalidInputDataException;
+import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -101,8 +103,14 @@ public class TransactionController extends HttpServlet {
 	 */
 	public void creditExecution(HttpServletResponse resp, AuthPlayerDto authPlayerDto,
 								TransactionRequestDto transactionRequest) throws IOException {
-		transactionService.credit(authPlayerDto, transactionRequest);
-		generateResponse(resp, HttpServletResponse.SC_OK, "Credit successfully.");
+		try {
+			transactionService.credit(authPlayerDto, transactionRequest);
+			generateResponse(resp, HttpServletResponse.SC_OK, "Credit successfully.");
+		} catch (InvalidInputDataException e) {
+			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+		} catch (TransactionNumberAlreadyExist e) {
+			generateResponse(resp, HttpServletResponse.SC_CONFLICT, e.getMessage());
+		}
 	}
 
 	/**
@@ -115,8 +123,14 @@ public class TransactionController extends HttpServlet {
 	 */
 	public void debitExecution(HttpServletResponse resp, AuthPlayerDto authPlayerDto,
 							   TransactionRequestDto transactionRequest) throws IOException {
-		transactionService.debit(authPlayerDto, transactionRequest);
-		generateResponse(resp, HttpServletResponse.SC_OK, "Debit successfully.");
+		try {
+			transactionService.debit(authPlayerDto, transactionRequest);
+			generateResponse(resp, HttpServletResponse.SC_OK, "Debit successfully.");
+		} catch (InvalidInputDataException e) {
+			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+		} catch (TransactionNumberAlreadyExist e) {
+			generateResponse(resp, HttpServletResponse.SC_CONFLICT, e.getMessage());
+		}
 	}
 
 	/**

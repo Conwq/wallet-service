@@ -83,10 +83,8 @@ public final class PlayerController extends HttpServlet {
 			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 		BigDecimal playerBalance = playerService.getPlayerBalance(authPlayerDto);
-		resp.setStatus(HttpServletResponse.SC_OK);
-		resp.getOutputStream()
-				.write(this.objectMapper
-						.writeValueAsBytes(String.format("%s, your balance -> %s", authPlayerDto.username(), playerBalance)));
+		generateResponse(resp, HttpServletResponse.SC_OK,
+				String.format("%s, your balance -> %s", authPlayerDto.username(), playerBalance));
 	}
 
 	/**

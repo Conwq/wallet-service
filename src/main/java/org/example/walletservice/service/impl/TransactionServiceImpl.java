@@ -13,6 +13,7 @@ import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
+import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -24,10 +25,6 @@ public final class TransactionServiceImpl implements TransactionService {
 	private final PlayerRepository playerRepository;
 	private final TransactionMapper transactionMapper;
 	private final PlayerMapper playerMapper;
-	private static final String CREDIT_SUCCESSFUL = "Credit successfully.\n";
-	private static final String DEBIT_SUCCESSFUL = "Debit successfully.\n";
-	private static final String FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT =
-			"There are not enough funds in the account!\n";
 	private static final String TRANSACTIONS_EMPTY =
 			"""
 					Transactions is empty.
@@ -73,7 +70,8 @@ public final class TransactionServiceImpl implements TransactionService {
 		if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
 			System.out.println("[FAIL] Withdrawal error - insufficient funds in the account.");
 			loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
-			return;
+			throw new InvalidInputDataException(
+					"The number of funds to be withdrawn exceeds the number of funds on the account.");
 		}
 		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.DEBIT,
 				newPlayerBalance);
@@ -112,7 +110,7 @@ public final class TransactionServiceImpl implements TransactionService {
 		if (transactionRepository.checkTokenExistence(transactionRequestDto.transactionToken())) {
 			System.out.println("[FAIL] A transaction with this number already exists.");
 			loggerService.recordActionInLog(operation, player, Status.FAIL);
-			throw new InvalidInputDataException("A transaction with this number already exists.");
+			throw new TransactionNumberAlreadyExist("A transaction with this number already exists.");
 		}
 	}
 }
