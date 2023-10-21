@@ -57,16 +57,19 @@ public class LoggerServiceImpl implements LoggerService {
 	public List<LogResponseDto> getAllLogs(AuthPlayerDto authPlayerDto) {
 		Player player = playerMapper.toEntity(authPlayerDto);
 		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
+
 		if (playersRecords == null) {
 			System.out.println("[FAIL] Database error.");
 			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
 			return null;
 		}
+
 		if (playersRecords.isEmpty()) {
 			System.out.println("[SUCCESSFUL] Getting logs.");
 			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
 			return new ArrayList<>(List.of(new LogResponseDto(NO_LOG)));
 		}
+
 		System.out.println("[SUCCESSFUL] All logs viewed.");
 		recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
 		return playersRecords.stream().map(logMapper::toDto).toList();
@@ -81,8 +84,8 @@ public class LoggerServiceImpl implements LoggerService {
 		Player player = playerMapper.toEntity(authPlayerDto);
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
 		checkingForExistenceOfUser(optionalPlayer, inputUsernameForSearch);
-		Player findPlayer = optionalPlayer.get();
 
+		Player findPlayer = optionalPlayer.get();
 		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
 
 		if (playerLogs == null) {
@@ -90,12 +93,14 @@ public class LoggerServiceImpl implements LoggerService {
 			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.FAIL);
 			return null;
 		}
+
 		if (playerLogs.isEmpty()) {
 			System.out.printf("[SUCCESSFUL] Player logs viewed %s.\n", inputUsernameForSearch);
 			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
 			return new ArrayList<>(List.of(new LogResponseDto(String.format(NO_LOG_FOR_PLAYER_TEMPLATE,
 					inputUsernameForSearch))));
 		}
+
 		System.out.printf("[SUCCESSFUL] Player logs viewed %s.\n", inputUsernameForSearch);
 		recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
 		return playerLogs.stream().map(logMapper::toDto).toList();

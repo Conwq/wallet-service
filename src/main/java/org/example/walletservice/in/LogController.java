@@ -17,6 +17,7 @@ import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -88,7 +89,7 @@ public class LogController extends HttpServlet {
 	 * @throws IOException If an I/O error occurs.
 	 */
 	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {
-		InfoResponse infoResponse = new InfoResponse(status, message);
+		InfoResponse infoResponse = new InfoResponse(new Date().toString(), status, message);
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);
 		resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));

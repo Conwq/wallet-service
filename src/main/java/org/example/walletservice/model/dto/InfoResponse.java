@@ -6,5 +6,5 @@ package org.example.walletservice.model.dto;
  * @param status  The status code of the response.
  * @param message The message included in the response.
  */
-public record InfoResponse(int status, String message) {
+public record InfoResponse(String createAt, int status, String message) {
 }

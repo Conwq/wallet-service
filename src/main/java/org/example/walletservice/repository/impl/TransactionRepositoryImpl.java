@@ -82,9 +82,9 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<String> findPlayerTransactionalHistoryByPlayer(Player player) {
+	public List<Transaction> findPlayerTransactionalHistoryByPlayer(Player player) {
 		final String RECORD_REQUEST = """
-				SELECT record FROM wallet_service.transaction WHERE player_id = ?
+				SELECT * FROM wallet_service.transaction WHERE player_id = ?
 				""";
 
 		Connection connection = null;
@@ -97,11 +97,13 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 
 			statement.setInt(1, player.getPlayerID());
 			resultSet = statement.executeQuery();
-			List<String> transactionHistory = new ArrayList<>();
+			List<Transaction> transactionHistory = new ArrayList<>();
 			while (resultSet.next()) {
-				if (resultSet.getString(RECORD) != null) {
-					transactionHistory.add(resultSet.getString(RECORD));
-				}
+				Transaction transaction = new Transaction();
+				transaction.setOperation(resultSet.getString("operation"));
+				transaction.setAmount(resultSet.getBigDecimal("amount"));
+				transaction.setToken(resultSet.getString("token"));
+				transactionHistory.add(transaction);
 			}
 			return transactionHistory;
 		} catch (SQLException e) {

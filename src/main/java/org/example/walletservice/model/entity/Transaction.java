@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * A data class representing a transaction.
@@ -67,5 +68,30 @@ public class Transaction {
 
 	public void setPlayerID(int playerID) {
 		this.playerID = playerID;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Transaction that = (Transaction) o;
+		return transactionID == that.transactionID && playerID == that.playerID && Objects.equals(record, that.record) && Objects.equals(token, that.token) && Objects.equals(operation, that.operation) && Objects.equals(amount, that.amount);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(transactionID, record, token, operation, amount, playerID);
+	}
+
+	@Override
+	public String toString() {
+		return "Transaction{" +
+				"transactionID=" + transactionID +
+				", record='" + record + '\'' +
+				", token='" + token + '\'' +
+				", operation='" + operation + '\'' +
+				", amount=" + amount +
+				", playerID=" + playerID +
+				'}';
 	}
 }

@@ -1,6 +1,7 @@
 package org.example.walletservice.model.mapper;
 
 import org.example.walletservice.model.dto.TransactionRequestDto;
+import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.service.enums.Operation;
@@ -48,13 +49,10 @@ public interface TransactionMapper {
 
 
 	/**
-	 * Converts Transaction entity to TransactionRequestDto.
+	 * Converts Transaction entity to TransactionResponseDto.
 	 *
 	 * @param entity The Transaction entity.
 	 * @return The TransactionRequestDto.
 	 */
-	@Mapping(target = "inputPlayerAmount", source = "amount")
-	@Mapping(target = "transactionToken", source = "token")
-	TransactionRequestDto toDto(Transaction entity);
-
+	TransactionResponseDto toDto(Transaction entity);
 }

@@ -12,12 +12,14 @@ import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.TransactionRequestDto;
+import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -55,7 +57,7 @@ public class TransactionController extends HttpServlet {
 			String noAccessToContent = "You need to log in. This resource is not available to you.";
 			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, noAccessToContent);
 		}
-		List<String> playerTransactionHistory = transactionService.getPlayerTransactionalHistory(authPlayerDto);
+		List<TransactionResponseDto> playerTransactionHistory = transactionService.getPlayerTransactionalHistory(authPlayerDto);
 		generateResponse(resp, HttpServletResponse.SC_OK, playerTransactionHistory);
 	}
 
@@ -142,7 +144,7 @@ public class TransactionController extends HttpServlet {
 	 * @throws IOException If an I/O error occurs.
 	 */
 	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {
-		InfoResponse infoResponse = new InfoResponse(status, message);
+		InfoResponse infoResponse = new InfoResponse(new Date().toString(), status, message);
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);
 		resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));
@@ -156,9 +158,15 @@ public class TransactionController extends HttpServlet {
 	 * @param content The list of content entries to be included in the response.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	private void generateResponse(HttpServletResponse resp, int status, List<String> content) throws IOException {
+	private void generateResponse(HttpServletResponse resp, int status, List<TransactionResponseDto> content)
+			throws IOException {
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);
+		if (content.isEmpty()){
+			InfoResponse infoResponse = new InfoResponse(new Date().toString(), status, "Transactions is empty.");
+			resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));
+			return;
+		}
 		resp.getOutputStream().write(objectMapper.writeValueAsBytes(content));
 	}
 }

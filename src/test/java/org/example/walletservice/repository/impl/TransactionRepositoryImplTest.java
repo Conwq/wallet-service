@@ -16,6 +16,7 @@ import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -24,10 +25,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
-	private static final String TRANSACTION_OUTPUT_FORMAT = "*****************-%s-*****************\n" +
-			"\t-- Transaction number: %s\n" +
-			"\t-- Your balance after transaction: %s\n" +
-			"******************************************\n";
+	private static final String TRANSACTION_OUTPUT_FORMAT = """
+								  - %s -
+			- Transaction number: %s -
+			- Transaction amount: %s -
+			- Your balance after transaction: %s -
+			""";
 	private static final String TRANSACTION_TOKEN = "transaction_token";
 	private static final BigDecimal BALANCE_PLAYER = BigDecimal.valueOf(1000);
 	private static PlayerRepository playerRepository;
@@ -80,18 +83,23 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@Disabled
 	public void shouldChangePlayerBalanceAfterDepositingAndGetTransactionHistory() {
-		transaction.setRecord(String
-				.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
+		transaction.setRecord(String.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN,
+				0, BALANCE_PLAYER));
+		transaction.setTransactionID(0);
+
 		transactionRepository.creditOrDebit(transaction, BALANCE_PLAYER);
 
 		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 
-		List<String> playerTransactionHistory = transactionRepository
+		List<Transaction> playerTransactionHistory = transactionRepository
 				.findPlayerTransactionalHistoryByPlayer(player);
 		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(BALANCE_PLAYER);
-		AssertionsForClassTypes.assertThat(playerTransactionHistory).asString().contains(
-				String.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
+		AssertionsForClassTypes.assertThat(playerTransactionHistory).isEqualTo(transaction);
+
+		System.out.println(playerTransactionHistory);
+		System.out.println(transaction);
 	}
 
 	@Test

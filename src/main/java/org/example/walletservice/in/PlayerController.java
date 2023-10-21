@@ -21,6 +21,8 @@ import org.example.walletservice.service.exception.PlayerNotFoundException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Date;
 
 /**
  * Controller class to perform player operations.
@@ -101,7 +103,7 @@ public final class PlayerController extends HttpServlet {
 			AuthPlayerDto authPlayerDto = playerService.logIn(playerRequestDto);
 			HttpSession session = req.getSession(true);
 			session.setAttribute(AUTH_PLAYER_PARAM, authPlayerDto);
-			resp.setStatus(HttpServletResponse.SC_OK);
+			generateResponse(resp, HttpServletResponse.SC_OK, "You've successfully logged in");
 		} catch (InvalidInputDataException e) {
 			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
 		} catch (PlayerNotFoundException e) {
@@ -119,7 +121,7 @@ public final class PlayerController extends HttpServlet {
 	private void registrationExecution(HttpServletResponse resp, PlayerRequestDto playerRequestDto) throws IOException {
 		try {
 			playerService.registrationPlayer(playerRequestDto);
-			resp.setStatus(HttpServletResponse.SC_CREATED);
+			generateResponse(resp, HttpServletResponse.SC_OK, "You have successfully registered.");
 		} catch (InvalidInputDataException e) {
 			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
 		} catch (PlayerAlreadyExistException e) {
@@ -136,7 +138,7 @@ public final class PlayerController extends HttpServlet {
 	 * @throws IOException If an I/O error occurs.
 	 */
 	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {
-		InfoResponse infoResponse = new InfoResponse(status, message);
+		InfoResponse infoResponse = new InfoResponse(new Date().toString(), status, message);
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);
 		resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));

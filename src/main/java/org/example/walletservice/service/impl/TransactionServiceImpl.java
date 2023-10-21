@@ -2,6 +2,7 @@ package org.example.walletservice.service.impl;
 
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.TransactionRequestDto;
+import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.model.mapper.PlayerMapper;
@@ -84,21 +85,24 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<String> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
+	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
 		Player player = playerMapper.toEntity(authPlayerDto);
-		List<String> playerTransactionalHistory = transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
+		List<Transaction> playerTransactionalHistory = transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
+
 		if (playerTransactionalHistory == null) {
 			System.out.println("[FAIL] Database error.");
 			return null;
 		}
+
 		if (playerTransactionalHistory.isEmpty()) {
 			System.out.println("[SUCCESSFUL] Transaction history has been viewed");
 			loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
-			return new ArrayList<>(List.of(TRANSACTIONS_EMPTY));
+			return new ArrayList<>();
 		}
+
 		System.out.println("[SUCCESSFUL] Transaction history has been viewed");
 		loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
-		return playerTransactionalHistory;
+		return playerTransactionalHistory.stream().map(transactionMapper::toDto).toList();
 	}
 
 	private void validatingInputData(Player player, TransactionRequestDto transactionRequestDto, Operation operation) {

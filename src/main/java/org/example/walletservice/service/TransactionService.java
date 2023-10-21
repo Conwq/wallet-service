@@ -2,6 +2,7 @@ package org.example.walletservice.service;
 
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.TransactionRequestDto;
+import org.example.walletservice.model.dto.TransactionResponseDto;
 
 import java.util.List;
 
@@ -32,5 +33,5 @@ public interface TransactionService {
 	 * @param authPlayerDto The authenticated player for whom the transaction history is being requested.
 	 * @return A list of strings representing the player's transaction history.
 	 */
-	List<String> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto);
+	List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto);
 }
