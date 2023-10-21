@@ -16,7 +16,6 @@ import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -24,7 +23,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
 
-@Disabled
 class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;
@@ -58,17 +56,17 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@BeforeEach
 	void setUp() {
-//		player = Player.builder().playerID(2)
-//				.username(TEST)
-//				.password(TEST)
-//				.role(Role.USER).build();
-//
-//		transaction = Transaction.builder()
-//				.token(TRANSACTION_TOKEN)
-//				.operation(Operation.CREDIT.name())
-//				.amount(BigDecimal.ZERO)
-//				.playerID(player.getPlayerID())
-//				.build();
+		player = new Player();
+		player.setPlayerID(2);
+		player.setUsername(TEST);
+		player.setPassword(TEST);
+		player.setRole(Role.USER);
+
+		transaction = new Transaction();
+		transaction.setToken(TRANSACTION_TOKEN);
+		transaction.setOperation(Operation.CREDIT.name());
+		transaction.setAmount(BigDecimal.ZERO);
+		transaction.setPlayerID(player.getPlayerID());
 	}
 
 	@Test
@@ -96,17 +94,20 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@Test
 	public void shouldGetBalanceByPlayerID() {
-//		BigDecimal expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayer(1);
+		Player newPlayer = new Player();
+		newPlayer.setPlayerID(1);
 
-//		AssertionsForClassTypes.assertThat(BigDecimal.ZERO).isEqualTo(expectedBalancePlayer);
+		BigDecimal expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayer(newPlayer);
+
+		AssertionsForClassTypes.assertThat(BigDecimal.ZERO).isEqualTo(expectedBalancePlayer);
 	}
 
 	@Test
 	public void shouldReceiveBalanceByPlayerIDAfterDepositing() {
 		transactionRepository.creditOrDebit(transaction, BALANCE);
 
-//		BigDecimal expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayer(player.getPlayerID());
+		BigDecimal expectedBalancePlayer = playerRepository.findPlayerBalanceByPlayer(player);
 
-//		AssertionsForClassTypes.assertThat(BALANCE).isEqualTo(expectedBalancePlayer);
+		AssertionsForClassTypes.assertThat(BALANCE).isEqualTo(expectedBalancePlayer);
 	}
 }

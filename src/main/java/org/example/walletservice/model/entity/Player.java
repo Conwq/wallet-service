@@ -3,6 +3,7 @@ package org.example.walletservice.model.entity;
 import org.example.walletservice.model.Role;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * Represents a player in the wallet service with information such as username,
@@ -64,5 +65,19 @@ public final class Player {
 
 	public void setBalance(BigDecimal balance) {
 		this.balance = balance;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Player player = (Player) o;
+		return Objects.equals(playerID, player.playerID) && Objects.equals(username, player.username)
+				&& Objects.equals(password, player.password) && role == player.role && Objects.equals(balance, player.balance);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(playerID, username, password, role, balance);
 	}
 }

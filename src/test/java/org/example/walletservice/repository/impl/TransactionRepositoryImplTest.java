@@ -16,7 +16,6 @@ import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -24,7 +23,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-@Disabled
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static final String TRANSACTION_OUTPUT_FORMAT = "*****************-%s-*****************\n" +
 			"\t-- Transaction number: %s\n" +
@@ -57,22 +55,21 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	@BeforeEach
 	void setUp() {
-//		player = Player.builder().playerID(1)
-//				.username(ADMIN)
-//				.password(ADMIN)
-//				.role(Role.ADMIN).build();
-//
-//		transaction = Transaction.builder()
-//				.token(TRANSACTION_TOKEN)
-//				.operation(Operation.CREDIT.name())
-//				.amount(BigDecimal.ZERO)
-//				.playerID(player.getPlayerID())
-//				.build();
+		player = new Player();
+		player.setPlayerID(1);
+		player.setUsername(ADMIN);
+		player.setPassword(ADMIN);
+		player.setRole(Role.ADMIN);
+
+		transaction = new Transaction();
+		transaction.setToken(TRANSACTION_TOKEN);
+		transaction.setOperation(Operation.CREDIT.name());
+		transaction.setAmount(BigDecimal.ZERO);
+		transaction.setPlayerID(player.getPlayerID());
 	}
 
 	@Test
@@ -88,13 +85,13 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 				.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
 		transactionRepository.creditOrDebit(transaction, BALANCE_PLAYER);
 
-//		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player.getPlayerID());
+		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 
-//		List<String> playerTransactionHistory = transactionRepository
-//				.findPlayerTransactionalHistoryByPlayer(player.getPlayerID());
-//		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(BALANCE_PLAYER);
-//		AssertionsForClassTypes.assertThat(playerTransactionHistory).asString().contains(
-//				String.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
+		List<String> playerTransactionHistory = transactionRepository
+				.findPlayerTransactionalHistoryByPlayer(player);
+		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(BALANCE_PLAYER);
+		AssertionsForClassTypes.assertThat(playerTransactionHistory).asString().contains(
+				String.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
 	}
 
 	@Test
