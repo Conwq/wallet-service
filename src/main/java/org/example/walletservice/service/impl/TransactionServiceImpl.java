@@ -4,6 +4,7 @@ import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
+import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.LoggerService;
@@ -18,6 +19,7 @@ public final class TransactionServiceImpl implements TransactionService {
 	private final LoggerService loggerService;
 	private final TransactionRepository transactionRepository;
 	private final PlayerRepository playerRepository;
+	private final TransactionMapper transactionMapper;
 	private static final String CREDIT_SUCCESSFUL = "*Credit successfully.*\n";
 	private static final String DEBIT_SUCCESSFUL = "*Debit successfully.*\n";
 	private static final String FAIL_NOT_UNIQUE_TRANSACTION_TOKEN =
@@ -38,10 +40,11 @@ public final class TransactionServiceImpl implements TransactionService {
 					""";
 
 	public TransactionServiceImpl(LoggerService loggerService, TransactionRepository transactionRepository,
-								  PlayerRepository playerRepository) {
+								  PlayerRepository playerRepository, TransactionMapper transactionMapper) {
 		this.loggerService = loggerService;
 		this.transactionRepository = transactionRepository;
 		this.playerRepository = playerRepository;
+		this.transactionMapper = transactionMapper;
 	}
 
 	/**
@@ -157,7 +160,6 @@ public final class TransactionServiceImpl implements TransactionService {
 		transaction.setAmount(inputPlayerAmount);
 		transaction.setPlayerID(player.getPlayerID());
 		transaction.setRecord(String.format(TRANSACTION_RECORD_TEMPLATE, operation.name(), token, newPlayerBalance));
-
 
 		return transaction;
 	}

@@ -16,7 +16,6 @@ import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.service.LoggerService;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @WebServlet("/log")
@@ -50,7 +49,7 @@ public class LogController extends HttpServlet {
 				}
 				case SHOW_PLAYER_LOG -> {
 					String inputUsernameForSearch = req.getParameter("username");
-					List<LogResponseDto> logList = loggerService.showLogsByUsername(
+					List<LogResponseDto> logList = loggerService.getLogsByUsername(
 							authPlayerDto, inputUsernameForSearch);
 					generateResponseForLog(resp, HttpServletResponse.SC_OK, logList);
 				}

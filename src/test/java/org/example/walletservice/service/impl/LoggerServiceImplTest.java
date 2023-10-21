@@ -30,7 +30,7 @@ class LoggerServiceImplTest {
 
 	@BeforeEach
 	void setUp() {
-		loggerService = new LoggerServiceImpl(loggerRepository, playerRepository);
+//		loggerService = new LoggerServiceImpl(loggerRepository, playerRepository);
 
 //		player = Player.builder()
 //				.playerID(1)

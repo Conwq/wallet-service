@@ -35,5 +35,5 @@ public interface LoggerService {
 	 * @param player Player whose logs are to be retrieved.
 	 * @return A list of transaction logs for the specified player, or null if the player's logs are not found.
 	 */
-	List<LogResponseDto> showLogsByUsername(AuthPlayerDto authPlayerDto, String inputUsernameForSearch);
+	List<LogResponseDto> getLogsByUsername(AuthPlayerDto authPlayerDto, String inputUsernameForSearch);
 }

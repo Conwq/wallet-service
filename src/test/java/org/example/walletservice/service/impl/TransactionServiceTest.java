@@ -36,11 +36,11 @@ class TransactionServiceTest {
 
 	@BeforeEach
 	public void setUp() {
-		transactionService = new TransactionServiceImpl(
-				loggerService,
-				transactionRepository,
-				playerRepository
-		);
+//		transactionService = new TransactionServiceImpl(
+//				loggerService,
+//				transactionRepository,
+//				playerRepository
+//		);
 
 //		player = Player.builder()
 //				.playerID(1)
