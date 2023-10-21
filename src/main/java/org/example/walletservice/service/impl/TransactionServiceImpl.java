@@ -4,6 +4,7 @@ import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
+import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
@@ -20,6 +21,7 @@ public final class TransactionServiceImpl implements TransactionService {
 	private final TransactionRepository transactionRepository;
 	private final PlayerRepository playerRepository;
 	private final TransactionMapper transactionMapper;
+	private final PlayerMapper playerMapper;
 	private static final String CREDIT_SUCCESSFUL = "*Credit successfully.*\n";
 	private static final String DEBIT_SUCCESSFUL = "*Debit successfully.*\n";
 	private static final String FAIL_NOT_UNIQUE_TRANSACTION_TOKEN =
@@ -40,11 +42,13 @@ public final class TransactionServiceImpl implements TransactionService {
 					""";
 
 	public TransactionServiceImpl(LoggerService loggerService, TransactionRepository transactionRepository,
-								  PlayerRepository playerRepository, TransactionMapper transactionMapper) {
+								  PlayerRepository playerRepository, TransactionMapper transactionMapper,
+								  PlayerMapper playerMapper) {
 		this.loggerService = loggerService;
 		this.transactionRepository = transactionRepository;
 		this.playerRepository = playerRepository;
 		this.transactionMapper = transactionMapper;
+		this.playerMapper = playerMapper;
 	}
 
 	/**
@@ -54,23 +58,15 @@ public final class TransactionServiceImpl implements TransactionService {
 	public void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
 		BigDecimal inputPlayerAmount = transactionRequestDto.inputPlayerAmount();
 		String transactionToken = transactionRequestDto.transactionToken();
-
-		Player player = new Player();
-		player.setPlayerID(authPlayerDto.playerID());
-		player.setUsername(authPlayerDto.username());
-		player.setRole(authPlayerDto.role());
+		Player player = playerMapper.toEntity(authPlayerDto);
 
 		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
 				!transactionRepository.checkTokenExistence(transactionToken)) {
-
 			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 			BigDecimal newPlayerBalance = playerBalance.add(inputPlayerAmount);
-
-			Transaction transaction = createTransaction(transactionToken, Operation.CREDIT,
-					inputPlayerAmount, player, newPlayerBalance);
-
+			Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player,
+					Operation.CREDIT, newPlayerBalance);
 			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
-			System.out.println(CREDIT_SUCCESSFUL);
 			loggerService.recordActionInLog(Operation.CREDIT, player, Status.SUCCESSFUL);
 		} else {
 			System.out.println(FAIL_NOT_UNIQUE_TRANSACTION_TOKEN);
@@ -85,16 +81,11 @@ public final class TransactionServiceImpl implements TransactionService {
 	public void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
 		BigDecimal inputPlayerAmount = transactionRequestDto.inputPlayerAmount();
 		String transactionToken = transactionRequestDto.transactionToken();
-
-		Player player = new Player();
-		player.setPlayerID(authPlayerDto.playerID());
-		player.setUsername(authPlayerDto.username());
-		player.setRole(authPlayerDto.role());
+		Player player = playerMapper.toEntity(authPlayerDto);
 
 		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
 				!transactionRepository.checkTokenExistence(transactionToken)) {
 			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
-
 			BigDecimal newPlayerBalance = playerBalance.subtract(inputPlayerAmount);
 			if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
 				System.out.println(FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT);
@@ -102,8 +93,8 @@ public final class TransactionServiceImpl implements TransactionService {
 				return;
 			}
 
-			Transaction transaction = createTransaction(transactionToken, Operation.DEBIT,
-					inputPlayerAmount, player, newPlayerBalance);
+			Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player,
+					Operation.DEBIT, newPlayerBalance);
 
 			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
 			System.out.println(DEBIT_SUCCESSFUL);
@@ -119,10 +110,7 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public List<String> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
-		Player player = new Player();
-		player.setPlayerID(authPlayerDto.playerID());
-		player.setUsername(authPlayerDto.username());
-		player.setRole(authPlayerDto.role());
+		Player player = playerMapper.toEntity(authPlayerDto);
 
 		List<String> playerTransactionalHistory =
 				transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
@@ -139,28 +127,5 @@ public final class TransactionServiceImpl implements TransactionService {
 		}
 		loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
 		return playerTransactionalHistory;
-	}
-
-	/**
-	 * Creates a Transaction object based on the provided parameters.
-	 *
-	 * @param token             The unique identifier for the transaction.
-	 * @param operation         The operation type (e.g., CREDIT, DEBIT).
-	 * @param inputPlayerAmount The amount involved in the transaction.
-	 * @param player            The Player associated with the transaction.
-	 * @param newPlayerBalance  The new balance of the Player after the transaction.
-	 * @return A Transaction object representing the transaction details.
-	 */
-	private Transaction createTransaction(String token, Operation operation, BigDecimal inputPlayerAmount,
-										  Player player, BigDecimal newPlayerBalance) {
-
-		Transaction transaction = new Transaction();
-		transaction.setToken(token);
-		transaction.setOperation(Operation.CREDIT.name());
-		transaction.setAmount(inputPlayerAmount);
-		transaction.setPlayerID(player.getPlayerID());
-		transaction.setRecord(String.format(TRANSACTION_RECORD_TEMPLATE, operation.name(), token, newPlayerBalance));
-
-		return transaction;
 	}
 }
