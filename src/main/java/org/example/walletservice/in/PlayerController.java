@@ -13,6 +13,7 @@ import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.PlayerService;
 
@@ -61,8 +62,13 @@ public final class PlayerController extends HttpServlet {
 					}
 				}
 				case REGISTRATION -> {
-					playerService.registrationPlayer(playerRequestDto);
-					resp.setStatus(HttpServletResponse.SC_CREATED);
+					try {
+						playerService.registrationPlayer(playerRequestDto);
+						resp.setStatus(HttpServletResponse.SC_CREATED);
+					}
+					catch (PlayerAlreadyExistException e) {
+						generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+					}
 				}
 				default -> resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}

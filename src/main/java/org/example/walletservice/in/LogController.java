@@ -14,6 +14,7 @@ import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.service.LoggerService;
+import org.example.walletservice.service.exception.PlayerNotFoundException;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,13 +46,17 @@ public class LogController extends HttpServlet {
 			switch (command) {
 				case SHOW_ALL_LOG -> {
 					List<LogResponseDto> logList = loggerService.getAllLogs(authPlayerDto);
-					generateResponseForLog(resp, HttpServletResponse.SC_OK, logList);
+					generateResponse(resp, HttpServletResponse.SC_OK, logList);
 				}
 				case SHOW_PLAYER_LOG -> {
-					String inputUsernameForSearch = req.getParameter("username");
-					List<LogResponseDto> logList = loggerService.getLogsByUsername(
-							authPlayerDto, inputUsernameForSearch);
-					generateResponseForLog(resp, HttpServletResponse.SC_OK, logList);
+					try {
+						String inputUsernameForSearch = req.getParameter("username");
+						List<LogResponseDto> logList = loggerService.getLogsByUsername(authPlayerDto, inputUsernameForSearch);
+						generateResponse(resp, HttpServletResponse.SC_OK, logList);
+					}
+					catch (PlayerNotFoundException e) {
+						generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+					}
 				}
 				default -> resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
@@ -68,8 +73,7 @@ public class LogController extends HttpServlet {
 		resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));
 	}
 
-	private void generateResponseForLog(HttpServletResponse resp, int status,
-										List<LogResponseDto> logList) throws IOException {
+	private void generateResponse(HttpServletResponse resp, int status, List<LogResponseDto> logList) throws IOException {
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);
 		resp.getOutputStream().write(objectMapper.writeValueAsBytes(logList));

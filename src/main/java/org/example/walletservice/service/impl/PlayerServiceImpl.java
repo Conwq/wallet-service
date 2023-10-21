@@ -10,6 +10,7 @@ import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
+import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -25,7 +26,7 @@ public final class PlayerServiceImpl implements PlayerService {
 	private final PlayerMapper playerMapper;
 	private static final String ERROR_CONNECTION_DATABASE =
 			"There is an error with the database. Try again later.";
-	private static final String USER_EXIST_ERROR = "*{{FAIL}} This user is already registered. Try again.*\n";
+	private static final String USER_EXIST_EXCEPTION = "*{{FAIL}} This user is already registered. Try again.*\n";
 	private static final String SUCCESSFUL_REGISTRATION = "*User successfully registered!*\n";
 	private static final String PLAYER_NOT_FOUND = "*{{FAIL}} Current player not found. Please try again.*\n";
 	private static final String INCORRECT_PASSWORD = "*{{FAIL}} Incorrect password!*\n";
@@ -45,13 +46,14 @@ public final class PlayerServiceImpl implements PlayerService {
 		String username = playerRequestDto.username();
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
 		if (optionalPlayer.isPresent()) {
-			System.out.println(USER_EXIST_ERROR);
-			return;
+			System.out.println(USER_EXIST_EXCEPTION);
+			throw new PlayerAlreadyExistException(USER_EXIST_EXCEPTION);
 		}
 		Player player = playerMapper.toEntityFromRequest(playerRequestDto);
 		int playerID = playerRepository.registrationPayer(player);
 		if (playerID == -1) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
+			loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.FAIL);
 			return;
 		}
 		player.setPlayerID(playerID);
@@ -66,15 +68,17 @@ public final class PlayerServiceImpl implements PlayerService {
 	public AuthPlayerDto logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(playerRequestDto.username());
 		if (optionalPlayer.isEmpty()) {
+			System.out.println(PLAYER_NOT_FOUND);
 			throw new PlayerNotFoundException(PLAYER_NOT_FOUND);
 		}
 		Player player = optionalPlayer.get();
 		if (!player.getPassword().equals(playerRequestDto.password())) {
+			System.out.println(INCORRECT_PASSWORD);
+			loggerService.recordActionInLog(Operation.LOG_IN, player, Status.FAIL);
 			throw new PlayerNotFoundException(INCORRECT_PASSWORD);
 		}
-		AuthPlayerDto authPlayerDto = playerMapper.toAuthPlayerDto(player);
 		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
-		return authPlayerDto;
+		return  playerMapper.toAuthPlayerDto(player);
 	}
 
 	/**
@@ -86,6 +90,7 @@ public final class PlayerServiceImpl implements PlayerService {
 		BigDecimal balance = playerRepository.findPlayerBalanceByPlayer(player);
 		if (balance.equals(BigDecimal.valueOf(-1))) {
 			System.out.println(ERROR_CONNECTION_DATABASE);
+			loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.FAIL);
 			return null;
 		}
 		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
