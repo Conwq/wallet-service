@@ -17,6 +17,7 @@ import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
+import org.example.walletservice.service.impl.PlayerNotLoggedInException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -79,16 +80,14 @@ public final class PlayerController extends HttpServlet {
 	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
-		if (authPlayerDto == null) {
-			System.out.println("[FAIL] Performing an operation by an unregistered user.");
-			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST,
-					"Performing an operation by an unregistered user.");
-			return;
+		try {
+			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
+			BigDecimal playerBalance = playerService.getPlayerBalance(authPlayerDto);
+			generateResponse(resp, HttpServletResponse.SC_OK,
+					String.format("%s, your balance -> %s", authPlayerDto.username(), playerBalance));
+		} catch (PlayerNotLoggedInException e) {
+			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
 		}
-		BigDecimal playerBalance = playerService.getPlayerBalance(authPlayerDto);
-		generateResponse(resp, HttpServletResponse.SC_OK,
-				String.format("%s, your balance -> %s", authPlayerDto.username(), playerBalance));
 	}
 
 	/**

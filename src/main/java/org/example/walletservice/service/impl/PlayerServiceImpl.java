@@ -1,5 +1,6 @@
 package org.example.walletservice.service.impl;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
@@ -80,8 +81,13 @@ public final class PlayerServiceImpl implements PlayerService {
 	 */
 	@Override
 	public BigDecimal getPlayerBalance(AuthPlayerDto authPlayerDto) {
+		if (authPlayerDto == null) {
+			throw new PlayerNotLoggedInException("Performing an operation by an unregistered user.");
+		}
+
 		Player player = playerMapper.toEntity(authPlayerDto);
 		BigDecimal balance = playerRepository.findPlayerBalanceByPlayer(player);
+
 		if (balance.equals(BigDecimal.valueOf(-1))) {
 			System.out.println("[FAIL] Database error.");
 			loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.FAIL);

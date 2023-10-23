@@ -15,6 +15,7 @@ import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
+import org.example.walletservice.service.impl.PlayerNotLoggedInException;
 
 @Aspect
 public class PlayerAuditAspect {
@@ -55,22 +56,33 @@ public class PlayerAuditAspect {
 	}
 
 	@Around("execution(* org.example.walletservice.service.PlayerService.registrationPlayer(..))")
-	public void registrationPlayerAspect(ProceedingJoinPoint joinPoint) throws Throwable {
+	public Object registrationPlayerAspect(ProceedingJoinPoint joinPoint) throws Throwable {
+		Object result;
 		try {
-			joinPoint.proceed();
+			result = joinPoint.proceed();
 			System.out.println("[SUCCESSFUL] Registration was successful.");
 		} catch (PlayerAlreadyExistException e) {
 			System.out.println("[FAIL] Registration was unsuccessful - a player with this username exists.");
 			throw e;
 		}
+		return result;
 	}
 
 	@Around("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
 	public Object getPlayerBalanceAspect(ProceedingJoinPoint joinPoint) throws Throwable {
 		Player player = getPlayer(joinPoint);
-		Object result = joinPoint.proceed();
-		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
-		System.out.println("[SUCCESSFUL] Receiving the balance was successful.");
+		Object result;
+
+		try {
+			result = joinPoint.proceed();
+			loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
+			System.out.println("[SUCCESSFUL] Receiving the balance was successful.");
+
+		} catch (PlayerNotLoggedInException e) {
+			System.out.println("[FAIL] Performing an operation by an unregistered user.");
+			throw e;
+		}
+
 		return result;
 	}
 
@@ -85,6 +97,7 @@ public class PlayerAuditAspect {
 		if (e.getMessage().equals("Username or password can`t be empty.")) {
 			System.out.println("[FAIL] Invalid data - username or password can`t be empty.");
 		}
+
 		if (e.getMessage().equals("The length of the username or password cannot be less than 1")) {
 			System.out.println("[FAIL] Invalid data - the length of the username or password cannot be less than 1.");
 		}
