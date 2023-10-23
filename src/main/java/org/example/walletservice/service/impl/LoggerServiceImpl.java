@@ -1,6 +1,5 @@
 package org.example.walletservice.service.impl;
 
-import org.aspectj.lang.annotation.Pointcut;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
@@ -14,7 +13,6 @@ import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,9 +27,6 @@ public class LoggerServiceImpl implements LoggerService {
 					-User: %s-
 					-Status: %s-
 					""";
-	private static final String NO_LOG = "No logs.";
-	private static final String PLAYER_NOT_FOUND_TEMPLATE = "Player %s not found";
-	private static final String NO_LOG_FOR_PLAYER_TEMPLATE = "No logs for player %s";
 
 	public LoggerServiceImpl(LoggerRepository loggerRepository, PlayerRepository playerRepository,
 							 LogMapper logMapper, PlayerMapper playerMapper) {
@@ -64,12 +59,6 @@ public class LoggerServiceImpl implements LoggerService {
 			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
 			return null;
 		}
-
-		if (playersRecords.isEmpty()) {
-			Log log = new Log();
-			log.setLog(NO_LOG);
-			playersRecords.add(log);
-		}
 		return playersRecords.stream().map(logMapper::toDto).toList();
 	}
 
@@ -89,19 +78,13 @@ public class LoggerServiceImpl implements LoggerService {
 			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.FAIL);
 			return null;
 		}
-
-		if (playerLogs.isEmpty()) {
-			Log log = new Log();
-			log.setLog(String.format(NO_LOG_FOR_PLAYER_TEMPLATE, inputUsernameForSearch));
-			playerLogs.add(log);
-		}
 		return playerLogs.stream().map(logMapper::toDto).toList();
 	}
 
 	/**
 	 * Checks for the existence of a player based on the provided optional and input username.
 	 *
-	 * @param inputUsernameForSearch  The username used for the search.
+	 * @param inputUsernameForSearch The username used for the search.
 	 * @return The player if present.
 	 * @throws PlayerNotFoundException If the player is not found.
 	 */
@@ -109,7 +92,7 @@ public class LoggerServiceImpl implements LoggerService {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
 
 		if (optionalPlayer.isEmpty()) {
-			throw new PlayerNotFoundException(String.format(PLAYER_NOT_FOUND_TEMPLATE, inputUsernameForSearch));
+			throw new PlayerNotFoundException(String.format("Player %s not found", inputUsernameForSearch));
 		}
 		return optionalPlayer.get();
 	}

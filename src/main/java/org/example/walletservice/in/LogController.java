@@ -2,6 +2,7 @@ package org.example.walletservice.in;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,6 +53,7 @@ public class LogController extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
 		if (authPlayerDto == null) {
+			System.out.println("Only an authorized administrator can perform this operation");
 			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, "Need to log in as an administrator.");
 		} else if (authPlayerDto.role() == Role.ADMIN) {
 			try {
@@ -98,14 +100,24 @@ public class LogController extends HttpServlet {
 	/**
 	 * Generates a JSON response for the HttpServletResponse with the given status and list of log entries.
 	 *
-	 * @param resp   The HttpServletResponse object.
-	 * @param status The HTTP status code.
-	 * @param logList The list of log entries to be included in the response.
+	 * @param resp    The HttpServletResponse object.
+	 * @param status  The HTTP status code.
+	 * @param content The list of log entries to be included in the response.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	private void generateResponse(HttpServletResponse resp, int status, List<LogResponseDto> logList) throws IOException {
+	private void generateResponse(HttpServletResponse resp, int status, List<LogResponseDto> content) throws IOException {
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);
-		resp.getOutputStream().write(objectMapper.writeValueAsBytes(logList));
+
+		ServletOutputStream outputStream = resp.getOutputStream();
+
+		if (content.isEmpty()) {
+			InfoResponse infoResponse = new InfoResponse(new Date().toString(), status, "No logs.");
+			outputStream.write(objectMapper.writeValueAsBytes(infoResponse));
+
+		} else {
+			outputStream.write(objectMapper.writeValueAsBytes(content));
+		}
+
 	}
 }

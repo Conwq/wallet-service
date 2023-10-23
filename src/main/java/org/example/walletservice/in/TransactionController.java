@@ -2,6 +2,7 @@ package org.example.walletservice.in;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -162,11 +163,14 @@ public class TransactionController extends HttpServlet {
 			throws IOException {
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);
-		if (content.isEmpty()){
+
+		ServletOutputStream outputStream = resp.getOutputStream();
+
+		if (content.isEmpty()) {
 			InfoResponse infoResponse = new InfoResponse(new Date().toString(), status, "Transactions is empty.");
-			resp.getOutputStream().write(objectMapper.writeValueAsBytes(infoResponse));
-			return;
+			outputStream.write(objectMapper.writeValueAsBytes(infoResponse));
+		} else {
+			outputStream.write(objectMapper.writeValueAsBytes(content));
 		}
-		resp.getOutputStream().write(objectMapper.writeValueAsBytes(content));
 	}
 }

@@ -30,16 +30,30 @@ public class PlayerAuditAspect {
 		this.playerMapper = PlayerMapper.instance;
 	}
 
+	/**
+	 * Intercepts and audits the logIn operation in PlayerService.
+	 *
+	 * @param joinPoint The join point for the intercepted method.
+	 * @return The result of the original method call.
+	 * @throws Throwable Any exception thrown by the intercepted method.
+	 */
 	@Around("execution(* org.example.walletservice.service.PlayerService.logIn(..))")
 	public Object logInAspect(ProceedingJoinPoint joinPoint) throws Throwable {
 		Object result;
 		try {
+			long startTime = System.currentTimeMillis();
 			result = joinPoint.proceed();
+			long endTime = System.currentTimeMillis();
+
 			if (result instanceof AuthPlayerDto authPlayerDto) {
 				Player player = playerMapper.toEntity(authPlayerDto);
 				loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
 				System.out.println("[SUCCESSFUL] Sign in was successful.");
 			}
+
+			System.out.printf("Execution of method %s finished. Execution time is %s ms",
+					joinPoint.getSignature(), (endTime - startTime));
+
 		} catch (PlayerNotFoundException e) {
 			handleSignInException(e);
 			throw e;
@@ -47,6 +61,11 @@ public class PlayerAuditAspect {
 		return result;
 	}
 
+	/**
+	 * Handles exceptions related to sign-in operation.
+	 *
+	 * @param e The PlayerNotFoundException thrown by the intercepted method.
+	 */
 	private void handleSignInException(PlayerNotFoundException e) {
 		if (e.getMessage().equals(PLAYER_NOT_FOUND)) {
 			System.out.println("[FAIL] Sign in was unsuccessful - a player with this username not exists.");
@@ -55,6 +74,13 @@ public class PlayerAuditAspect {
 		}
 	}
 
+	/**
+	 * Intercepts and audits the registrationPlayer operation in PlayerService.
+	 *
+	 * @param joinPoint The join point for the intercepted method.
+	 * @return The result of the original method call.
+	 * @throws Throwable Any exception thrown by the intercepted method.
+	 */
 	@Around("execution(* org.example.walletservice.service.PlayerService.registrationPlayer(..))")
 	public Object registrationPlayerAspect(ProceedingJoinPoint joinPoint) throws Throwable {
 		Object result;
@@ -68,6 +94,13 @@ public class PlayerAuditAspect {
 		return result;
 	}
 
+	/**
+	 * Intercepts and audits the getPlayerBalance operation in PlayerService.
+	 *
+	 * @param joinPoint The join point for the intercepted method.
+	 * @return The result of the original method call.
+	 * @throws Throwable Any exception thrown by the intercepted method.
+	 */
 	@Around("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
 	public Object getPlayerBalanceAspect(ProceedingJoinPoint joinPoint) throws Throwable {
 		Player player = getPlayer(joinPoint);
@@ -86,12 +119,20 @@ public class PlayerAuditAspect {
 		return result;
 	}
 
+	/**
+	 * Defines a pointcut for registration and login operations in the PlayerService.
+	 */
 	@Pointcut("execution(* org.example.walletservice.service.PlayerService.logIn(..)) || " +
 			"execution(* org.example.walletservice.service.PlayerService.registrationPlayer(..))"
 	)
 	public void pointcutForRegistrationAndLogin() {
 	}
 
+	/**
+	 * Handles exceptions related to invalid input data after registration and login operations.
+	 *
+	 * @param e The InvalidInputDataException thrown by the intercepted methods.
+	 */
 	@AfterThrowing(pointcut = "pointcutForRegistrationAndLogin()", throwing = "e")
 	public void afterInputHandler(InvalidInputDataException e) {
 		if (e.getMessage().equals("Username or password can`t be empty.")) {
@@ -103,6 +144,13 @@ public class PlayerAuditAspect {
 		}
 	}
 
+	/**
+	 * Intercepts and audits the getAllLogs operation in LoggerService.
+	 *
+	 * @param joinPoint The join point for the intercepted method.
+	 * @return The result of the original method call.
+	 * @throws Throwable Any exception thrown by the intercepted method.
+	 */
 	@Around("execution(* org.example.walletservice.service.LoggerService.getAllLogs(..))")
 	public Object getAllLogsAspect(ProceedingJoinPoint joinPoint) throws Throwable {
 		Player player = getPlayer(joinPoint);
@@ -114,6 +162,13 @@ public class PlayerAuditAspect {
 		return result;
 	}
 
+	/**
+	 * Intercepts and audits the getLogsByUsername operation in LoggerService.
+	 *
+	 * @param joinPoint The join point for the intercepted method.
+	 * @return The result of the original method call.
+	 * @throws Throwable Any exception thrown by the intercepted method.
+	 */
 	@Around("execution(* org.example.walletservice.service.LoggerService.getLogsByUsername(..))")
 	public Object getLogsByUsername(ProceedingJoinPoint joinPoint) throws Throwable {
 		Object[] args = joinPoint.getArgs();
@@ -133,6 +188,12 @@ public class PlayerAuditAspect {
 		return result;
 	}
 
+	/**
+	 * Retrieves the player entity from the method arguments.
+	 *
+	 * @param joinPoint The join point for the intercepted method.
+	 * @return The Player entity.
+	 */
 	private Player getPlayer(ProceedingJoinPoint joinPoint) {
 		Player player = null;
 		Object[] methodArgs = joinPoint.getArgs();
