@@ -82,7 +82,9 @@ public final class PlayerController extends HttpServlet {
 		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
 		if (authPlayerDto == null) {
 			System.out.println("[FAIL] Performing an operation by an unregistered user.");
-			resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST,
+					"Performing an operation by an unregistered user.");
+			return;
 		}
 		BigDecimal playerBalance = playerService.getPlayerBalance(authPlayerDto);
 		generateResponse(resp, HttpServletResponse.SC_OK,

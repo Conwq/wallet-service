@@ -45,7 +45,6 @@ public final class PlayerServiceImpl implements PlayerService {
 		String username = playerRequestDto.username();
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
 		if (optionalPlayer.isPresent()) {
-			System.out.println("[FAIL] Registration was unsuccessful - a player with this username exists.");
 			throw new PlayerAlreadyExistException(PLAYER_EXIST_EXCEPTION);
 		}
 		Player player = playerMapper.toEntityFromRequest(playerRequestDto);
@@ -56,7 +55,6 @@ public final class PlayerServiceImpl implements PlayerService {
 			return;
 		}
 		player.setPlayerID(playerID);
-		System.out.println("[SUCCESSFUL] Registration was successful.");
 		loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.SUCCESSFUL);
 	}
 
@@ -68,17 +66,12 @@ public final class PlayerServiceImpl implements PlayerService {
 		inputValidation(playerRequestDto);
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(playerRequestDto.username());
 		if (optionalPlayer.isEmpty()) {
-			System.out.println("[FAIL] Sign in was unsuccessful - a player with this username not exists.");
 			throw new PlayerNotFoundException(PLAYER_NOT_FOUND);
 		}
 		Player player = optionalPlayer.get();
 		if (!player.getPassword().equals(playerRequestDto.password())) {
-			System.out.println("[FAIL] Sign in was unsuccessful - invalid password.");
-			loggerService.recordActionInLog(Operation.LOG_IN, player, Status.FAIL);
 			throw new PlayerNotFoundException(INCORRECT_PASSWORD);
 		}
-		System.out.println("[SUCCESSFUL] Sign in was successful.");
-		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
 		return playerMapper.toAuthPlayerDto(player);
 	}
 
@@ -94,8 +87,6 @@ public final class PlayerServiceImpl implements PlayerService {
 			loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.FAIL);
 			return null;
 		}
-		System.out.println("[SUCCESSFUL] Receiving the balance was successful.");
-		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
 		return balance;
 	}
 
@@ -104,11 +95,9 @@ public final class PlayerServiceImpl implements PlayerService {
 		String password = playerRequestDto.password();
 
 		if (username == null || password == null) {
-			System.out.println("[FAIL] Invalid data - username or password can`t be empty.");
 			throw new InvalidInputDataException("Username or password can`t be empty.");
 		}
 		if (username.length() < 1 || password.length() < 1) {
-			System.out.println("[FAIL] Invalid data - the length of the username or password cannot be less than 1.");
 			throw new InvalidInputDataException("The length of the username or password cannot be less than 1");
 		}
 	}

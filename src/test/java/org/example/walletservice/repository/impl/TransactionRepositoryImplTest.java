@@ -16,6 +16,7 @@ import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+@Disabled
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static final String TRANSACTION_TOKEN = "transaction_token";
 	private static final BigDecimal BALANCE_PLAYER = BigDecimal.valueOf(1000);

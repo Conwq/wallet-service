@@ -23,9 +23,16 @@
         <maven-plugin.version>3.1.0</maven-plugin.version>
         <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
         <jackson.version>2.15.3</jackson.version>
+        <aspectj.version>1.9.20.1</aspectj.version>
+        <plugin.aspectj.version>1.14.0</plugin.aspectj.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -131,6 +138,28 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <version>${plugin.aspectj.version}</version>
+                <configuration>
+                    <complianceLevel>16</complianceLevel>
+                    <source>16</source>
+                    <target>16</target>
+                    <showWeaveInfo>true</showWeaveInfo>
+                    <verbose>true</verbose>
+                    <Xlint>ignore</Xlint>
+                    <encoding>UTF-8 </encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

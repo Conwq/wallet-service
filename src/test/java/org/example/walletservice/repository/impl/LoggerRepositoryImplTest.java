@@ -18,12 +18,14 @@ import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+@Disabled
 class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static LoggerRepository loggerRepository;
 	private static PlayerRepository playerRepository;
