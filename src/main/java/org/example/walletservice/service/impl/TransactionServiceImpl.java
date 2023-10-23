@@ -43,15 +43,13 @@ public final class TransactionServiceImpl implements TransactionService {
 	@Override
 	public void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
 		Player player = playerMapper.toEntity(authPlayerDto);
-		validatingInputData(player, transactionRequestDto, Operation.CREDIT);
+		validatingInputData(transactionRequestDto);
 
 		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 		BigDecimal newPlayerBalance = playerBalance.add(transactionRequestDto.inputPlayerAmount());
 		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.CREDIT,
 				newPlayerBalance);
 		transactionRepository.creditOrDebit(transaction, newPlayerBalance);
-		System.out.println("[SUCCESSFUL] Credit successful.");
-		loggerService.recordActionInLog(Operation.CREDIT, player, Status.SUCCESSFUL);
 	}
 
 	/**
@@ -60,21 +58,19 @@ public final class TransactionServiceImpl implements TransactionService {
 	@Override
 	public void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
 		Player player = playerMapper.toEntity(authPlayerDto);
-		validatingInputData(player, transactionRequestDto, Operation.DEBIT);
+		validatingInputData(transactionRequestDto);
 
 		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 		BigDecimal newPlayerBalance = playerBalance.subtract(transactionRequestDto.inputPlayerAmount());
+
 		if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
-			System.out.println("[FAIL] Withdrawal error - insufficient funds in the account.");
-			loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
 			throw new InvalidInputDataException(
 					"The number of funds to be withdrawn exceeds the number of funds on the account.");
 		}
+
 		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.DEBIT,
 				newPlayerBalance);
 		transactionRepository.creditOrDebit(transaction, newPlayerBalance);
-		System.out.println("[SUCCESSFUL] Debit successful.");
-		loggerService.recordActionInLog(Operation.DEBIT, player, Status.SUCCESSFUL);
 	}
 
 	/**
@@ -89,27 +85,14 @@ public final class TransactionServiceImpl implements TransactionService {
 			System.out.println("[FAIL] Database error.");
 			return null;
 		}
-
-		if (playerTransactionalHistory.isEmpty()) {
-			System.out.println("[SUCCESSFUL] Transaction history has been viewed");
-			loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
-			return new ArrayList<>();
-		}
-
-		System.out.println("[SUCCESSFUL] Transaction history has been viewed");
-		loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
 		return playerTransactionalHistory.stream().map(transactionMapper::toDto).toList();
 	}
 
-	private void validatingInputData(Player player, TransactionRequestDto transactionRequestDto, Operation operation) {
+	private void validatingInputData(TransactionRequestDto transactionRequestDto) {
 		if (transactionRequestDto.inputPlayerAmount().compareTo(BigDecimal.ZERO) < 0) {
-			System.out.println("[FAIL] The amount to be entered cannot be less than 0.");
-			loggerService.recordActionInLog(operation, player, Status.FAIL);
 			throw new InvalidInputDataException("The amount to be entered cannot be less than 0.");
 		}
 		if (transactionRepository.checkTokenExistence(transactionRequestDto.transactionToken())) {
-			System.out.println("[FAIL] A transaction with this number already exists.");
-			loggerService.recordActionInLog(operation, player, Status.FAIL);
 			throw new TransactionNumberAlreadyExist("A transaction with this number already exists.");
 		}
 	}

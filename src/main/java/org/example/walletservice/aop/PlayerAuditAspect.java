@@ -67,7 +67,7 @@ public class PlayerAuditAspect {
 
 	@Around("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
 	public Object getPlayerBalanceAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		Player player = getInputArgs(joinPoint);
+		Player player = getPlayer(joinPoint);
 		Object result = joinPoint.proceed();
 		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
 		System.out.println("[SUCCESSFUL] Receiving the balance was successful.");
@@ -92,7 +92,7 @@ public class PlayerAuditAspect {
 
 	@Around("execution(* org.example.walletservice.service.LoggerService.getAllLogs(..))")
 	public Object getAllLogsAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		Player player = getInputArgs(joinPoint);
+		Player player = getPlayer(joinPoint);
 
 		Object result = joinPoint.proceed();
 
@@ -105,7 +105,7 @@ public class PlayerAuditAspect {
 	public Object getLogsByUsername(ProceedingJoinPoint joinPoint) throws Throwable {
 		Object[] args = joinPoint.getArgs();
 		String inputUsernameForSearch = (String) args[1];
-		Player player = getInputArgs(joinPoint);
+		Player player = getPlayer(joinPoint);
 		Object result;
 
 		try {
@@ -120,7 +120,7 @@ public class PlayerAuditAspect {
 		return result;
 	}
 
-	private Player getInputArgs(ProceedingJoinPoint joinPoint) {
+	private Player getPlayer(ProceedingJoinPoint joinPoint) {
 		Player player = null;
 		Object[] methodArgs = joinPoint.getArgs();
 		for (Object arg : methodArgs) {
