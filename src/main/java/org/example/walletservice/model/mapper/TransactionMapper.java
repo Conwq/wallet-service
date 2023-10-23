@@ -38,7 +38,7 @@ public interface TransactionMapper {
 
 		Transaction transaction = new Transaction();
 		transaction.setToken(dto.transactionToken());
-		transaction.setOperation(Operation.CREDIT.name());
+		transaction.setOperation(operation.name());
 		transaction.setAmount(dto.inputPlayerAmount());
 		transaction.setPlayerID(player.getPlayerID());
 		transaction.setRecord(String.format(TRANSACTION_RECORD_TEMPLATE, operation.name(), dto.transactionToken(),

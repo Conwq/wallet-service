@@ -17,13 +17,13 @@ import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 
 @Aspect
-public class PlayerServiceAuditAspect {
+public class PlayerAuditAspect {
 	private final LoggerService loggerService;
 	private final PlayerMapper playerMapper;
 	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.";
 	private static final String INCORRECT_PASSWORD = "Incorrect password.";
 
-	public PlayerServiceAuditAspect() {
+	public PlayerAuditAspect() {
 		ApplicationContextHolder context = ApplicationContextHolder.getInstance();
 		loggerService = context.getLoggerService();
 		this.playerMapper = PlayerMapper.instance;
@@ -74,19 +74,9 @@ public class PlayerServiceAuditAspect {
 		return result;
 	}
 
-	private Player getInputArgs(ProceedingJoinPoint joinPoint) {
-		Player player = null;
-		Object[] methodArgs = joinPoint.getArgs();
-		for (Object arg : methodArgs) {
-			if (arg instanceof AuthPlayerDto authPlayer) {
-				player = playerMapper.toEntity(authPlayer);
-			}
-		}
-		return player;
-	}
-
 	@Pointcut("execution(* org.example.walletservice.service.PlayerService.logIn(..)) || " +
-			"execution(* org.example.walletservice.service.PlayerService.registrationPlayer(..))")
+			"execution(* org.example.walletservice.service.PlayerService.registrationPlayer(..))"
+	)
 	public void pointcutForRegistrationAndLogin() {
 	}
 
@@ -98,5 +88,46 @@ public class PlayerServiceAuditAspect {
 		if (e.getMessage().equals("The length of the username or password cannot be less than 1")) {
 			System.out.println("[FAIL] Invalid data - the length of the username or password cannot be less than 1.");
 		}
+	}
+
+	@Around("execution(* org.example.walletservice.service.LoggerService.getAllLogs(..))")
+	public Object getAllLogsAspect(ProceedingJoinPoint joinPoint) throws Throwable {
+		Player player = getInputArgs(joinPoint);
+
+		Object result = joinPoint.proceed();
+
+		loggerService.recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
+		System.out.println("[SUCCESSFUL] All logs viewed.");
+		return result;
+	}
+
+	@Around("execution(* org.example.walletservice.service.LoggerService.getLogsByUsername(..))")
+	public Object getLogsByUsername(ProceedingJoinPoint joinPoint) throws Throwable {
+		Object[] args = joinPoint.getArgs();
+		String inputUsernameForSearch = (String) args[1];
+		Player player = getInputArgs(joinPoint);
+		Object result;
+
+		try {
+			result = joinPoint.proceed();
+			loggerService.recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
+			System.out.printf("[SUCCESSFUL] %s player logs viewed.\n", inputUsernameForSearch);
+		} catch (PlayerNotFoundException e) {
+			System.out.println("[FAIL] Current player not found.");
+			loggerService.recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.FAIL);
+			throw e;
+		}
+		return result;
+	}
+
+	private Player getInputArgs(ProceedingJoinPoint joinPoint) {
+		Player player = null;
+		Object[] methodArgs = joinPoint.getArgs();
+		for (Object arg : methodArgs) {
+			if (arg instanceof AuthPlayerDto authPlayer) {
+				player = playerMapper.toEntity(authPlayer);
+			}
+		}
+		return player;
 	}
 }

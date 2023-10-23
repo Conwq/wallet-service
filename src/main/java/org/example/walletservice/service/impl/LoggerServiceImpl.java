@@ -1,5 +1,6 @@
 package org.example.walletservice.service.impl;
 
+import org.aspectj.lang.annotation.Pointcut;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
@@ -65,13 +66,10 @@ public class LoggerServiceImpl implements LoggerService {
 		}
 
 		if (playersRecords.isEmpty()) {
-			System.out.println("[SUCCESSFUL] Getting logs.");
-			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
-			return new ArrayList<>(List.of(new LogResponseDto(NO_LOG)));
+			Log log = new Log();
+			log.setLog(NO_LOG);
+			playersRecords.add(log);
 		}
-
-		System.out.println("[SUCCESSFUL] All logs viewed.");
-		recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
 		return playersRecords.stream().map(logMapper::toDto).toList();
 	}
 
@@ -82,10 +80,8 @@ public class LoggerServiceImpl implements LoggerService {
 	public List<LogResponseDto> getLogsByUsername(AuthPlayerDto authPlayerDto, String inputUsernameForSearch)
 			throws PlayerNotFoundException {
 		Player player = playerMapper.toEntity(authPlayerDto);
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
-		checkingForExistenceOfUser(optionalPlayer, inputUsernameForSearch);
+		Player findPlayer = checkingForExistenceOfUser(inputUsernameForSearch);
 
-		Player findPlayer = optionalPlayer.get();
 		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
 
 		if (playerLogs == null) {
@@ -95,23 +91,26 @@ public class LoggerServiceImpl implements LoggerService {
 		}
 
 		if (playerLogs.isEmpty()) {
-			System.out.printf("[SUCCESSFUL] Player logs viewed %s.\n", inputUsernameForSearch);
-			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
-			return new ArrayList<>(List.of(new LogResponseDto(String.format(NO_LOG_FOR_PLAYER_TEMPLATE,
-					inputUsernameForSearch))));
+			Log log = new Log();
+			log.setLog(String.format(NO_LOG_FOR_PLAYER_TEMPLATE, inputUsernameForSearch));
+			playerLogs.add(log);
 		}
-
-		System.out.printf("[SUCCESSFUL] Player logs viewed %s.\n", inputUsernameForSearch);
-		recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
 		return playerLogs.stream().map(logMapper::toDto).toList();
 	}
 
-	private void checkingForExistenceOfUser(Optional<Player> optionalPlayer, String inputUsernameForSearch)
-			throws PlayerNotFoundException {
+	/**
+	 * Checks for the existence of a player based on the provided optional and input username.
+	 *
+	 * @param inputUsernameForSearch  The username used for the search.
+	 * @return The player if present.
+	 * @throws PlayerNotFoundException If the player is not found.
+	 */
+	private Player checkingForExistenceOfUser(String inputUsernameForSearch) throws PlayerNotFoundException {
+		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
+
 		if (optionalPlayer.isEmpty()) {
-			String playerNotFound = String.format(PLAYER_NOT_FOUND_TEMPLATE, inputUsernameForSearch);
-			System.out.println("[FAIL] Current player not found.");
-			throw new PlayerNotFoundException(playerNotFound);
+			throw new PlayerNotFoundException(String.format(PLAYER_NOT_FOUND_TEMPLATE, inputUsernameForSearch));
 		}
+		return optionalPlayer.get();
 	}
 }
