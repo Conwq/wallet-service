@@ -27,7 +27,7 @@ import java.util.List;
  * Controller class to handle log-related operations.
  */
 @WebServlet("/log")
-public class LogController extends HttpServlet {
+public class LoggerServlet extends HttpServlet {
 	private static final String COMMAND = "command";
 	private static final String USERNAME = "username";
 	private static final String CONTENT_TYPE = "application/json";
@@ -35,11 +35,19 @@ public class LogController extends HttpServlet {
 	private final ObjectMapper objectMapper;
 	private final CommandProvider commandProvider;
 
-	public LogController() {
+	public LoggerServlet() {
 		ApplicationContextHolder context = ApplicationContextHolder.getInstance();
 		this.loggerService = context.getLoggerService();
 		this.objectMapper = context.getObjectMapper();
 		this.commandProvider = context.getCommandProvider();
+	}
+
+	public LoggerServlet(LoggerService loggerService,
+						 ObjectMapper objectMapper,
+						 CommandProvider commandProvider) {
+		this.loggerService = loggerService;
+		this.objectMapper = objectMapper;
+		this.commandProvider = commandProvider;
 	}
 
 	/**
@@ -51,7 +59,8 @@ public class LogController extends HttpServlet {
 	 * @throws IOException      If an I/O error occurs.
 	 */
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest req,
+						 HttpServletResponse resp) throws ServletException, IOException {
 		try {
 			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute("authPlayer");
 			checkForData(authPlayerDto);
@@ -71,7 +80,9 @@ public class LogController extends HttpServlet {
 	 * @param message The message to be included in the response.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {
+	private void generateResponse(HttpServletResponse resp,
+								  int status,
+								  String message) throws IOException {
 		InfoResponse infoResponse = new InfoResponse(new Date().toString(), status, message);
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);
@@ -87,11 +98,12 @@ public class LogController extends HttpServlet {
 	 * @throws IOException      If an I/O error occurs.
 	 * @throws ServletException If a servlet-specific error occurs.
 	 */
-	private void handleCommand(HttpServletRequest req, HttpServletResponse resp,
+	private void handleCommand(HttpServletRequest req,
+							   HttpServletResponse resp,
 							   AuthPlayerDto authPlayerDto) throws IOException, ServletException {
 		Command command = commandProvider.getCommand(req.getParameter(COMMAND));
 		switch (command) {
-			case SHOW_ALL_LOG -> handleShowAllLog(req, resp, authPlayerDto);
+			case SHOW_ALL_LOG -> handleShowAllLog(resp, authPlayerDto);
 			case SHOW_PLAYER_LOG -> handleShowPlayerLog(req, resp, authPlayerDto);
 			default -> generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid command");
 		}
@@ -100,12 +112,11 @@ public class LogController extends HttpServlet {
 	/**
 	 * Handles the command to show all log entries and generates the appropriate response.
 	 *
-	 * @param req           The HttpServletRequest object.
 	 * @param resp          The HttpServletResponse object.
 	 * @param authPlayerDto The authenticated player information.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	private void handleShowAllLog(HttpServletRequest req, HttpServletResponse resp,
+	private void handleShowAllLog(HttpServletResponse resp,
 								  AuthPlayerDto authPlayerDto) throws IOException {
 		List<LogResponseDto> logList = loggerService.getAllLogs(authPlayerDto);
 		generateResponse(resp, HttpServletResponse.SC_OK, logList);
@@ -119,8 +130,9 @@ public class LogController extends HttpServlet {
 	 * @param authPlayerDto The authenticated player information.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	private void handleShowPlayerLog(HttpServletRequest req, HttpServletResponse resp, AuthPlayerDto authPlayerDto)
-			throws IOException {
+	private void handleShowPlayerLog(HttpServletRequest req,
+									 HttpServletResponse resp,
+									 AuthPlayerDto authPlayerDto) throws IOException {
 		try {
 			String inputUsernameForSearch = req.getParameter(USERNAME);
 			List<LogResponseDto> logList = loggerService.getLogsByUsername(authPlayerDto, inputUsernameForSearch);
@@ -139,8 +151,9 @@ public class LogController extends HttpServlet {
 	 * @param content The list of log entries to be included in the response.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	private void generateResponse(HttpServletResponse resp, int status, List<LogResponseDto> content) throws
-			IOException {
+	private void generateResponse(HttpServletResponse resp,
+								  int status,
+								  List<LogResponseDto> content) throws IOException {
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);
 

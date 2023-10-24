@@ -30,7 +30,7 @@ import java.util.Map;
  * Controller class to perform player operations.
  */
 @WebServlet("/players")
-public final class PlayerController extends HttpServlet {
+public final class PlayerServlet extends HttpServlet {
 	private static final String CONTENT_TYPE = "application/json";
 	private static final String COMMAND = "command";
 	private final PlayerService playerService;
@@ -38,7 +38,7 @@ public final class PlayerController extends HttpServlet {
 	private final CommandProvider commandProvider;
 	private final JwtService jwtService = new JwtService();
 
-	public PlayerController() {
+	public PlayerServlet() {
 		ApplicationContextHolder context = ApplicationContextHolder.getInstance();
 		this.objectMapper = context.getObjectMapper();
 		this.playerService = context.getPlayerService();
@@ -64,9 +64,8 @@ public final class PlayerController extends HttpServlet {
 				jsonObject.append(reader.readLine());
 			}
 			PlayerRequestDto playerRequestDto = objectMapper.readValue(jsonObject.toString(), PlayerRequestDto.class);
-			processRequest(req, resp, playerRequestDto, command);
+			processRequest(resp, playerRequestDto, command);
 		} catch (NullPointerException e) {
-			e.printStackTrace();
 			generateResponse(resp, HttpServletResponse.SC_NOT_FOUND, "Content doesn't exist.");
 		}
 	}
@@ -74,18 +73,16 @@ public final class PlayerController extends HttpServlet {
 	/**
 	 * Process the player request based on the command.
 	 *
-	 * @param req              The HttpServletRequest.
 	 * @param resp             The HttpServletResponse.
 	 * @param command          The command to be executed.
 	 * @param playerRequestDto The PlayerRequestDto for the operation.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	private void processRequest(HttpServletRequest req,
-								HttpServletResponse resp,
+	private void processRequest(HttpServletResponse resp,
 								PlayerRequestDto playerRequestDto,
 								Command command) throws IOException, ServletException {
 		switch (command) {
-			case SIGN_IN -> signInExecution(req, resp, playerRequestDto);
+			case SIGN_IN -> signInExecution(resp, playerRequestDto);
 			case REGISTRATION -> registrationExecution(resp, playerRequestDto);
 			default -> generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid command");
 		}
@@ -116,13 +113,11 @@ public final class PlayerController extends HttpServlet {
 	/**
 	 * Executes the sign-in operation.
 	 *
-	 * @param req              The HttpServletRequest.
 	 * @param resp             The HttpServletResponse.
 	 * @param playerRequestDto The PlayerRequestDto for sign-in.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	private void signInExecution(HttpServletRequest req,
-								 HttpServletResponse resp,
+	private void signInExecution(HttpServletResponse resp,
 								 PlayerRequestDto playerRequestDto) throws IOException, ServletException {
 		try {
 			AuthPlayerDto authPlayerDto = playerService.logIn(playerRequestDto);
@@ -170,9 +165,7 @@ public final class PlayerController extends HttpServlet {
 	 * @param message The message to be included in the response.
 	 * @throws IOException If an I/O error occurs.
 	 */
-	private void generateResponse(HttpServletResponse resp,
-								  int status,
-								  String message) throws IOException {
+	private void generateResponse(HttpServletResponse resp, int status, String message) throws IOException {
 		InfoResponse infoResponse = new InfoResponse(new Date().toString(), status, message);
 		resp.setStatus(status);
 		resp.setContentType(CONTENT_TYPE);

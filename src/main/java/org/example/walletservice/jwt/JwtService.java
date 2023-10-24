@@ -16,15 +16,7 @@ import java.util.function.Function;
  * A service class for handling JSON Web Token (JWT) operations, including token generation and extraction of claims.
  */
 public class JwtService {
-
-	// The secret key used for JWT signing and verification
 	private static final String SECRET_KEY = "f9c9f2c74e849e48aac676442f8eaa67fbc13f62999f8d30ae9417518bd38456";
-
-	/**
-	 * Default constructor for the JwtService class.
-	 */
-	public JwtService() {
-	}
 
 	/**
 	 * Extracts the username claim from the provided JWT.

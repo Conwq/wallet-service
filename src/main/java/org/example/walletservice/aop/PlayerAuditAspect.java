@@ -17,6 +17,11 @@ import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 
+/**
+ * Aspect for auditing player-related operations in the wallet service.
+ * It intercepts methods in the PlayerService and LoggerService to log relevant information
+ * and handle exceptions in a consistent manner.
+ */
 @Aspect
 public class PlayerAuditAspect {
 	private final LoggerService loggerService;

@@ -13,6 +13,11 @@ import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 
+/**
+ * Aspect for auditing transactions in the wallet service.
+ * It intercepts methods in the TransactionService to log relevant information
+ * and handle exceptions in a consistent manner.
+ */
 @Aspect
 public class TransactionAuditAspect {
 	private final LoggerService loggerService;

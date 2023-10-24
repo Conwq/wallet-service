@@ -28,14 +28,14 @@ import java.util.List;
  * Controller class to handle transaction-related operations.
  */
 @WebServlet("/transaction")
-public class TransactionController extends HttpServlet {
+public class TransactionServlet extends HttpServlet {
 	private static final String COMMAND = "command";
 	private static final String CONTENT_TYPE = "application/json";
 	private final TransactionService transactionService;
 	private final ObjectMapper objectMapper;
 	private final CommandProvider commandProvider;
 
-	public TransactionController() {
+	public TransactionServlet() {
 		ApplicationContextHolder context = ApplicationContextHolder.getInstance();
 		this.transactionService = context.getTransactionService();
 		this.objectMapper = context.getObjectMapper();

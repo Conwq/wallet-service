@@ -44,10 +44,9 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 				POSTGRES.getUsername(),
 				POSTGRES.getPassword());
 		try (Connection connection = connectionProvider.takeConnection()) {
-			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
-					new JdbcConnection(connection));
-			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
-					database);
+			Database database = DatabaseFactory.getInstance()
+					.findCorrectDatabaseImplementation(new JdbcConnection(connection));
+			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(), database);
 			liquibase.update();
 			playerRepository = new PlayerRepositoryImpl(connectionProvider);
 			transactionRepository = new TransactionRepositoryImpl(connectionProvider);
