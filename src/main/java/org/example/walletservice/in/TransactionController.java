@@ -16,6 +16,7 @@ import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.exception.InvalidInputDataException;
+import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 
 import java.io.BufferedReader;
@@ -28,7 +29,6 @@ import java.util.List;
  */
 @WebServlet("/transaction")
 public class TransactionController extends HttpServlet {
-	private static final String AUTH_PLAYER_PARAM = "authPlayer";
 	private static final String COMMAND = "command";
 	private static final String CONTENT_TYPE = "application/json";
 	private final TransactionService transactionService;
@@ -52,14 +52,15 @@ public class TransactionController extends HttpServlet {
 	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
-		if (authPlayerDto == null) {
-			System.out.println("[FAIL] Transaction receipt error.");
-			String noAccessToContent = "You need to log in. This resource is not available to you.";
-			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, noAccessToContent);
+		try {
+			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute("authPlayer");
+			List<TransactionResponseDto> playerTransactionHistory = transactionService
+					.getPlayerTransactionalHistory(authPlayerDto);
+			generateResponse(resp, HttpServletResponse.SC_OK, playerTransactionHistory);
+
+		} catch (PlayerNotLoggedInException e) {
+			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, e.getMessage());
 		}
-		List<TransactionResponseDto> playerTransactionHistory = transactionService.getPlayerTransactionalHistory(authPlayerDto);
-		generateResponse(resp, HttpServletResponse.SC_OK, playerTransactionHistory);
 	}
 
 	/**
@@ -72,24 +73,26 @@ public class TransactionController extends HttpServlet {
 	 */
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getSession().getAttribute(AUTH_PLAYER_PARAM);
-		if (authPlayerDto == null) {
-			System.out.println("[FAIL] Performing an operation by an unregistered user.");
-			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, "Log in to perform this operation");
-			return;
-		}
 		try (BufferedReader reader = req.getReader()) {
+			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute("authPlayer");
 			Command command = commandProvider.getCommand(req.getParameter(COMMAND));
 			StringBuilder jsonObject = new StringBuilder();
+
 			while (reader.ready()) {
 				jsonObject.append(reader.readLine());
 			}
+
 			TransactionRequestDto transactionRequest = objectMapper.readValue(
 					jsonObject.toString(), TransactionRequestDto.class);
+
 			switch (command) {
 				case CREDIT -> creditExecution(resp, authPlayerDto, transactionRequest);
 				case DEBIT -> debitExecution(resp, authPlayerDto, transactionRequest);
 			}
+
+		} catch (PlayerNotLoggedInException e) {
+			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, e.getMessage());
+
 		} catch (NullPointerException e) {
 			System.out.println("[FAIL] Accessing a non-existent resource.");
 			generateResponse(resp, HttpServletResponse.SC_NOT_FOUND, "Content doesn't exist.");
@@ -109,8 +112,10 @@ public class TransactionController extends HttpServlet {
 		try {
 			transactionService.credit(authPlayerDto, transactionRequest);
 			generateResponse(resp, HttpServletResponse.SC_OK, "Credit successfully.");
+
 		} catch (InvalidInputDataException e) {
 			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+
 		} catch (TransactionNumberAlreadyExist e) {
 			generateResponse(resp, HttpServletResponse.SC_CONFLICT, e.getMessage());
 		}

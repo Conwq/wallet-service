@@ -8,7 +8,7 @@ public class PlayerAlreadyExistException extends RuntimeException {
 	/**
 	 * Constructs a PlayerAlreadyExistException with the specified detail message.
 	 *
-	 * @param message the detail message.
+	 * @param message message.
 	 */
 	public PlayerAlreadyExistException(String message) {
 		super(message);

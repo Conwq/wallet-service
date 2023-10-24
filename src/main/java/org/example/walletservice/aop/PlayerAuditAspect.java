@@ -15,7 +15,7 @@ import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
-import org.example.walletservice.service.impl.PlayerNotLoggedInException;
+import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 
 @Aspect
 public class PlayerAuditAspect {
@@ -27,7 +27,7 @@ public class PlayerAuditAspect {
 	public PlayerAuditAspect() {
 		ApplicationContextHolder context = ApplicationContextHolder.getInstance();
 		loggerService = context.getLoggerService();
-		this.playerMapper = PlayerMapper.instance;
+		this.playerMapper = context.getPlayerMapper();
 	}
 
 	/**
@@ -51,7 +51,7 @@ public class PlayerAuditAspect {
 				System.out.println("[SUCCESSFUL] Sign in was successful.");
 			}
 
-			System.out.printf("Execution of method %s finished. Execution time is %s ms",
+			System.out.printf("Execution of method %s finished. Execution time is %s ms\n",
 					joinPoint.getSignature(), (endTime - startTime));
 
 		} catch (PlayerNotFoundException e) {

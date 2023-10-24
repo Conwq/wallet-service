@@ -4,10 +4,11 @@ import java.util.ResourceBundle;
 
 public class DBResourceManager {
 	private final ResourceBundle resourceBundle;
-	private static final String PROPERTIES_FILE = "liquibase";
+	private final String propertiesFile;
 
-	public DBResourceManager() {
-		this.resourceBundle = ResourceBundle.getBundle(PROPERTIES_FILE);
+	public DBResourceManager(String propertiesFileName) {
+		this.propertiesFile = propertiesFileName;
+		this.resourceBundle = ResourceBundle.getBundle(propertiesFile);
 	}
 
 	public String getValue(String key) {

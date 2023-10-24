@@ -2,8 +2,10 @@ package org.example.walletservice.service;
 
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.model.entity.Player;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 /**
  * The PlayerService interface provides methods for managing players in the system.
@@ -24,6 +26,17 @@ public interface PlayerService {
 	 * @return An instance of {@code AuthPlayerDto} representing the player who successfully logged in.
 	 */
 	AuthPlayerDto logIn(PlayerRequestDto playerRequestDto);
+
+	/**
+	 * Retrieves an {@link Optional} containing a {@link Player} based on the provided username.
+	 *
+	 * @param username The username of the player to be retrieved.
+	 * @return An {@link Optional} containing the found {@link Player} if present, otherwise an empty {@link Optional}.
+	 * @apiNote This method is typically used for retrieving a player by their unique username.
+	 * @see Player
+	 * @see Optional
+	 */
+	Optional<Player> findByUsername(String username);
 
 	/**
 	 * Gets the balance of a player.

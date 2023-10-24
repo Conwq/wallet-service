@@ -7,6 +7,7 @@ import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.example.walletservice.in.command.CommandProvider;
+import org.example.walletservice.jwt.JwtService;
 import org.example.walletservice.model.mapper.LogMapper;
 import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.model.mapper.TransactionMapper;
@@ -32,7 +33,7 @@ import java.sql.Statement;
  * Singleton class responsible for managing the application context.
  */
 public class ApplicationContextHolder {
-	private static ApplicationContextHolder instance = new ApplicationContextHolder();
+	private static final ApplicationContextHolder instance = new ApplicationContextHolder();
 
 	static {
 		performingDatabaseMigration();
@@ -42,39 +43,41 @@ public class ApplicationContextHolder {
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
 
-	final PlayerMapper playerMapper = PlayerMapper.instance;
-	final TransactionMapper transactionMapper = TransactionMapper.instance;
-	final LogMapper logMapper = LogMapper.instance;
-	final CommandProvider commandProvider = new CommandProvider();
-	final ObjectMapper objectMapper = new ObjectMapper();
-	final DBResourceManager resourceManager = new DBResourceManager();
-	final ConnectionProvider connectionProvider = new ConnectionProvider(
-			resourceManager.getValue(URL),
-			resourceManager.getValue(USERNAME),
-			resourceManager.getValue(PASSWORD));
+	private final PlayerMapper playerMapper = PlayerMapper.instance;
+	private final TransactionMapper transactionMapper = TransactionMapper.instance;
+	private final LogMapper logMapper = LogMapper.instance;
+	private final CommandProvider commandProvider = new CommandProvider();
+	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final DBResourceManager liquibaseResourceManager = new DBResourceManager("liquibase");
+	private final JwtService jwtService = new JwtService();
+	private final ConnectionProvider connectionProvider = new ConnectionProvider(
+			liquibaseResourceManager.getValue(URL),
+			liquibaseResourceManager.getValue(USERNAME),
+			liquibaseResourceManager.getValue(PASSWORD));
 
-	final PlayerRepository playerRepository = new PlayerRepositoryImpl(connectionProvider);
-	final TransactionRepository transactionRepository = new TransactionRepositoryImpl(connectionProvider);
-	final LoggerRepository loggerRepository = new LoggerRepositoryImpl(connectionProvider);
+	private final PlayerRepository playerRepository = new PlayerRepositoryImpl(connectionProvider);
+	private final TransactionRepository transactionRepository = new TransactionRepositoryImpl(connectionProvider);
+	private final LoggerRepository loggerRepository = new LoggerRepositoryImpl(connectionProvider);
 
-	final LoggerService loggerService = new LoggerServiceImpl(loggerRepository, playerRepository,
+	private final LoggerService loggerService = new LoggerServiceImpl(loggerRepository, playerRepository,
 			logMapper, playerMapper);
-	final TransactionService transactionService = new TransactionServiceImpl(
-			loggerService, transactionRepository, playerRepository, transactionMapper, playerMapper);
-	final PlayerService playerService = new PlayerServiceImpl(playerRepository, loggerService, playerMapper);
+	private final TransactionService transactionService = new TransactionServiceImpl(transactionRepository,
+			playerRepository, transactionMapper, playerMapper);
+	private final PlayerService playerService = new PlayerServiceImpl(playerRepository, loggerService, playerMapper);
 
 	private ApplicationContextHolder() {
 	}
 
 	public static ApplicationContextHolder getInstance() {
-		if (instance == null) {
-			instance = new ApplicationContextHolder();
-		}
 		return instance;
 	}
 
-	public DBResourceManager getResourceManager() {
-		return resourceManager;
+	public JwtService getJwtService() {
+		return jwtService;
+	}
+
+	public DBResourceManager getLiquibaseResourceManager() {
+		return liquibaseResourceManager;
 	}
 
 	public PlayerRepository getPlayerRepository() {
@@ -113,7 +116,19 @@ public class ApplicationContextHolder {
 		return objectMapper;
 	}
 
-	private static void performingDatabaseMigration(){
+	public PlayerMapper getPlayerMapper() {
+		return playerMapper;
+	}
+
+	public TransactionMapper getTransactionMapper() {
+		return transactionMapper;
+	}
+
+	public LogMapper getLogMapper() {
+		return logMapper;
+	}
+
+	private static void performingDatabaseMigration() {
 		ConnectionProvider connectionProvider = instance.getConnectionProvider();
 		Connection connection = null;
 		Statement statement = null;

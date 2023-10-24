@@ -1,6 +1,5 @@
 package org.example.walletservice.service.impl;
 
-import jakarta.servlet.http.HttpServletResponse;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
@@ -13,6 +12,7 @@ import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
+import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -43,18 +43,20 @@ public final class PlayerServiceImpl implements PlayerService {
 	@Override
 	public void registrationPlayer(PlayerRequestDto playerRequestDto) {
 		inputValidation(playerRequestDto);
-		String username = playerRequestDto.username();
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
+		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
 		if (optionalPlayer.isPresent()) {
 			throw new PlayerAlreadyExistException(PLAYER_EXIST_EXCEPTION);
 		}
+
 		Player player = playerMapper.toEntityFromRequest(playerRequestDto);
 		int playerID = playerRepository.registrationPayer(player);
+
 		if (playerID == -1) {
 			System.out.println("[FAIL] Database error.");
 			loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.FAIL);
 			return;
 		}
+
 		player.setPlayerID(playerID);
 		loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.SUCCESSFUL);
 	}
@@ -65,15 +67,27 @@ public final class PlayerServiceImpl implements PlayerService {
 	@Override
 	public AuthPlayerDto logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException, InvalidInputDataException {
 		inputValidation(playerRequestDto);
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(playerRequestDto.username());
+
+		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
 		if (optionalPlayer.isEmpty()) {
 			throw new PlayerNotFoundException(PLAYER_NOT_FOUND);
 		}
+
 		Player player = optionalPlayer.get();
+
 		if (!player.getPassword().equals(playerRequestDto.password())) {
 			throw new PlayerNotFoundException(INCORRECT_PASSWORD);
 		}
+
 		return playerMapper.toAuthPlayerDto(player);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Optional<Player> findByUsername(String username) {
+		return playerRepository.findPlayer(username);
 	}
 
 	/**
@@ -96,7 +110,13 @@ public final class PlayerServiceImpl implements PlayerService {
 		return balance;
 	}
 
-	public void inputValidation(PlayerRequestDto playerRequestDto) throws InvalidInputDataException {
+	/**
+	 * Validates the input data in the provided PlayerRequestDto.
+	 *
+	 * @param playerRequestDto The PlayerRequestDto containing player information.
+	 * @throws InvalidInputDataException If the input data is invalid, such as empty or too short username/password.
+	 */
+	private void inputValidation(PlayerRequestDto playerRequestDto) throws InvalidInputDataException {
 		String username = playerRequestDto.username();
 		String password = playerRequestDto.password();
 

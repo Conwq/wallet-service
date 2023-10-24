@@ -21,7 +21,7 @@ public class TransactionAuditAspect {
 	public TransactionAuditAspect() {
 		ApplicationContextHolder context = ApplicationContextHolder.getInstance();
 		loggerService = context.getLoggerService();
-		this.playerMapper = PlayerMapper.instance;
+		this.playerMapper = context.getPlayerMapper();
 	}
 
 	/**

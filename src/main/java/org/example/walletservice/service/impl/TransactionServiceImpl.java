@@ -9,28 +9,24 @@ import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
-import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
+import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 public final class TransactionServiceImpl implements TransactionService {
-	private final LoggerService loggerService;
 	private final TransactionRepository transactionRepository;
 	private final PlayerRepository playerRepository;
 	private final TransactionMapper transactionMapper;
 	private final PlayerMapper playerMapper;
 
-	public TransactionServiceImpl(LoggerService loggerService, TransactionRepository transactionRepository,
+	public TransactionServiceImpl(TransactionRepository transactionRepository,
 								  PlayerRepository playerRepository, TransactionMapper transactionMapper,
 								  PlayerMapper playerMapper) {
-		this.loggerService = loggerService;
 		this.transactionRepository = transactionRepository;
 		this.playerRepository = playerRepository;
 		this.transactionMapper = transactionMapper;
@@ -42,6 +38,8 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
+		checkForData(authPlayerDto);
+
 		Player player = playerMapper.toEntity(authPlayerDto);
 		validatingInputData(transactionRequestDto);
 
@@ -57,6 +55,8 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
+		checkForData(authPlayerDto);
+
 		Player player = playerMapper.toEntity(authPlayerDto);
 		validatingInputData(transactionRequestDto);
 
@@ -78,6 +78,8 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
+		checkForData(authPlayerDto);
+
 		Player player = playerMapper.toEntity(authPlayerDto);
 		List<Transaction> playerTransactionalHistory = transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
 
@@ -88,12 +90,31 @@ public final class TransactionServiceImpl implements TransactionService {
 		return playerTransactionalHistory.stream().map(transactionMapper::toDto).toList();
 	}
 
+	/**
+	 * Validates the input data in the provided TransactionRequestDto.
+	 *
+	 * @param transactionRequestDto The TransactionRequestDto containing transaction information.
+	 * @throws InvalidInputDataException If the input data is invalid, such as a negative amount or an existing transaction number.
+	 */
 	private void validatingInputData(TransactionRequestDto transactionRequestDto) {
 		if (transactionRequestDto.inputPlayerAmount().compareTo(BigDecimal.ZERO) < 0) {
 			throw new InvalidInputDataException("The amount to be entered cannot be less than 0.");
 		}
 		if (transactionRepository.checkTokenExistence(transactionRequestDto.transactionToken())) {
 			throw new TransactionNumberAlreadyExist("A transaction with this number already exists.");
+		}
+	}
+
+	/**
+	 * Checks if the AuthPlayerDto is valid (not null).
+	 *
+	 * @param authPlayerDto The AuthPlayerDto to check.
+	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayerDto is null, indicating an unregistered user.
+	 */
+	private void checkForData(AuthPlayerDto authPlayerDto) {
+		if (authPlayerDto == null) {
+			System.out.println("[FAIL] Performing an operation by an unregistered user.");
+			throw new PlayerDoesNotHaveAccessException("You need to log in. This resource is not available to you.");
 		}
 	}
 }

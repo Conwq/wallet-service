@@ -8,7 +8,7 @@ public class PlayerNotFoundException extends RuntimeException{
 	/**
 	 * Constructs a PlayerNotFoundException with the specified detail message.
 	 *
-	 * @param message the detail message.
+	 * @param message message.
 	 */
 	public PlayerNotFoundException(String message) {
 		super(message);
