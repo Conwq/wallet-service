@@ -31,7 +31,11 @@ class LoggerServletTest {
 	private HttpServletRequest request;
 	private HttpServletResponse response;
 	private ServletOutputStream outputStream;
+	private AuthPlayerDto authPlayerDto;
+	private static final String USERNAME = "username";
 	private final String CONTENT_TYPE = "application/json";
+	private static final String AUTH_PLAYER = "authPlayer";
+	private static final String COMMAND = "command";
 
 	@BeforeEach
 	public void setUp() {
@@ -42,20 +46,21 @@ class LoggerServletTest {
 		objectMapper = new ObjectMapper();
 		loggerService = Mockito.mock(LoggerService.class);
 		loggerServlet = new LoggerServlet(loggerService, objectMapper, commandProvider);
+
+		authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
 	}
 
 	@Test
 	void shouldReturnAllLogs() throws ServletException, IOException {
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
-
+		final String command = "show_all_log";
 		List<LogResponseDto> logList = new ArrayList<>() {{
 			add(new LogResponseDto("Log message 1"));
 			add(new LogResponseDto("Log message 2"));
 		}};
 
-		Mockito.when(request.getAttribute("authPlayer")).thenReturn(authPlayerDto);
-		Mockito.when(request.getParameter("command")).thenReturn("show_all_log");
-		Mockito.when(commandProvider.getCommand("show_all_log")).thenReturn(Command.SHOW_ALL_LOG);
+		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(authPlayerDto);
+		Mockito.when(request.getParameter(COMMAND)).thenReturn(command);
+		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.SHOW_ALL_LOG);
 		Mockito.when(loggerService.getAllLogs(authPlayerDto)).thenReturn(logList);
 		Mockito.when(response.getOutputStream()).thenReturn(outputStream);
 
@@ -70,11 +75,13 @@ class LoggerServletTest {
 
 	@Test
 	void shouldThrowException_PlayerNotLoggedInException() throws ServletException, IOException {
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(2, "user", Role.USER);
-		InfoResponse infoResponse = new InfoResponse(new Date().toString(),
-				HttpServletResponse.SC_NOT_ACCEPTABLE, "You do not have access to this resource.");
+		final String message = "You do not have access to this resource.";
+		final AuthPlayerDto authPlayerDto = new AuthPlayerDto(2, "user", Role.USER);
 
-		Mockito.when(request.getAttribute("authPlayer")).thenReturn(authPlayerDto);
+		InfoResponse infoResponse =
+				new InfoResponse(new Date().toString(), HttpServletResponse.SC_NOT_ACCEPTABLE, message);
+
+		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(authPlayerDto);
 		Mockito.when(response.getOutputStream()).thenReturn(outputStream);
 
 		loggerServlet.doGet(request, response);
@@ -89,10 +96,11 @@ class LoggerServletTest {
 
 	@Test
 	void shouldThrowException_PlayerDoesNotHaveAccessException() throws ServletException, IOException {
-		InfoResponse infoResponse = new InfoResponse(new Date().toString(),
-				HttpServletResponse.SC_NOT_ACCEPTABLE,
-				"Only an authorized administrator can perform this operation.");
-		Mockito.when(request.getAttribute("authPlayer")).thenReturn(null);
+		final String message = "Only an authorized administrator can perform this operation.";
+
+		InfoResponse infoResponse =
+				new InfoResponse(new Date().toString(), HttpServletResponse.SC_NOT_ACCEPTABLE, message);
+		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(null);
 		Mockito.when(response.getOutputStream()).thenReturn(outputStream);
 
 		loggerServlet.doGet(request, response);
@@ -107,21 +115,19 @@ class LoggerServletTest {
 
 	@Test
 	void shouldReturnPlayersLogs() throws ServletException, IOException {
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
-
-		String inputUsername = "user";
-
-		List<LogResponseDto> logList = new ArrayList<>() {{
+		final String command = "show_player_log";
+		final String inputUsername = "user";
+		final List<LogResponseDto> logList = new ArrayList<>() {{
 			add(new LogResponseDto("Log message 1"));
 			add(new LogResponseDto("Log message 2"));
 		}};
 
-		Mockito.when(request.getAttribute("authPlayer")).thenReturn(authPlayerDto);
-		Mockito.when(request.getParameter("command")).thenReturn("show_player_log");
-		Mockito.when(commandProvider.getCommand("show_player_log")).thenReturn(Command.SHOW_PLAYER_LOG);
+		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(authPlayerDto);
+		Mockito.when(request.getParameter(COMMAND)).thenReturn(command);
+		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.SHOW_PLAYER_LOG);
 		Mockito.when(loggerService.getLogsByUsername(authPlayerDto, inputUsername)).thenReturn(logList);
 		Mockito.when(response.getOutputStream()).thenReturn(outputStream);
-		Mockito.when(request.getParameter("username")).thenReturn(inputUsername);
+		Mockito.when(request.getParameter(USERNAME)).thenReturn(inputUsername);
 
 		loggerServlet.doGet(request, response);
 
@@ -134,23 +140,26 @@ class LoggerServletTest {
 
 	@Test
 	public void shouldReturnAnErrorThaSearchPlayerWasNotFound() throws IOException, ServletException {
-		String inputUsername = "player_not_exist";
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		final String inputUsername = "player_not_exist";
+		final String command = "show_player_log";
+		final String message = String.format("Player %s not found", inputUsername);
 
-		Mockito.when(request.getAttribute("authPlayer")).thenReturn(authPlayerDto);
-		Mockito.when(request.getParameter("command")).thenReturn("show_player_log");
-		Mockito.when(commandProvider.getCommand("show_player_log")).thenReturn(Command.SHOW_PLAYER_LOG);
-		Mockito.when(request.getParameter("username")).thenReturn(inputUsername);
+		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(authPlayerDto);
+		Mockito.when(request.getParameter(COMMAND)).thenReturn(command);
+		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.SHOW_PLAYER_LOG);
+		Mockito.when(request.getParameter(USERNAME)).thenReturn(inputUsername);
 		Mockito.when(loggerService.getLogsByUsername(authPlayerDto, inputUsername))
-				.thenThrow(new PlayerNotFoundException(String.format("Player %s not found", inputUsername)));
+				.thenThrow(new PlayerNotFoundException(message));
 		Mockito.when(response.getOutputStream()).thenReturn(outputStream);
 
 		loggerServlet.doGet(request, response);
 
-		InfoResponse infoResponse = new InfoResponse(new Date().toString(),
-				HttpServletResponse.SC_BAD_REQUEST, String.format("Player %s not found", inputUsername));
+		InfoResponse infoResponse =
+				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
+
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
+
 		Mockito.verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(response).setContentType(CONTENT_TYPE);
 		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
@@ -158,16 +167,16 @@ class LoggerServletTest {
 
 	@Test
 	void shouldReturnErrorThatResourceDoesNotExist() throws ServletException, IOException {
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		final String command = "not_exist_command";
 
-		Mockito.when(request.getAttribute("authPlayer")).thenReturn(authPlayerDto);
-		Mockito.when(request.getParameter("command")).thenReturn("not_exist_command");
-		Mockito.when(commandProvider.getCommand("show_all_log")).thenReturn(Command.NO_COMMAND);
+		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(authPlayerDto);
+		Mockito.when(request.getParameter(COMMAND)).thenReturn(command);
+		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.NO_COMMAND);
 		Mockito.when(response.getOutputStream()).thenReturn(outputStream);
 
 		loggerServlet.doGet(request, response);
 
-		Mockito.verify(response).setStatus(HttpServletResponse.SC_NOT_FOUND);
+		Mockito.verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(response).setContentType(CONTENT_TYPE);
 	}
 }

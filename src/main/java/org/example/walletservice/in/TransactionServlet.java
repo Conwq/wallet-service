@@ -42,6 +42,14 @@ public class TransactionServlet extends HttpServlet {
 		this.commandProvider = context.getCommandProvider();
 	}
 
+	public TransactionServlet(TransactionService transactionService,
+							  ObjectMapper objectMapper,
+							  CommandProvider commandProvider) {
+		this.transactionService = transactionService;
+		this.objectMapper = objectMapper;
+		this.commandProvider = commandProvider;
+	}
+
 	/**
 	 * Handles HTTP GET requests for retrieving player transaction history.
 	 *
@@ -82,8 +90,8 @@ public class TransactionServlet extends HttpServlet {
 				jsonObject.append(reader.readLine());
 			}
 
-			TransactionRequestDto transactionRequest = objectMapper.readValue(
-					jsonObject.toString(), TransactionRequestDto.class);
+			TransactionRequestDto transactionRequest =
+					objectMapper.readValue(jsonObject.toString(), TransactionRequestDto.class);
 
 			switch (command) {
 				case CREDIT -> creditExecution(resp, authPlayerDto, transactionRequest);
