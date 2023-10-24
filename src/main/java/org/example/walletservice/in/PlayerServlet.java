@@ -36,13 +36,46 @@ public final class PlayerServlet extends HttpServlet {
 	private final PlayerService playerService;
 	private final ObjectMapper objectMapper;
 	private final CommandProvider commandProvider;
-	private final JwtService jwtService = new JwtService();
+	private final JwtService jwtService;
 
 	public PlayerServlet() {
 		ApplicationContextHolder context = ApplicationContextHolder.getInstance();
 		this.objectMapper = context.getObjectMapper();
 		this.playerService = context.getPlayerService();
 		this.commandProvider = context.getCommandProvider();
+		jwtService = new JwtService();
+	}
+
+	public PlayerServlet (ObjectMapper objectMapper,
+						  PlayerService playerService,
+						  CommandProvider commandProvider,
+						  JwtService jwtService) {
+		this.objectMapper = objectMapper;
+		this.playerService = playerService;
+		this.commandProvider = commandProvider;
+		this.jwtService = jwtService;
+	}
+
+	/**
+	 * Handles HTTP GET requests for retrieving player balance.
+	 *
+	 * @param req  The HttpServletRequest.
+	 * @param resp The HttpServletResponse.
+	 * @throws ServletException If a servlet-specific error occurs.
+	 * @throws IOException      If an I/O error occurs.
+	 */
+	@Override
+	protected void doGet(HttpServletRequest req,
+						 HttpServletResponse resp) throws ServletException, IOException {
+		try {
+			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute("authPlayer");
+
+			BigDecimal playerBalance = playerService.getPlayerBalance(authPlayerDto);
+			generateResponse(resp, HttpServletResponse.SC_OK,
+					String.format("%s, your balance -> %s", authPlayerDto.username(), playerBalance));
+		} catch (PlayerNotLoggedInException e) {
+			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+		}
 	}
 
 	/**
@@ -89,28 +122,6 @@ public final class PlayerServlet extends HttpServlet {
 	}
 
 	/**
-	 * Handles HTTP GET requests for retrieving player balance.
-	 *
-	 * @param req  The HttpServletRequest.
-	 * @param resp The HttpServletResponse.
-	 * @throws ServletException If a servlet-specific error occurs.
-	 * @throws IOException      If an I/O error occurs.
-	 */
-	@Override
-	protected void doGet(HttpServletRequest req,
-						 HttpServletResponse resp) throws ServletException, IOException {
-		try {
-			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute("authPlayer");
-
-			BigDecimal playerBalance = playerService.getPlayerBalance(authPlayerDto);
-			generateResponse(resp, HttpServletResponse.SC_OK,
-					String.format("%s, your balance -> %s", authPlayerDto.username(), playerBalance));
-		} catch (PlayerNotLoggedInException e) {
-			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-		}
-	}
-
-	/**
 	 * Executes the sign-in operation.
 	 *
 	 * @param resp             The HttpServletResponse.
@@ -133,6 +144,7 @@ public final class PlayerServlet extends HttpServlet {
 
 		} catch (InvalidInputDataException e) {
 			generateResponse(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+
 		} catch (PlayerNotFoundException e) {
 			generateResponse(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
 		}

@@ -44,6 +44,7 @@ public final class PlayerServiceImpl implements PlayerService {
 	public void registrationPlayer(PlayerRequestDto playerRequestDto) {
 		inputValidation(playerRequestDto);
 		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
+
 		if (optionalPlayer.isPresent()) {
 			throw new PlayerAlreadyExistException(PLAYER_EXIST_EXCEPTION);
 		}
@@ -94,7 +95,7 @@ public final class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public BigDecimal getPlayerBalance(AuthPlayerDto authPlayerDto) {
+	public BigDecimal getPlayerBalance(AuthPlayerDto authPlayerDto) throws PlayerNotLoggedInException {
 		if (authPlayerDto == null) {
 			throw new PlayerNotLoggedInException("Performing an operation by an unregistered user.");
 		}
