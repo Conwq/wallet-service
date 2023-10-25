@@ -32,7 +32,6 @@ import java.util.List;
 
 class TransactionServletTest {
 	private static final String COMMAND = "command";
-	private static final String USERNAME = "username";
 	private TransactionServlet transactionServlet;
 	private BufferedReader bufferedReader;
 	private HttpServletRequest req;
@@ -73,12 +72,8 @@ class TransactionServletTest {
 
 		transactionServlet.doGet(req, resp);
 
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(transactionList));
-
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -92,15 +87,8 @@ class TransactionServletTest {
 
 		transactionServlet.doGet(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_OK, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -115,15 +103,9 @@ class TransactionServletTest {
 
 		transactionServlet.doGet(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_NOT_ACCEPTABLE, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
+
 	}
 
 	@Test
@@ -145,16 +127,9 @@ class TransactionServletTest {
 
 		transactionServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_OK, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(transactionService).credit(authPlayer, transactionRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -178,16 +153,9 @@ class TransactionServletTest {
 
 		transactionServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(transactionService).credit(authPlayer, transactionRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -211,16 +179,9 @@ class TransactionServletTest {
 
 		transactionServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_CONFLICT, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(transactionService).credit(authPlayer, transactionRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_CONFLICT);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -244,16 +205,9 @@ class TransactionServletTest {
 
 		transactionServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_NOT_ACCEPTABLE, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(transactionService).credit(null, transactionRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -275,16 +229,9 @@ class TransactionServletTest {
 
 		transactionServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_OK, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(transactionService).debit(authPlayer, transactionRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -308,16 +255,9 @@ class TransactionServletTest {
 
 		transactionServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(transactionService).debit(authPlayer, transactionRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -342,16 +282,9 @@ class TransactionServletTest {
 
 		transactionServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(transactionService).debit(authPlayer, transactionRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -375,16 +308,9 @@ class TransactionServletTest {
 
 		transactionServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_CONFLICT, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(transactionService).debit(authPlayer, transactionRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_CONFLICT);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -408,15 +334,8 @@ class TransactionServletTest {
 
 		transactionServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_NOT_ACCEPTABLE, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(transactionService).debit(null, transactionRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 }

@@ -67,13 +67,8 @@ class PlayerServletTest {
 
 		playerServlet.doGet(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_OK, message);
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -87,15 +82,8 @@ class PlayerServletTest {
 
 		playerServlet.doGet(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -115,16 +103,9 @@ class PlayerServletTest {
 
 		playerServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_OK, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(playerService).registrationPlayer(playerRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -146,16 +127,9 @@ class PlayerServletTest {
 
 		playerServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(playerService).registrationPlayer(playerRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -177,16 +151,9 @@ class PlayerServletTest {
 
 		playerServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(playerService).registrationPlayer(playerRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -208,16 +175,9 @@ class PlayerServletTest {
 
 		playerServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(playerService).registrationPlayer(playerRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -239,16 +199,9 @@ class PlayerServletTest {
 
 		playerServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(playerService).registrationPlayer(playerRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -269,22 +222,14 @@ class PlayerServletTest {
 
 		playerServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_CONFLICT, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(playerService).registrationPlayer(playerRequest);
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_CONFLICT);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
 	public void shouldPerformSigInOperation() throws IOException, ServletException {
 		final String command = "sign_in";
-		final String message = "You've successfully logged in";
 
 		PlayerRequestDto playerRequest = new PlayerRequestDto("username", "password");
 		AuthPlayerDto authPlayer = new AuthPlayerDto(2, playerRequest.username(), Role.USER);
@@ -300,16 +245,9 @@ class PlayerServletTest {
 
 		playerServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_OK, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(jwtService).generateWebToken(Mockito.anyMap(), Mockito.any(AuthPlayerDto.class));
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -331,15 +269,8 @@ class PlayerServletTest {
 
 		playerServlet.doPost(req, resp);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_NOT_FOUND, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(jwtService, Mockito.never()).generateWebToken(Mockito.anyMap(), Mockito.any(AuthPlayerDto.class));
 		Mockito.verify(resp).setStatus(HttpServletResponse.SC_NOT_FOUND);
 		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 }

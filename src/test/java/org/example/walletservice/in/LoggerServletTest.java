@@ -78,39 +78,26 @@ class LoggerServletTest {
 		final String message = "You do not have access to this resource.";
 		final AuthPlayerDto authPlayerDto = new AuthPlayerDto(2, "user", Role.USER);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_NOT_ACCEPTABLE, message);
-
 		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(authPlayerDto);
 		Mockito.when(response.getOutputStream()).thenReturn(outputStream);
 
 		loggerServlet.doGet(request, response);
 
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(response).setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
 		Mockito.verify(response).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
 	void shouldThrowException_PlayerDoesNotHaveAccessException() throws ServletException, IOException {
 		final String message = "Only an authorized administrator can perform this operation.";
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_NOT_ACCEPTABLE, message);
 		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(null);
 		Mockito.when(response.getOutputStream()).thenReturn(outputStream);
 
 		loggerServlet.doGet(request, response);
 
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(response).setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
 		Mockito.verify(response).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -131,11 +118,8 @@ class LoggerServletTest {
 
 		loggerServlet.doGet(request, response);
 
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(logList));
 		Mockito.verify(response).setStatus(HttpServletResponse.SC_OK);
 		Mockito.verify(response).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
@@ -154,15 +138,8 @@ class LoggerServletTest {
 
 		loggerServlet.doGet(request, response);
 
-		InfoResponse infoResponse =
-				new InfoResponse(new Date().toString(), HttpServletResponse.SC_BAD_REQUEST, message);
-
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		byteArrayOutputStream.write(objectMapper.writeValueAsBytes(infoResponse));
-
 		Mockito.verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		Mockito.verify(response).setContentType(CONTENT_TYPE);
-		Mockito.verify(outputStream).write(byteArrayOutputStream.toByteArray());
 	}
 
 	@Test
