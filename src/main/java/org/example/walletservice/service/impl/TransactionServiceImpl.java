@@ -38,15 +38,14 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
-		checkForData(authPlayerDto);
-
-		Player player = playerMapper.toEntity(authPlayerDto);
 		validatingInputData(transactionRequestDto);
+		Player player = checkForData(authPlayerDto);
 
 		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 		BigDecimal newPlayerBalance = playerBalance.add(transactionRequestDto.inputPlayerAmount());
 		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.CREDIT,
 				newPlayerBalance);
+
 		transactionRepository.creditOrDebit(transaction, newPlayerBalance);
 	}
 
@@ -55,11 +54,9 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
-		checkForData(authPlayerDto);
-
-		Player player = playerMapper.toEntity(authPlayerDto);
 		validatingInputData(transactionRequestDto);
 
+		Player player = checkForData(authPlayerDto);
 		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 		BigDecimal newPlayerBalance = playerBalance.subtract(transactionRequestDto.inputPlayerAmount());
 
@@ -78,9 +75,8 @@ public final class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
-		checkForData(authPlayerDto);
+		Player player = checkForData(authPlayerDto);
 
-		Player player = playerMapper.toEntity(authPlayerDto);
 		List<Transaction> playerTransactionalHistory = transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
 
 		if (playerTransactionalHistory == null) {
@@ -111,10 +107,10 @@ public final class TransactionServiceImpl implements TransactionService {
 	 * @param authPlayerDto The AuthPlayerDto to check.
 	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayerDto is null, indicating an unregistered user.
 	 */
-	private void checkForData(AuthPlayerDto authPlayerDto) {
+	private Player checkForData(AuthPlayerDto authPlayerDto) {
 		if (authPlayerDto == null) {
-			System.out.println("[FAIL] Performing an operation by an unregistered user.");
 			throw new PlayerDoesNotHaveAccessException("You need to log in. This resource is not available to you.");
 		}
+		return playerMapper.toEntity(authPlayerDto);
 	}
 }

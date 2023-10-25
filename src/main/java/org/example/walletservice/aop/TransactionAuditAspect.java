@@ -11,6 +11,7 @@ import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
+import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 
 /**
@@ -55,6 +56,9 @@ public class TransactionAuditAspect {
 			loggerService.recordActionInLog(Operation.CREDIT, player, Status.FAIL);
 			System.out.println("[FAIL] A transaction with this number already exists.");
 			throw e;
+		} catch (PlayerDoesNotHaveAccessException e) {
+			System.out.println("[FAIL] Performing an operation by an unregistered user.");
+			throw e;
 		}
 		return result;
 	}
@@ -89,6 +93,9 @@ public class TransactionAuditAspect {
 			loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
 			System.out.println("[FAIL] A transaction with this number already exists.");
 			throw e;
+		} catch (PlayerDoesNotHaveAccessException e) {
+			System.out.println("[FAIL] Performing an operation by an unregistered user.");
+			throw e;
 		}
 		return result;
 	}
@@ -102,12 +109,18 @@ public class TransactionAuditAspect {
 	 */
 	@Around("execution(* org.example.walletservice.service.TransactionService.getPlayerTransactionalHistory(..))")
 	public Object getPlayerTransactionHistoryAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		Player player = getPlayer(joinPoint);
+		Object result;
+		try {
+			Player player = getPlayer(joinPoint);
 
-		Object result = joinPoint.proceed();
+			result = joinPoint.proceed();
 
-		loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
-		System.out.println("[SUCCESSFUL] Transaction history has been viewed");
+			loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
+			System.out.println("[SUCCESSFUL] Transaction history has been viewed");
+		} catch (PlayerDoesNotHaveAccessException e) {
+			System.out.println("[FAIL] Performing an operation by an unregistered user.");
+			throw e;
+		}
 		return result;
 	}
 

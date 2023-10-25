@@ -2,143 +2,178 @@ package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.model.dto.TransactionRequestDto;
+import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
+import org.example.walletservice.model.mapper.PlayerMapper;
+import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.TransactionService;
-import org.junit.jupiter.api.AfterEach;
+import org.example.walletservice.service.enums.Operation;
+import org.example.walletservice.service.exception.InvalidInputDataException;
+import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
+import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-@Disabled
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 class TransactionServiceTest {
-	private final LoggerServiceImpl loggerService = Mockito.mock(LoggerServiceImpl.class);
-	private final TransactionRepository transactionRepository = Mockito.mock(TransactionRepository.class);
-	private final PlayerRepository playerRepository = Mockito.mock(PlayerRepository.class);
+	private LoggerServiceImpl loggerService;
+	private TransactionRepository transactionRepository;
+	private PlayerRepository playerRepository;
 	private TransactionService transactionService;
-	private static final BigDecimal AMOUNT = BigDecimal.valueOf(100.0);
+	private TransactionMapper transactionMapper;
+	private PlayerMapper playerMapper;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
-	private final PrintStream origOut = System.out;
-	private final InputStream origIn = System.in;
-	private ByteArrayOutputStream outputStream;
+	private PlayerRequestDto playerRequest;
+	private AuthPlayerDto authPlayerDto;
+	private TransactionRequestDto transactionRequestDto;
 
 	@BeforeEach
 	public void setUp() {
-//		transactionService = new TransactionServiceImpl(
-//				loggerService,
-//				transactionRepository,
-//				playerRepository
-//		);
+		loggerService = Mockito.mock(LoggerServiceImpl.class);
+		transactionRepository = Mockito.mock(TransactionRepository.class);
+		playerRepository = Mockito.mock(PlayerRepository.class);
+		playerRepository = Mockito.mock(PlayerRepository.class);
+		transactionMapper = Mockito.mock(TransactionMapper.class);
+		playerMapper = Mockito.mock(PlayerMapper.class);
 
-//		player = Player.builder()
-//				.playerID(1)
-//				.username("user123")
-//				.password("1313")
-//				.role(Role.USER).build();
+		transactionService = new TransactionServiceImpl(transactionRepository,
+				playerRepository,
+				transactionMapper,
+				playerMapper);
 
-		outputStream = new ByteArrayOutputStream();
-		System.setOut(new PrintStream(outputStream));
+		playerRequest = new PlayerRequestDto("username", "password");
 
-		ByteArrayInputStream inputStream = new ByteArrayInputStream(
-				String.format("%s\n%s", AMOUNT, TRANSACTIONAL_TOKEN).getBytes());
-		System.setIn(inputStream);
-	}
+		player = new Player();
+		player.setPlayerID(1);
+		player.setUsername("admin");
+		player.setPassword("admin");
+		player.setBalance(BigDecimal.TEN);
+		player.setRole(Role.ADMIN);
 
-	@AfterEach
-	public void tearDown() {
-		System.setOut(origOut);
-		System.setIn(origIn);
+		authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		transactionRequestDto = new TransactionRequestDto(BigDecimal.TEN, "token");
 	}
 
 	@Test
 	public void shouldCredit_successful() {
-		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
-//		Mockito.when(playerRepository.findPlayerBalanceByPlayer(player.getPlayerID()))
-//						.thenReturn(AMOUNT);
+		Transaction transaction = new Transaction();
 
-//		transactionService.credit(player, AMOUNT, TRANSACTIONAL_TOKEN);
+		when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
+		when(playerRepository.findPlayerBalanceByPlayer(player)).thenReturn(BigDecimal.ZERO);
+		when(transactionMapper.toEntity(transactionRequestDto, player, Operation.CREDIT, BigDecimal.TEN))
+				.thenReturn(transaction);
 
-		Mockito.verify(transactionRepository, Mockito.times(1))
-				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(BigDecimal.class));
-		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Credit successfully.");
+		transactionService.credit(authPlayerDto, transactionRequestDto);
+
+		verify(transactionRepository).creditOrDebit(transaction, BigDecimal.TEN);
 	}
 
 	@Test
-	public void shouldNotCredit_transactionNumberNotUnique() {
-		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(true);
+	public void shouldNotCredit_playerDoesNotHaveAccess() {
+		final String message = "You need to log in. This resource is not available to you.";
+		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
 
-//		transactionService.credit(player, AMOUNT, TRANSACTIONAL_TOKEN);
+		PlayerDoesNotHaveAccessException exception = Assertions.assertThrows(PlayerDoesNotHaveAccessException.class, () -> {
+			transactionService.credit(null, transactionRequestDto);
+		});
 
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains("{{FAIL}} A transaction with this number already exists!");
-		Mockito.verify(transactionRepository, Mockito.never())
-				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(BigDecimal.class));
+		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
+	}
+
+	@Test
+	public void shouldThrowException_invalidInputData() {
+		final String message = "The amount to be entered cannot be less than 0.";
+		transactionRequestDto = new TransactionRequestDto(new BigDecimal(-100), TRANSACTIONAL_TOKEN);
+
+		InvalidInputDataException exception = Assertions.assertThrows(InvalidInputDataException.class, () -> {
+			transactionService.credit(authPlayerDto, transactionRequestDto);
+		});
+
+		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
+	}
+
+	@Test
+	public void shouldThrowException_transactionTokenNotUnique() {
+		final String message = "A transaction with this number already exists.";
+		transactionRequestDto = new TransactionRequestDto(BigDecimal.ONE, TRANSACTIONAL_TOKEN);
+		Mockito.when(transactionRepository.checkTokenExistence(transactionRequestDto.transactionToken()))
+				.thenReturn(true);
+
+		TransactionNumberAlreadyExist exception = Assertions.assertThrows(TransactionNumberAlreadyExist.class, () -> {
+			transactionService.credit(authPlayerDto, transactionRequestDto);
+		});
+
+		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
 	}
 
 	@Test
 	public void shouldDebit_successful() {
-		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
-//		Mockito.when(playerRepository.findPlayerBalanceByPlayer(player.getPlayerID()))
-//				.thenReturn(BigDecimal.valueOf(200));
+		Transaction transaction = new Transaction();
 
-//		transactionService.debit(player, AMOUNT, TRANSACTIONAL_TOKEN);
+		when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
+		when(playerRepository.findPlayerBalanceByPlayer(player)).thenReturn(BigDecimal.TEN);
+		when(transactionMapper.toEntity(transactionRequestDto, player, Operation.DEBIT, BigDecimal.ZERO))
+				.thenReturn(transaction);
 
-		Mockito.verify(transactionRepository, Mockito.times(1))
-				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(BigDecimal.class));
-		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Debit successfully.");
+		transactionService.debit(authPlayerDto, transactionRequestDto);
+
+		verify(transactionRepository).creditOrDebit(transaction, BigDecimal.ZERO);
 	}
-
-	@Test
-	public void shouldDebit_transactionNumberNotUnique() {
-//		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(true);
-//
-//		transactionService.debit(player, AMOUNT, TRANSACTIONAL_TOKEN);
-
-		Mockito.verify(transactionRepository, Mockito.never())
-				.creditOrDebit(Mockito.any(Transaction.class), Mockito.any(BigDecimal.class));
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains("{{FAIL}} A transaction with this number already exists!");
-	}
-
 
 	@Test
 	public void shouldGetPlayerTransactionalHistory_successful() {
-		List<String> testTransactionHistory = new ArrayList<>() {{
-			add("Transaction #1");
-			add("Transaction #2");
-		}};
+		when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
 
-//		Mockito.when(transactionRepository.findPlayerTransactionalHistoryByPlayer(player.getPlayerID()))
-//				.thenReturn(testTransactionHistory);
+		List<Transaction> transactions = new ArrayList<>();
+		transactions.add(new Transaction());
+		when(transactionRepository.findPlayerTransactionalHistoryByPlayer(player)).thenReturn(transactions);
 
-//		transactionService.getPlayerTransactionalHistory(player);
+		List<TransactionResponseDto> result = transactionService.getPlayerTransactionalHistory(authPlayerDto);
 
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains("Transaction #1", "Transaction #2");
+		assertNotNull(result);
+		assertEquals(transactions.size(), result.size());
 	}
 
 	@Test
-	public void shouldGetPlayerTransactionalHistory_emptyMap() {
-		List<String> testTransactionHistory = new ArrayList<>();
+	public void shouldReturnPlayerTransactionalHistory_emptyMap() {
+		List<TransactionResponseDto> testTransactionHistory = new ArrayList<>();
 
-//		Mockito.when(transactionRepository.findPlayerTransactionalHistoryByPlayer(player.getPlayerID()))
-//				.thenReturn(testTransactionHistory);
+		Mockito.when(transactionRepository.findPlayerTransactionalHistoryByPlayer(player))
+				.thenReturn(new ArrayList<>());
+		Mockito.when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
 
-//		transactionService.getPlayerTransactionalHistory(player);
+		List<TransactionResponseDto> transactions = transactionService.getPlayerTransactionalHistory(authPlayerDto);
+		AssertionsForClassTypes.assertThat(transactions).isEqualTo(testTransactionHistory);
+	}
 
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains("Transactions is empty.");
+	@Test
+	public void shouldReturnPlayerTransactionalHistory() {
+		List<Transaction> testTransactionHistory =
+				new ArrayList<>(Collections.singleton(new Transaction()));
+
+		Mockito.when(transactionRepository.findPlayerTransactionalHistoryByPlayer(player))
+				.thenReturn(testTransactionHistory);
+		Mockito.when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
+
+		List<TransactionResponseDto> transactions = transactionService.getPlayerTransactionalHistory(authPlayerDto);
+		AssertionsForClassTypes.assertThat(transactions.size()).isEqualTo(testTransactionHistory.size());
 	}
 }
