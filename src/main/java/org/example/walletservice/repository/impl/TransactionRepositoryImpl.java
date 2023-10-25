@@ -15,9 +15,6 @@ import java.util.List;
 
 public final class TransactionRepositoryImpl implements TransactionRepository {
 	private final ConnectionProvider connectionProvider;
-	private static final String ERROR_CONNECTION_DATABASE =
-			"There is an error with the database. Try again later.";
-	private static final String RECORD = "record";
 
 	public TransactionRepositoryImpl(ConnectionProvider connectionProvider) {
 		this.connectionProvider = connectionProvider;

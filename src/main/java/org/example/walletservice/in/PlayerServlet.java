@@ -32,7 +32,7 @@ import java.util.Map;
 @WebServlet("/players")
 public final class PlayerServlet extends HttpServlet {
 	private static final String CONTENT_TYPE = "application/json";
-	private static final String COMMAND = "command";
+	private static final String AUTH_PLAYER = "authPlayer";
 	private final PlayerService playerService;
 	private final ObjectMapper objectMapper;
 	private final CommandProvider commandProvider;
@@ -68,7 +68,7 @@ public final class PlayerServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req,
 						 HttpServletResponse resp) throws ServletException, IOException {
 		try {
-			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute("authPlayer");
+			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute(AUTH_PLAYER);
 
 			BigDecimal playerBalance = playerService.getPlayerBalance(authPlayerDto);
 			generateResponse(resp, HttpServletResponse.SC_OK,
@@ -90,7 +90,7 @@ public final class PlayerServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest req,
 						  HttpServletResponse resp) throws ServletException, IOException {
 		try (BufferedReader reader = req.getReader()) {
-			Command command = commandProvider.getCommand(req.getParameter(COMMAND));
+			Command command = commandProvider.getCommand(req.getParameter("command"));
 			StringBuilder jsonObject = new StringBuilder();
 
 			while (reader.ready()) {

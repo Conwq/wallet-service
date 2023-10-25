@@ -29,8 +29,8 @@ import java.util.List;
  */
 @WebServlet("/transaction")
 public class TransactionServlet extends HttpServlet {
-	private static final String COMMAND = "command";
 	private static final String CONTENT_TYPE = "application/json";
+	private static final String AUTH_PLAYER = "authPlayer";
 	private final TransactionService transactionService;
 	private final ObjectMapper objectMapper;
 	private final CommandProvider commandProvider;
@@ -61,7 +61,7 @@ public class TransactionServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
-			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute("authPlayer");
+			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute(AUTH_PLAYER);
 			List<TransactionResponseDto> playerTransactionHistory = transactionService
 					.getPlayerTransactionalHistory(authPlayerDto);
 			generateResponse(resp, HttpServletResponse.SC_OK, playerTransactionHistory);
@@ -82,8 +82,8 @@ public class TransactionServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try (BufferedReader reader = req.getReader()) {
-			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute("authPlayer");
-			Command command = commandProvider.getCommand(req.getParameter(COMMAND));
+			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute(AUTH_PLAYER);
+			Command command = commandProvider.getCommand(req.getParameter("command"));
 			StringBuilder jsonObject = new StringBuilder();
 
 			while (reader.ready()) {

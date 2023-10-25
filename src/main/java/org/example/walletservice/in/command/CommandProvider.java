@@ -7,7 +7,7 @@ import java.util.Map;
  * Provider class for mapping command strings to Command enum values.
  */
 public class CommandProvider {
-	private final Map<String, Command> commands = new HashMap() {{
+	private final Map<String, Command> commands = new HashMap<>() {{
 		put("registration", Command.REGISTRATION);
 		put("sign_in", Command.SIGN_IN);
 		put("credit", Command.CREDIT);

@@ -10,9 +10,6 @@ import java.util.List;
 
 public class LoggerRepositoryImpl implements LoggerRepository {
 	private final ConnectionProvider connectionProvider;
-	private static final String LOG = "log";
-	private static final String LOG_ID = "log_id";
-	private static final String PLAYER_ID = "player_id";
 
 	public LoggerRepositoryImpl(ConnectionProvider connectionProvider) {
 		this.connectionProvider = connectionProvider;
@@ -39,9 +36,11 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 			statement.setInt(2, log.getPlayerID());
 			statement.executeUpdate();
 			connection.commit();
+
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
 			System.out.println("[FAIL] Database error.");
+
 		} finally {
 			connectionProvider.closeConnection(connection, statement);
 		}
@@ -110,9 +109,9 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	private Log mapToLog(ResultSet resultSet) throws SQLException {
 		Log log = new Log();
-		log.setLogID(resultSet.getInt(LOG_ID));
-		log.setLog(resultSet.getString(LOG));
-		log.setPlayerID(resultSet.getInt(PLAYER_ID));
+		log.setLogID(resultSet.getInt("log_id"));
+		log.setLog(resultSet.getString("log"));
+		log.setPlayerID(resultSet.getInt("player_id"));
 		return log;
 	}
 }

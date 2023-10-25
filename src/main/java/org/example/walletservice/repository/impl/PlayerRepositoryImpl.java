@@ -14,11 +14,6 @@ import java.util.Optional;
  */
 public final class PlayerRepositoryImpl implements PlayerRepository {
 	private final ConnectionProvider connectionProvider;
-	private static final String PLAYER_ID = "player_id";
-	private static final String USERNAME = "username";
-	private static final String PASSWORD = "password";
-	private static final String ROLE_NAME = "role_name";
-	private static final String BALANCE = "balance";
 
 	public PlayerRepositoryImpl(ConnectionProvider connectionProvider) {
 		this.connectionProvider = connectionProvider;
@@ -48,10 +43,10 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			Player player = null;
 			if (resultSet.next()) {
 				player = new Player();
-				player.setPlayerID(resultSet.getInt(PLAYER_ID));
-				player.setUsername(resultSet.getString(USERNAME));
-				player.setPassword(resultSet.getString(PASSWORD));
-				player.setRole(Role.valueOf(resultSet.getString(ROLE_NAME).toUpperCase()));
+				player.setPlayerID(resultSet.getInt("player_id"));
+				player.setUsername(resultSet.getString("username"));
+				player.setPassword(resultSet.getString("password"));
+				player.setRole(Role.valueOf(resultSet.getString("role_name").toUpperCase()));
 			}
 			return Optional.ofNullable(player);
 		} catch (SQLException e) {
@@ -117,7 +112,7 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			resultSet = statement.executeQuery();
 
 			if (resultSet.next()) {
-				return resultSet.getBigDecimal(BALANCE);
+				return resultSet.getBigDecimal("balance");
 			}
 			return BigDecimal.ZERO;
 		} catch (SQLException e) {

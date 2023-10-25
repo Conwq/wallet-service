@@ -28,8 +28,7 @@ import java.util.List;
  */
 @WebServlet("/log")
 public class LoggerServlet extends HttpServlet {
-	private static final String COMMAND = "command";
-	private static final String USERNAME = "username";
+	private static final String AUTH_PLAYER = "authPlayer";
 	private static final String CONTENT_TYPE = "application/json";
 	private final LoggerService loggerService;
 	private final ObjectMapper objectMapper;
@@ -62,11 +61,13 @@ public class LoggerServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req,
 						 HttpServletResponse resp) throws ServletException, IOException {
 		try {
-			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute("authPlayer");
+			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute(AUTH_PLAYER);
 			checkForData(authPlayerDto);
 			handleCommand(req, resp, authPlayerDto);
+
 		} catch (PlayerNotLoggedInException | PlayerDoesNotHaveAccessException e) {
 			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, e.getMessage());
+
 		} catch (NullPointerException e) {
 			generateResponse(resp, HttpServletResponse.SC_NOT_FOUND, "Content doesn't exist.");
 		}
@@ -101,7 +102,7 @@ public class LoggerServlet extends HttpServlet {
 	private void handleCommand(HttpServletRequest req,
 							   HttpServletResponse resp,
 							   AuthPlayerDto authPlayerDto) throws IOException, ServletException {
-		Command command = commandProvider.getCommand(req.getParameter(COMMAND));
+		Command command = commandProvider.getCommand(req.getParameter("command"));
 		switch (command) {
 			case SHOW_ALL_LOG -> handleShowAllLog(resp, authPlayerDto);
 			case SHOW_PLAYER_LOG -> handleShowPlayerLog(req, resp, authPlayerDto);
@@ -134,7 +135,7 @@ public class LoggerServlet extends HttpServlet {
 									 HttpServletResponse resp,
 									 AuthPlayerDto authPlayerDto) throws IOException {
 		try {
-			String inputUsernameForSearch = req.getParameter(USERNAME);
+			String inputUsernameForSearch = req.getParameter("username");
 			List<LogResponseDto> logList = loggerService.getLogsByUsername(authPlayerDto, inputUsernameForSearch);
 			generateResponse(resp, HttpServletResponse.SC_OK, logList);
 

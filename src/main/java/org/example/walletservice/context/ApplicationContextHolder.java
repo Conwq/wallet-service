@@ -42,13 +42,14 @@ public class ApplicationContextHolder {
 	private static final String URL = "url";
 	private static final String USERNAME = "username";
 	private static final String PASSWORD = "password";
+	private static final String PROPERTIES_NAME = "liquibase";
 
 	private final PlayerMapper playerMapper = PlayerMapper.instance;
 	private final TransactionMapper transactionMapper = TransactionMapper.instance;
 	private final LogMapper logMapper = LogMapper.instance;
 	private final CommandProvider commandProvider = new CommandProvider();
 	private final ObjectMapper objectMapper = new ObjectMapper();
-	private final DBResourceManager liquibaseResourceManager = new DBResourceManager("liquibase");
+	private final DBResourceManager liquibaseResourceManager = new DBResourceManager(PROPERTIES_NAME);
 	private final JwtService jwtService = new JwtService();
 	private final ConnectionProvider connectionProvider = new ConnectionProvider(
 			liquibaseResourceManager.getValue(URL),
@@ -129,26 +130,32 @@ public class ApplicationContextHolder {
 	}
 
 	private static void performingDatabaseMigration() {
+		final String queryCreateSchema = "CREATE SCHEMA IF NOT EXISTS migration";
+		final String schemaName = "migration";
+		final String pathToChangelog = "changelog/changelog.xml";
+		final String defaultSchemaName = "wallet_service";
+
 		ConnectionProvider connectionProvider = instance.getConnectionProvider();
 		Connection connection = null;
 		Statement statement = null;
 		try {
 			connection = connectionProvider.takeConnection();
 			statement = connection.createStatement();
-			statement.executeUpdate("CREATE SCHEMA IF NOT EXISTS migration");
+			statement.executeUpdate(queryCreateSchema);
 			connection.commit();
 
 			Database database = DatabaseFactory.getInstance()
 					.findCorrectDatabaseImplementation(new JdbcConnection(connection));
-			database.setLiquibaseSchemaName("migration");
+			database.setLiquibaseSchemaName(schemaName);
 
-			Liquibase liquibase = new Liquibase("changelog/changelog.xml",
-					new ClassLoaderResourceAccessor(), database);
-			liquibase.getDatabase().setDefaultSchemaName("wallet_service");
+			Liquibase liquibase =
+					new Liquibase(pathToChangelog, new ClassLoaderResourceAccessor(), database);
+			liquibase.getDatabase().setDefaultSchemaName(defaultSchemaName);
 			liquibase.update();
+
 		} catch (Exception e) {
 			connectionProvider.rollbackCommit(connection);
-			e.printStackTrace();
+
 		} finally {
 			connectionProvider.closeConnection(connection, statement);
 		}
