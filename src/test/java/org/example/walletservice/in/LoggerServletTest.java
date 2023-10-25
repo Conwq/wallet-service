@@ -9,18 +9,17 @@ import org.example.walletservice.in.command.Command;
 import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
-import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 class LoggerServletTest {
@@ -50,7 +49,9 @@ class LoggerServletTest {
 		authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
 	}
 
+
 	@Test
+	@DisplayName("Must return all logs")
 	void shouldReturnAllLogs() throws ServletException, IOException {
 		final String command = "show_all_log";
 		List<LogResponseDto> logList = new ArrayList<>() {{
@@ -74,8 +75,8 @@ class LoggerServletTest {
 	}
 
 	@Test
-	void shouldThrowException_PlayerNotLoggedInException() throws ServletException, IOException {
-		final String message = "You do not have access to this resource.";
+	@DisplayName("Should throw an error because this user does not have access to this resource")
+	void shouldThrowException_PlayerNotAccess() throws ServletException, IOException {
 		final AuthPlayerDto authPlayerDto = new AuthPlayerDto(2, "user", Role.USER);
 
 		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(authPlayerDto);
@@ -88,9 +89,8 @@ class LoggerServletTest {
 	}
 
 	@Test
-	void shouldThrowException_PlayerDoesNotHaveAccessException() throws ServletException, IOException {
-		final String message = "Only an authorized administrator can perform this operation.";
-
+	@DisplayName("Should throw an error because this user is not authorized")
+	void shouldThrowException_UnauthorizedPlayer() throws ServletException, IOException {
 		Mockito.when(request.getAttribute(AUTH_PLAYER)).thenReturn(null);
 		Mockito.when(response.getOutputStream()).thenReturn(outputStream);
 
@@ -101,6 +101,7 @@ class LoggerServletTest {
 	}
 
 	@Test
+	@DisplayName("Must return logs of a specific player")
 	void shouldReturnPlayersLogs() throws ServletException, IOException {
 		final String command = "show_player_log";
 		final String inputUsername = "user";
@@ -123,6 +124,7 @@ class LoggerServletTest {
 	}
 
 	@Test
+	@DisplayName("Must return an error as the player will not be found")
 	public void shouldReturnAnErrorThaSearchPlayerWasNotFound() throws IOException, ServletException {
 		final String inputUsername = "player_not_exist";
 		final String command = "show_player_log";
@@ -143,6 +145,7 @@ class LoggerServletTest {
 	}
 
 	@Test
+	@DisplayName("Must return an error because this resource does not exist")
 	void shouldReturnErrorThatResourceDoesNotExist() throws ServletException, IOException {
 		final String command = "not_exist_command";
 

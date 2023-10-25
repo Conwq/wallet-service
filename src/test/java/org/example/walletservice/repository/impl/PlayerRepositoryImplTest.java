@@ -16,7 +16,7 @@ import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -70,21 +70,24 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
-	public void shouldFindPlayer_returnPlayer() {
+	@DisplayName("Must return the player found")
+	public void shouldFindPlayer() {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(ADMIN);
 
 		AssertionsForClassTypes.assertThat(optionalPlayer).isNotEmpty();
 	}
 
 	@Test
-	public void shouldFindPlayer_returnEmptyPlayer() {
+	@DisplayName("Must return an empty player")
+	public void shouldFindEmptyPlayer() {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(NOT_EXIST);
 
 		AssertionsForClassTypes.assertThat(optionalPlayer).isEmpty();
 	}
 
 	@Test
-	public void shouldRegistrationPlayer_successful() {
+	@DisplayName("Must register a user")
+	public void shouldRegistrationPlayer() {
 		playerRepository.registrationPayer(player);
 
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(player.getUsername());
@@ -93,6 +96,7 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Must return the player's balance by id")
 	public void shouldGetBalanceByPlayerID() {
 		Player newPlayer = new Player();
 		newPlayer.setPlayerID(1);
@@ -103,6 +107,7 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Must get the player's new balance by their ID after the account is filled")
 	public void shouldReceiveBalanceByPlayerIDAfterDepositing() {
 		transactionRepository.creditOrDebit(transaction, BALANCE);
 

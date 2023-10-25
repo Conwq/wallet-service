@@ -15,6 +15,7 @@ import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -53,6 +54,7 @@ class LoggerServiceImplTest {
 	}
 
 	@Test
+	@DisplayName("Should successfully return all logs ")
 	public void shouldReturnAllLogs_successful() {
 		Log log = new Log();
 		log.setLog("log #1");
@@ -66,6 +68,7 @@ class LoggerServiceImplTest {
 	}
 
 	@Test
+	@DisplayName("Must successfully return a specific player's logs")
 	public void shouldReturnPlayerLogs_successful() {
 		Log first = new Log();
 		first.setLog("log #1");
@@ -88,6 +91,7 @@ class LoggerServiceImplTest {
 	}
 
 	@Test
+	@DisplayName("Should not show player logs as they have not been found")
 	public void shouldNotShowPlayerLogs_playerNotFound() {
 		String inputUsernameForSearch = "username";
 		Mockito.when(playerRepository.findPlayer(inputUsernameForSearch)).thenReturn(Optional.empty());
@@ -98,6 +102,7 @@ class LoggerServiceImplTest {
 	}
 
 	@Test
+	@DisplayName("Must make a log entry")
 	public void shouldRecordLog() {
 		loggerService.recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
 

@@ -10,7 +10,6 @@ import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.jwt.JwtService;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
-import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.exception.InvalidInputDataException;
@@ -18,14 +17,13 @@ import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Date;
 
 class PlayerServletTest {
 	private ObjectMapper objectMapper;
@@ -57,9 +55,9 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should show player balance")
 	void shouldShowPlayerBalance() throws IOException, ServletException {
 		final BigDecimal balance = new BigDecimal(100);
-		final String message = String.format("%s, your balance -> %s", authPlayer.username(), balance);
 
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
 		Mockito.when(playerService.getPlayerBalance(authPlayer)).thenReturn(balance);
@@ -72,6 +70,7 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should throw exception that player is not logged in")
 	void shouldThrowExceptionThatPlayerNotLoggedIn() throws IOException, ServletException {
 		final String message = "Performing an operation by an unregistered user.";
 
@@ -87,9 +86,9 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should register player")
 	public void shouldRegisterPlayer() throws IOException, ServletException {
 		final String command = "registration";
-		final String message = "You have successfully registered.";
 
 		PlayerRequestDto playerRequest = new PlayerRequestDto("username", "password");
 		String jsonObject = objectMapper.writeValueAsString(playerRequest);
@@ -109,6 +108,7 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should throw invalid input exception when username is null")
 	public void shouldThrowInvalidInputException_usernameNull() throws IOException, ServletException {
 		final String command = "registration";
 		final String message = "Username or password can`t be empty.";
@@ -133,6 +133,7 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should throw invalid input exception when password is null")
 	public void shouldThrowInvalidInputException_passwordNull() throws IOException, ServletException {
 		final String command = "registration";
 		final String message = "Username or password can`t be empty.";
@@ -157,6 +158,7 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should throw invalid input exception when username length is less than one")
 	public void shouldThrowInvalidInputException_usernameLengthLessThanOne() throws IOException, ServletException {
 		final String command = "registration";
 		final String message = "The length of the username or password cannot be less than 1";
@@ -181,6 +183,7 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should throw invalid input exception when password length is less than one")
 	public void shouldThrowInvalidInputException_passwordLengthLessThanOne() throws IOException, ServletException {
 		final String command = "registration";
 		final String message = "The length of the username or password cannot be less than 1";
@@ -205,6 +208,7 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should throw exception PlayerAlreadyExist")
 	public void shouldThrowExceptionPlayerAlreadyExists() throws IOException, ServletException {
 		final String command = "registration";
 		final String message = "This user is already registered. Try again.";
@@ -228,6 +232,7 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should perform sign-in operation")
 	public void shouldPerformSigInOperation() throws IOException, ServletException {
 		final String command = "sign_in";
 
@@ -251,6 +256,7 @@ class PlayerServletTest {
 	}
 
 	@Test
+	@DisplayName("Should throw exception when login PlayerNotFoundException")
 	public void shouldThrowExceptionWhenLogIn_PlayerNotFoundException() throws IOException, ServletException {
 		final String command = "sign_in";
 		final String message = "Current player not found. Please try again.";

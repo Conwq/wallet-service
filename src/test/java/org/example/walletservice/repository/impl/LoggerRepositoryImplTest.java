@@ -16,10 +16,7 @@ import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -63,6 +60,7 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Must return records all operations players")
 	public void shouldReturnAllActivity() {
 		playerRepository.registrationPayer(player);
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, player.getUsername(), Status.SUCCESSFUL);
@@ -84,6 +82,7 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Must record action player")
 	public void shouldRecordAction() {
 		String playerActionRecord = String.format(LOG_FORMAT, Operation.DEBIT, ADMIN, Status.SUCCESSFUL);
 		Log log = new Log();
@@ -97,6 +96,7 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Should return an empty list of player activity records")
 	public void shouldReturnEmptyRecordAction() {
 		List<Log> recordAction = loggerRepository.findActivityRecordsForPlayer(13);
 
@@ -104,6 +104,7 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Must return all action of a particular user")
 	public void shouldReturnRecordActionForPlayer() {
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, ADMIN, Status.SUCCESSFUL);
 		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);

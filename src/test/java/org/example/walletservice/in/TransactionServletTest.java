@@ -9,7 +9,6 @@ import org.example.walletservice.in.command.Command;
 import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
-import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.service.TransactionService;
@@ -23,11 +22,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 class TransactionServletTest {
@@ -55,11 +52,11 @@ class TransactionServletTest {
 		req = Mockito.mock(HttpServletRequest.class);
 		resp = Mockito.mock(HttpServletResponse.class);
 
-
 		authPlayer = new AuthPlayerDto(1, "admin", Role.ADMIN);
 	}
 
 	@Test
+	@DisplayName("Should return transaction history")
 	public void shouldReturnTransactionHistory() throws IOException, ServletException {
 		final List<TransactionResponseDto> transactionList = new ArrayList<>() {{
 			add(new TransactionResponseDto(Operation.CREDIT.name(), new BigDecimal(100), "token #1"));
@@ -77,8 +74,8 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("Should return empty transaction history")
 	public void shouldReturnEmptyTransactionHistory() throws IOException, ServletException {
-		final String message = "Transactions is empty.";
 		final List<TransactionResponseDto> transactionList = new ArrayList<>();
 
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
@@ -92,6 +89,7 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("Should throw exception PlayerNotLoggedInException")
 	public void shouldThrowException_PlayerNotLoggedInException() throws IOException, ServletException {
 		final String message = "You need to log in. This resource is not available to you.";
 
@@ -109,9 +107,9 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("Must top up the user's balance with the specified amount")
 	public void shouldCredit() throws IOException, ServletException {
 		final String command = "credit";
-		final String message = "Credit successfully.";
 
 		TransactionRequestDto transactionRequest =
 				new TransactionRequestDto(new BigDecimal(100), "token");
@@ -133,6 +131,7 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("It is necessary to throw out an exception when replenishing the user's balance InvalidInputDataException")
 	public void shouldThrowExceptionCredit_InvalidInputDataException() throws IOException, ServletException {
 		final String command = "credit";
 		final String message = "You need to log in. This resource is not available to you.";
@@ -159,6 +158,7 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("It is necessary to throw out an exception when replenishing the user's balance TransactionNumberAlreadyExist")
 	public void shouldThrowExceptionCredit_TransactionNumberAlreadyExist() throws IOException, ServletException {
 		final String command = "credit";
 		final String message = "A transaction with this number already exists.";
@@ -185,6 +185,7 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("It is necessary to throw out an exception when replenishing the user's balance PlayerDoesNotHaveAccessException")
 	public void shouldThrowExceptionCredit_PlayerDoesNotHaveAccessException() throws IOException, ServletException {
 		final String command = "credit";
 		final String message = "You need to log in. This resource is not available to you.";
@@ -211,9 +212,9 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("Must withdraw money from the user's account")
 	public void shouldDebit() throws IOException, ServletException {
 		final String command = "debit";
-		final String message = "Debit successfully.";
 
 		TransactionRequestDto transactionRequest =
 				new TransactionRequestDto(new BigDecimal(100), "token");
@@ -235,6 +236,7 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("It is necessary to throw an exception when withdrawing funds from the user's account InvalidInputDataException")
 	public void shouldThrowExceptionDebit_InvalidInputDataException() throws IOException, ServletException {
 		final String command = "debit";
 		final String message = "The amount to be entered cannot be less than 0.";
@@ -288,6 +290,7 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("It is necessary to throw an exception when withdrawing funds from the user's account TransactionNumberAlreadyExist")
 	public void shouldThrowExceptionDebit_TransactionNumberAlreadyExist() throws IOException, ServletException {
 		final String command = "debit";
 		final String message = "A transaction with this number already exists.";
@@ -314,6 +317,7 @@ class TransactionServletTest {
 	}
 
 	@Test
+	@DisplayName("It is necessary to throw an exception when withdrawing funds from the user's account PlayerDoesNotHaveAccessException")
 	public void shouldThrowExceptionDebit_PlayerDoesNotHaveAccessException() throws IOException, ServletException {
 		final String command = "debit";
 		final String message = "You need to log in. This resource is not available to you.";

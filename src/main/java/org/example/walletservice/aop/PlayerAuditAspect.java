@@ -46,18 +46,13 @@ public class PlayerAuditAspect {
 	public Object logInAspect(ProceedingJoinPoint joinPoint) throws Throwable {
 		Object result;
 		try {
-			long startTime = System.currentTimeMillis();
 			result = joinPoint.proceed();
-			long endTime = System.currentTimeMillis();
 
 			if (result instanceof AuthPlayerDto authPlayerDto) {
 				Player player = playerMapper.toEntity(authPlayerDto);
 				loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
 				System.out.println("[SUCCESSFUL] Sign in was successful.");
 			}
-
-			System.out.printf("Execution of method %s finished. Execution time is %s ms\n",
-					joinPoint.getSignature(), (endTime - startTime));
 
 		} catch (PlayerNotFoundException e) {
 			handleSignInException(e);

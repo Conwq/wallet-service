@@ -17,6 +17,7 @@ import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -48,6 +49,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Must successfully register the user")
 	void shouldRegistrationPlayer_successful() {
 		Mockito.when(playerRepository.findPlayer(playerRequest.username())).thenReturn(Optional.empty());
 		Mockito.when(playerRepository.registrationPayer(Mockito.any(Player.class))).thenReturn(1);
@@ -59,6 +61,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Must not register the user because the name is already taken")
 	public void shouldNotRegisteredPlayer_error() {
 		Mockito.when(playerRepository.findPlayer(playerRequest.username())).thenReturn(Optional.of(player));
 
@@ -71,6 +74,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Must not register the user because the name is empty")
 	public void shouldNotRegisteredPlayer_invalidUsernameEqNull() {
 		final String message = "Username or password can`t be empty.";
 		playerRequest = new PlayerRequestDto(null, "password");
@@ -87,6 +91,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Doesn't have to register the user because the password is blank")
 	public void shouldNotRegisteredPlayer_invalidPasswordEqNull() {
 		final String message = "Username or password can`t be empty.";
 		playerRequest = new PlayerRequestDto("username", null);
@@ -103,6 +108,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Must not register the user because the password is less than one password long")
 	public void shouldNotRegisteredPlayer_invalidPasswordLessThanOneLength() {
 		final String message = "The length of the username or password cannot be less than 1";
 		playerRequest = new PlayerRequestDto("username", "");
@@ -120,6 +126,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("")
 	public void shouldNotRegisteredPlayer_invalidUsernameLessThanOneLength() {
 		final String message = "The length of the username or password cannot be less than 1";
 		playerRequest = new PlayerRequestDto("", "password");
@@ -136,6 +143,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("")
 	public void shouldNotRegistrationPlayer_emptyInputData() {
 		final String message = "To log in, you need to enter your login and password";
 
@@ -148,6 +156,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Must be successfully logged in")
 	public void shouldLogInPlayer_success() {
 		AuthPlayerDto expected = new AuthPlayerDto(player.getPlayerID(), playerRequest.username(), player.getRole());
 
@@ -161,6 +170,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Must not be successful in logging in because no such username exists")
 	public void shouldNotLogInPlayer_notFoundPlayer() {
 		final String message = "Current player not found. Please try again.";
 		Mockito.when(playerRepository.findPlayer(playerRequest.username())).thenReturn(Optional.empty());
@@ -174,6 +184,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Shouldn't sign in because passwords don't matc")
 	public void shouldNotLogInPlayer_PasswordsDontMatch() {
 		final String message = "Incorrect password.";
 		player.setPassword("different_password");
@@ -189,6 +200,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Must not be logged in because the name is empty")
 	public void shouldNotLogInPlayer_invalidUsernameEqNull() {
 		final String message = "Username or password can`t be empty.";
 		playerRequest = new PlayerRequestDto(null, "password");
@@ -204,6 +216,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user does not have to log in to the user because the password is blank")
 	public void shouldNotLogInPlayer_invalidPasswordEqNull() {
 		final String message = "Username or password can`t be empty.";
 		playerRequest = new PlayerRequestDto("username", null);
@@ -219,6 +232,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user doesn't have to sign in because the password is less than one\n")
 	public void shouldNotLogInPlayer_invalidPasswordLessThanOneLength() {
 		final String message = "The length of the username or password cannot be less than 1";
 		playerRequest = new PlayerRequestDto("username", "");
@@ -234,6 +248,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user doesn't have to sign in because the name is less than one")
 	public void shouldNotLogInPlayer_invalidUsernameLessThanOneLength() {
 		final String message = "The length of the username or password cannot be less than 1";
 		playerRequest = new PlayerRequestDto("", "password");
@@ -248,6 +263,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user doesn't have to sign in because no data has been entered")
 	public void shouldNotLogInPlayer_emptyInputData() {
 		final String message = "To log in, you need to enter your login and password";
 
@@ -261,6 +277,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user should not receive the balance as it is not authorized")
 	public void shouldGetBalancePlayer_unauthorizedUser() {
 		final String message = "Performing an operation by an unregistered user.";
 
@@ -272,6 +289,7 @@ class PlayerServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user should receive the balance")
 	public void shouldGetBalancePlayer_successful() {
 		AuthPlayerDto authPlayer = new AuthPlayerDto(1, "admin", Role.ADMIN);
 		BigDecimal balance = new BigDecimal(100);

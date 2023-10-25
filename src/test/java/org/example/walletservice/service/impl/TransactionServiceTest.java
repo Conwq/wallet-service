@@ -19,6 +19,7 @@ import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessExcept
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -33,7 +34,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TransactionServiceTest {
-	private LoggerServiceImpl loggerService;
 	private TransactionRepository transactionRepository;
 	private PlayerRepository playerRepository;
 	private TransactionService transactionService;
@@ -41,13 +41,11 @@ class TransactionServiceTest {
 	private PlayerMapper playerMapper;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
-	private PlayerRequestDto playerRequest;
 	private AuthPlayerDto authPlayerDto;
 	private TransactionRequestDto transactionRequestDto;
 
 	@BeforeEach
 	public void setUp() {
-		loggerService = Mockito.mock(LoggerServiceImpl.class);
 		transactionRepository = Mockito.mock(TransactionRepository.class);
 		playerRepository = Mockito.mock(PlayerRepository.class);
 		playerRepository = Mockito.mock(PlayerRepository.class);
@@ -58,8 +56,6 @@ class TransactionServiceTest {
 				playerRepository,
 				transactionMapper,
 				playerMapper);
-
-		playerRequest = new PlayerRequestDto("username", "password");
 
 		player = new Player();
 		player.setPlayerID(1);
@@ -73,6 +69,7 @@ class TransactionServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user must top up the balance")
 	public void shouldCredit_successful() {
 		Transaction transaction = new Transaction();
 
@@ -87,6 +84,7 @@ class TransactionServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user does not have to top up the balance because he is not authorized")
 	public void shouldNotCredit_playerDoesNotHaveAccess() {
 		final String message = "You need to log in. This resource is not available to you.";
 		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
@@ -99,6 +97,7 @@ class TransactionServiceTest {
 	}
 
 	@Test
+	@DisplayName("The User does not have to deposit or withdraw from the account as the amount of funds he has deposited exceeds the amount of available funds in his account")
 	public void shouldThrowException_invalidInputData() {
 		final String message = "The amount to be entered cannot be less than 0.";
 		transactionRequestDto = new TransactionRequestDto(new BigDecimal(-100), TRANSACTIONAL_TOKEN);
@@ -111,6 +110,7 @@ class TransactionServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user does not have to perform any operation as the token they have entered is not unique")
 	public void shouldThrowException_transactionTokenNotUnique() {
 		final String message = "A transaction with this number already exists.";
 
@@ -126,6 +126,7 @@ class TransactionServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user must have successfully withdrawn money from the account")
 	public void shouldDebit_successful() {
 		Transaction transaction = new Transaction();
 
@@ -140,20 +141,7 @@ class TransactionServiceTest {
 	}
 
 	@Test
-	public void shouldGetPlayerTransactionalHistory_successful() {
-		when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
-
-		List<Transaction> transactions = new ArrayList<>();
-		transactions.add(new Transaction());
-		when(transactionRepository.findPlayerTransactionalHistoryByPlayer(player)).thenReturn(transactions);
-
-		List<TransactionResponseDto> result = transactionService.getPlayerTransactionalHistory(authPlayerDto);
-
-		assertNotNull(result);
-		assertEquals(transactions.size(), result.size());
-	}
-
-	@Test
+	@DisplayName("The user must successfully retrieve their empty transaction history")
 	public void shouldReturnPlayerTransactionalHistory_emptyMap() {
 		List<TransactionResponseDto> testTransactionHistory = new ArrayList<>();
 
@@ -166,6 +154,7 @@ class TransactionServiceTest {
 	}
 
 	@Test
+	@DisplayName("The user must successfully retrieve their transaction history")
 	public void shouldReturnPlayerTransactionalHistory() {
 		List<Transaction> testTransactionHistory =
 				new ArrayList<>(Collections.singleton(new Transaction()));

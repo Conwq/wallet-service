@@ -16,7 +16,7 @@ import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -63,13 +63,16 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Once validated, the token should return a negative value")
 	public void shouldReturnFalseAfterValidatingToken() {
 		boolean value = transactionRepository.checkTokenExistence("new_token");
 
 		AssertionsForClassTypes.assertThat(value).isFalse();
 	}
 
+
 	@Test
+	@DisplayName("Must change the player's balance after making a deposit")
 	public void shouldChangePlayerBalanceAfterDepositing() {
 		Transaction transaction = new Transaction();
 		transaction.setToken(TRANSACTION_TOKEN);
@@ -92,7 +95,8 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
-	public void mustReturnTrueAfterValidatingToken() {
+	@DisplayName("After validating the token, it should return a positive value")
+	public void shouldReturnTrueAfterValidatingToken() {
 		boolean value = transactionRepository.checkTokenExistence(TRANSACTION_TOKEN);
 
 		AssertionsForClassTypes.assertThat(value).isTrue();
