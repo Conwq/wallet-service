@@ -118,8 +118,15 @@ public final class PlayerServiceImpl implements PlayerService {
 	 * @throws InvalidInputDataException If the input data is invalid, such as empty or too short username/password.
 	 */
 	private void inputValidation(PlayerRequestDto playerRequestDto) throws InvalidInputDataException {
-		String username = playerRequestDto.username();
-		String password = playerRequestDto.password();
+		String username;
+		String password;
+
+		if (playerRequestDto == null) {
+			throw new InvalidInputDataException("To log in, you need to enter your login and password");
+		}
+
+		username = playerRequestDto.username();
+		password = playerRequestDto.password();
 
 		if (username == null || password == null) {
 			throw new InvalidInputDataException("Username or password can`t be empty.");
