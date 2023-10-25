@@ -265,8 +265,7 @@ class PlayerServletTest {
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-		Mockito.doThrow(new PlayerAlreadyExistException(message))
-				.when(playerService).registrationPlayer(playerRequest);
+		Mockito.doThrow(new PlayerAlreadyExistException(message)).when(playerService).registrationPlayer(playerRequest);
 
 		playerServlet.doPost(req, resp);
 

@@ -3,6 +3,7 @@ package org.example.walletservice.service.impl;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.model.entity.Player;
@@ -40,6 +41,7 @@ class TransactionServiceTest {
 	private PlayerMapper playerMapper;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
+	private PlayerRequestDto playerRequest;
 	private AuthPlayerDto authPlayerDto;
 	private TransactionRequestDto transactionRequestDto;
 
@@ -56,6 +58,8 @@ class TransactionServiceTest {
 				playerRepository,
 				transactionMapper,
 				playerMapper);
+
+		playerRequest = new PlayerRequestDto("username", "password");
 
 		player = new Player();
 		player.setPlayerID(1);
@@ -85,8 +89,7 @@ class TransactionServiceTest {
 	@Test
 	public void shouldNotCredit_playerDoesNotHaveAccess() {
 		final String message = "You need to log in. This resource is not available to you.";
-
-		when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
+		Mockito.when(transactionRepository.checkTokenExistence(TRANSACTIONAL_TOKEN)).thenReturn(false);
 
 		PlayerDoesNotHaveAccessException exception = Assertions.assertThrows(PlayerDoesNotHaveAccessException.class, () -> {
 			transactionService.credit(null, transactionRequestDto);
@@ -112,7 +115,7 @@ class TransactionServiceTest {
 		final String message = "A transaction with this number already exists.";
 
 		transactionRequestDto = new TransactionRequestDto(BigDecimal.ONE, TRANSACTIONAL_TOKEN);
-		when(transactionRepository.checkTokenExistence(transactionRequestDto.transactionToken()))
+		Mockito.when(transactionRepository.checkTokenExistence(transactionRequestDto.transactionToken()))
 				.thenReturn(true);
 
 		TransactionNumberAlreadyExist exception = Assertions.assertThrows(TransactionNumberAlreadyExist.class, () -> {
@@ -167,9 +170,9 @@ class TransactionServiceTest {
 		List<Transaction> testTransactionHistory =
 				new ArrayList<>(Collections.singleton(new Transaction()));
 
-		when(transactionRepository.findPlayerTransactionalHistoryByPlayer(player))
+		Mockito.when(transactionRepository.findPlayerTransactionalHistoryByPlayer(player))
 				.thenReturn(testTransactionHistory);
-		when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
+		Mockito.when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
 
 		List<TransactionResponseDto> transactions = transactionService.getPlayerTransactionalHistory(authPlayerDto);
 		AssertionsForClassTypes.assertThat(transactions.size()).isEqualTo(testTransactionHistory.size());
