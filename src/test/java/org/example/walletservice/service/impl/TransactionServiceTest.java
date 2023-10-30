@@ -11,6 +11,7 @@ import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
+import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.exception.InvalidInputDataException;
@@ -27,13 +28,13 @@ import java.util.List;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Disabled
 class TransactionServiceTest {
 	private TransactionRepository transactionRepository;
 	private PlayerRepository playerRepository;
 	private TransactionService transactionService;
 	private TransactionMapper transactionMapper;
 	private PlayerMapper playerMapper;
+	private LoggerService loggerService;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
 	private AuthPlayerDto authPlayerDto;
@@ -46,11 +47,11 @@ class TransactionServiceTest {
 		playerRepository = Mockito.mock(PlayerRepository.class);
 		transactionMapper = Mockito.mock(TransactionMapper.class);
 		playerMapper = Mockito.mock(PlayerMapper.class);
+		loggerService = Mockito.mock(LoggerService.class);
 
-//		transactionService = new TransactionServiceImpl(transactionRepository,
-//				playerRepository,
-//				transactionMapper,
-//				playerMapper);
+		transactionService = new TransactionServiceImpl(
+				transactionRepository, playerRepository, loggerService, transactionMapper, playerMapper
+		);
 
 		player = new Player();
 		player.setPlayerID(1);
@@ -67,9 +68,10 @@ class TransactionServiceTest {
 	@DisplayName("The user must top up the balance")
 	public void shouldCredit_successful() {
 		Transaction transaction = new Transaction();
+		player.setBalance(BigDecimal.ZERO);
 
 		when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
-//		when(playerRepository.findPlayerBalance(player)).thenReturn(BigDecimal.ZERO);
+		when(playerRepository.findPlayerBalance(player)).thenReturn(player);
 		when(transactionMapper.toEntity(transactionRequestDto, player, Operation.CREDIT, BigDecimal.TEN))
 				.thenReturn(transaction);
 
@@ -126,7 +128,7 @@ class TransactionServiceTest {
 		Transaction transaction = new Transaction();
 
 		when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
-//		when(playerRepository.findPlayerBalance(player)).thenReturn(BigDecimal.TEN);
+		when(playerRepository.findPlayerBalance(player)).thenReturn(player);
 		when(transactionMapper.toEntity(transactionRequestDto, player, Operation.DEBIT, BigDecimal.ZERO))
 				.thenReturn(transaction);
 

@@ -3,7 +3,6 @@ package org.example.walletservice.config;
 import org.example.walletservice.jwt.JwtInterceptor;
 import org.example.walletservice.jwt.JwtService;
 import org.postgresql.ds.PGSimpleDataSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,7 +23,6 @@ import javax.sql.DataSource;
 })
 @EnableAspectJAutoProxy
 public class ApplicationConfig implements WebMvcConfigurer {
-
 	@Value("${database.url}")
 	private String url;
 	@Value("${database.username}")
@@ -87,4 +85,16 @@ public class ApplicationConfig implements WebMvcConfigurer {
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(jwtInterceptor()).addPathPatterns("/**");
 	}
+
+//	@Bean
+//	public LiquibaseMigration liquibaseMigration(){
+//		return new LiquibaseMigration(dataSource());
+//	}
+//
+//	@EventListener(ContextRefreshedEvent.class)
+//	public void migration() {
+//		System.out.println("dada");
+//		liquibaseMigration.performingDatabaseMigration();
+//		System.out.println("121");
+//	}
 }

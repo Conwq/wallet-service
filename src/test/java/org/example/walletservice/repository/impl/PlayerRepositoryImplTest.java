@@ -1,5 +1,12 @@
 package org.example.walletservice.repository.impl;
 
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.LiquibaseException;
+import liquibase.resource.ClassLoaderResourceAccessor;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.entity.Player;
@@ -8,11 +15,16 @@ import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.*;
+import org.postgresql.ds.PGSimpleDataSource;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Optional;
 
 @Disabled
+
 class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;
@@ -27,20 +39,24 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@BeforeAll
 	static void beforeAll() {
-//		ConnectionProvider connectionProvider = new ConnectionProvider(
-//				POSTGRES.getJdbcUrl(),
-//				POSTGRES.getUsername(),
-//				POSTGRES.getPassword());
-//		try (Connection connection = connectionProvider.takeConnection()) {
-//			Database database = DatabaseFactory.getInstance()
-//					.findCorrectDatabaseImplementation(new JdbcConnection(connection));
-//			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(), database);
-//			liquibase.update();
-////			playerRepository = new PlayerRepositoryImpl(connectionProvider);
-//			transactionRepository = new TransactionRepositoryImpl(connectionProvider);
-//		} catch (SQLException | LiquibaseException e) {
-//			e.printStackTrace();
-//		}
+		PGSimpleDataSource dataSource = new PGSimpleDataSource();
+		dataSource.setUrl(POSTGRES.getJdbcUrl());
+		dataSource.setUser(POSTGRES.getUsername());
+		dataSource.setPassword(POSTGRES.getPassword());
+
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
+		try (Connection connection = dataSource.getConnection()) {
+			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
+					new JdbcConnection(connection));
+			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
+					database);
+			liquibase.update();
+			playerRepository = new PlayerRepositoryImpl(jdbcTemplate);
+			transactionRepository = new TransactionRepositoryImpl(jdbcTemplate);
+		} catch (SQLException | LiquibaseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@BeforeEach
@@ -77,11 +93,17 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	@Test
 	@DisplayName("Must register a user")
 	public void shouldRegistrationPlayer() {
+		Player player = new Player();
+		player.setUsername("t");
+		player.setPassword("t");
+
 		playerRepository.registrationPayer(player);
 
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(player.getUsername());
 		Player expected = optionalPlayer.get();
-		AssertionsForClassTypes.assertThat(player).isEqualTo(expected);
+
+		Assertions.assertThat(player.getUsername()).isEqualTo(expected.getUsername());
+		Assertions.assertThat(player.getPassword()).isEqualTo(expected.getPassword());
 	}
 
 	@Test
@@ -90,9 +112,9 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 		Player newPlayer = new Player();
 		newPlayer.setPlayerID(1);
 
-//		BigDecimal expectedBalancePlayer = playerRepository.findPlayerBalance(newPlayer);
-//
-//		AssertionsForClassTypes.assertThat(BigDecimal.ZERO).isEqualTo(expectedBalancePlayer);
+		Player expectedPlayer = playerRepository.findPlayerBalance(newPlayer);
+
+		AssertionsForClassTypes.assertThat(BigDecimal.ZERO).isEqualTo(expectedPlayer.getBalance());
 	}
 
 	@Test
@@ -100,8 +122,8 @@ class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	public void shouldReceiveBalanceByPlayerIDAfterDepositing() {
 		transactionRepository.creditOrDebit(transaction, BALANCE);
 
-//		BigDecimal expectedBalancePlayer = playerRepository.findPlayerBalance(player);
-//
-//		AssertionsForClassTypes.assertThat(BALANCE).isEqualTo(expectedBalancePlayer);
+		Player expectedPlayer = playerRepository.findPlayerBalance(player);
+
+		AssertionsForClassTypes.assertThat(BALANCE).isEqualTo(expectedPlayer.getBalance());
 	}
 }

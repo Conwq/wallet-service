@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -28,7 +29,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@Disabled
 class LoggerServiceImplTest {
 	private LoggerService loggerService;
 	private LoggerRepository loggerRepository;
@@ -40,11 +40,11 @@ class LoggerServiceImplTest {
 
 	@BeforeEach
 	void setUp() {
-//		logMapper = LogMapper.instance;
-		playerMapper = Mockito.mock(PlayerMapper.class);
+		logMapper = Mappers.getMapper(LogMapper.class);
+		playerMapper = Mappers.getMapper(PlayerMapper.class);
 		playerRepository = Mockito.mock(PlayerRepository.class);
 		loggerRepository = Mockito.mock(LoggerRepository.class);
-//		loggerService = new LoggerServiceImpl(loggerRepository, playerRepository, logMapper, playerMapper);
+		loggerService = new LoggerServiceImpl(playerRepository, logMapper, playerMapper, loggerRepository);
 
 		player = new Player();
 		player.setPlayerID(1);
@@ -52,7 +52,7 @@ class LoggerServiceImplTest {
 		player.setPassword("2312");
 		player.setRole(Role.USER);
 
-		authPlayerDto = new AuthPlayerDto(1, "username", Role.ADMIN);
+		authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
 	}
 
 	@Test

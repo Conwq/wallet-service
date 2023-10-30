@@ -3,4 +3,6 @@ database:
   username: root
   password: 1
 liquibase:
-  change-log: classpath:changelog/changelog.xml
+  change-log: changelog/changelog.xml
+  schema-migration: migration
+  default-schema: wallet_service
