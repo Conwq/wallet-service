@@ -27,13 +27,13 @@ import java.util.Optional;
  */
 @Service
 public class PlayerServiceImpl implements PlayerService {
+	private static final String PLAYER_EXIST_EXCEPTION = "This user is already registered. Try again.";
+	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.";
+	private static final String INCORRECT_PASSWORD = "Incorrect password.";
 	private final PlayerRepository playerRepository;
 	private final PlayerMapper playerMapper;
 	private final LoggerService loggerService;
 	private final BalanceMapper balanceMapper;
-	private static final String PLAYER_EXIST_EXCEPTION = "This user is already registered. Try again.";
-	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.";
-	private static final String INCORRECT_PASSWORD = "Incorrect password.";
 
 	@Autowired
 	public PlayerServiceImpl(PlayerRepository playerRepository,
@@ -88,7 +88,6 @@ public class PlayerServiceImpl implements PlayerService {
 		return playerMapper.toAuthPlayerDto(player);
 	}
 
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -96,7 +95,6 @@ public class PlayerServiceImpl implements PlayerService {
 	public Optional<Player> findByUsername(String username) {
 		return playerRepository.findPlayer(username);
 	}
-
 
 	/**
 	 * {@inheritDoc}
@@ -125,7 +123,7 @@ public class PlayerServiceImpl implements PlayerService {
 		String password;
 
 		if (playerRequestDto == null) {
-			throw new InvalidInputDataException("To log in, you need to enter your login and password");
+			throw new PlayerNotLoggedInException("Performing an operation by an unregistered user.");
 		}
 
 		username = playerRequestDto.username();

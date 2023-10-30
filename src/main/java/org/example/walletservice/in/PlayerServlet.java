@@ -3,7 +3,6 @@ package org.example.walletservice.in;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.walletservice.jwt.JwtService;
-import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.InfoResponse;
@@ -52,10 +51,8 @@ public final class PlayerServlet {
 
 	@GetMapping("/balance")
 	public ResponseEntity<BalanceResponseDto> getBalance(HttpServletRequest request) {
-		System.out.println(request.getHeader("Authorization"));
-
-		BalanceResponseDto balanceResponse =
-				playerService.getPlayerBalance(new AuthPlayerDto(1, "admin", Role.ADMIN));
+		AuthPlayerDto authPlayerDto = (AuthPlayerDto) request.getAttribute(AUTH_PLAYER);
+		BalanceResponseDto balanceResponse = playerService.getPlayerBalance(authPlayerDto);
 		return new ResponseEntity<>(balanceResponse, HttpStatus.OK);
 	}
 

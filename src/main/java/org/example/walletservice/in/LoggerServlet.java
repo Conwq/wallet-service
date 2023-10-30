@@ -1,9 +1,13 @@
 package org.example.walletservice.in;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.service.LoggerService;
+import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
+import org.example.walletservice.service.exception.PlayerNotLoggedInException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,48 +26,40 @@ public class LoggerServlet {
 	private static final String AUTH_PLAYER = "authPlayer";
 	private final LoggerService loggerService;
 
+	@Autowired
 	public LoggerServlet(LoggerService loggerService) {
 		this.loggerService = loggerService;
 	}
 
 	@GetMapping("/all_log")
-	public ResponseEntity<List<LogResponseDto>> getAllLogs() {
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+	public ResponseEntity<List<LogResponseDto>> getAllLogs(HttpServletRequest request) {
+		AuthPlayerDto authPlayerDto = userAuthorizationVerification(request);
+
 		List<LogResponseDto> logList = loggerService.getAllLogs(authPlayerDto);
 		return new ResponseEntity<>(logList, HttpStatus.OK);
 	}
 
 	@GetMapping("/player_log")
-	public ResponseEntity<List<LogResponseDto>> getPlayerLog(@RequestParam("username") String username) {
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+	public ResponseEntity<List<LogResponseDto>> getPlayerLog(@RequestParam("username") String username,
+															 HttpServletRequest request) {
+		AuthPlayerDto authPlayerDto = userAuthorizationVerification(request);
+
 		List<LogResponseDto> logList = loggerService.getLogsByUsername(authPlayerDto, username);
 		return new ResponseEntity<>(logList, HttpStatus.OK);
 	}
 
+	private AuthPlayerDto userAuthorizationVerification(HttpServletRequest request) {
+		AuthPlayerDto authPlayerDto = (AuthPlayerDto) request.getAttribute(AUTH_PLAYER);
 
-//	protected void doGet(HttpServletRequest req,
-//						 HttpServletResponse resp) throws ServletException, IOException {
-//		try {
-//			AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute(AUTH_PLAYER);
-//			checkForData(authPlayerDto);
-//			handleCommand(req, resp, authPlayerDto);
-//
-//		} catch (PlayerNotLoggedInException | PlayerDoesNotHaveAccessException e) {
-//			generateResponse(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, e.getMessage());
-//
-//	}
-//
+		if (authPlayerDto == null) {
+			System.out.println("[FAIL] Performing an operation by an unregistered user.");
+			throw new PlayerNotLoggedInException("Only an authorized administrator can perform this operation.");
+		}
 
-
-//	private void checkForData(AuthPlayerDto authPlayerDto) {
-//		if (authPlayerDto == null) {
-//			System.out.println("[FAIL] Performing an operation by an unregistered user.");
-//			throw new PlayerNotLoggedInException("Only an authorized administrator can perform this operation.");
-//		}
-//
-//		if (authPlayerDto.role() != Role.ADMIN) {
-//			System.out.println("[FAIL] You do not have access to this resource.");
-//			throw new PlayerDoesNotHaveAccessException("You do not have access to this resource.");
-//		}
-//	}
+		if (authPlayerDto.role() != Role.ADMIN) {
+			System.out.println("[FAIL] You do not have access to this resource.");
+			throw new PlayerDoesNotHaveAccessException("You do not have access to this resource.");
+		}
+		return authPlayerDto;
+	}
 }

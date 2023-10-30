@@ -1,6 +1,7 @@
 package org.example.walletservice.in.handler;
 
 import org.example.walletservice.model.dto.InfoResponse;
+import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,11 @@ public class LoggerExceptionHandler {
 	@ExceptionHandler(PlayerNotFoundException.class)
 	public ResponseEntity<InfoResponse> playerNotFoundExceptionHandler(PlayerNotFoundException e) {
 		return generateResponse(HttpStatus.NOT_FOUND, e.getMessage());
+	}
+
+	@ExceptionHandler(PlayerDoesNotHaveAccessException.class)
+	public ResponseEntity<InfoResponse> playerDoesNotHaveAccessExceptionHandler(PlayerDoesNotHaveAccessException e) {
+		return generateResponse(HttpStatus.NOT_ACCEPTABLE, e.getMessage());
 	}
 
 	private ResponseEntity<InfoResponse> generateResponse(HttpStatus status, String message) {

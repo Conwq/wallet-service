@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.logging.Logger;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -49,7 +48,7 @@ public class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
-		Player player = checkForData(authPlayerDto);
+		Player player = userAuthorizationVerification(authPlayerDto);
 		List<Transaction> playerTransactionalHistory = transactionRepository.findPlayerTransactionalHistory(player);
 		loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
 		return playerTransactionalHistory.stream().map(transactionMapper::toDto).toList();
@@ -60,7 +59,7 @@ public class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
-		Player player = checkForData(authPlayerDto);
+		Player player = userAuthorizationVerification(authPlayerDto);
 		validatingInputData(player, transactionRequestDto);
 
 		Player findPlayer = playerRepository.findPlayerBalance(player);
@@ -83,7 +82,7 @@ public class TransactionServiceImpl implements TransactionService {
 	 */
 	@Override
 	public void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
-		Player player = checkForData(authPlayerDto);
+		Player player = userAuthorizationVerification(authPlayerDto);
 		validatingInputData(player, transactionRequestDto);
 
 		Player findPlayer = playerRepository.findPlayerBalance(player);
@@ -136,7 +135,7 @@ public class TransactionServiceImpl implements TransactionService {
 	 * @param authPlayerDto The AuthPlayerDto to check.
 	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayerDto is null, indicating an unregistered user.
 	 */
-	private Player checkForData(AuthPlayerDto authPlayerDto) {
+	private Player userAuthorizationVerification(AuthPlayerDto authPlayerDto) {
 		if (authPlayerDto == null) {
 			throw new PlayerDoesNotHaveAccessException("You need to log in. This resource is not available to you.");
 		}
