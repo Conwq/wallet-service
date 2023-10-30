@@ -8,7 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+/**
+ * Extracts and validates JWT (JSON Web Token) from the Authorization header of an HTTP request.
+ */
 public class JwtInterceptor implements HandlerInterceptor {
+
 	private final JwtService jwtService;
 
 	@Autowired
@@ -16,6 +20,14 @@ public class JwtInterceptor implements HandlerInterceptor {
 		this.jwtService = jwtService;
 	}
 
+	/**
+	 * Pre-handle method that extracts and validates JWT from the Authorization header of the HTTP request.
+	 *
+	 * @param req     The HttpServletRequest object.
+	 * @param res     The HttpServletResponse object.
+	 * @param handler The handler object.
+	 * @return True if the request is allowed to proceed, false otherwise.
+	 */
 	@Override
 	public boolean preHandle(@NonNull HttpServletRequest req,
 							 @NonNull HttpServletResponse res,

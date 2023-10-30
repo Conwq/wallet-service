@@ -108,8 +108,10 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * Validates the input data in the provided TransactionRequestDto.
 	 *
+	 * @param player                The player initiating the transaction.
 	 * @param transactionRequestDto The TransactionRequestDto containing transaction information.
-	 * @throws InvalidInputDataException If the input data is invalid, such as a negative amount or an existing transaction number.
+	 * @throws InvalidInputDataException        If the input data is invalid, such as a negative amount or an existing transaction number.
+	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayerDto is null, indicating an unregistered user.
 	 */
 	private void validatingInputData(Player player, TransactionRequestDto transactionRequestDto) {
 		final String token = transactionRequestDto.transactionToken();
@@ -133,6 +135,7 @@ public class TransactionServiceImpl implements TransactionService {
 	 * Checks if the AuthPlayerDto is valid (not null).
 	 *
 	 * @param authPlayerDto The AuthPlayerDto to check.
+	 * @return The player associated with the AuthPlayerDto.
 	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayerDto is null, indicating an unregistered user.
 	 */
 	private Player userAuthorizationVerification(AuthPlayerDto authPlayerDto) {

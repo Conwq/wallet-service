@@ -4,7 +4,6 @@ import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.stereotype.Component;
 
 /**
  * Mapper for converting between Log entity and LogResponseDto.

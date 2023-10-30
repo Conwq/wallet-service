@@ -6,6 +6,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
+import org.springframework.stereotype.Component;
 
 /**
  * Aspect for auditing transactions in the wallet service.
@@ -13,6 +14,7 @@ import org.example.walletservice.service.exception.TransactionNumberAlreadyExist
  * and handle exceptions in a consistent manner.
  */
 @Aspect
+@Component
 public class TransactionAuditAspect {
 
 	/**

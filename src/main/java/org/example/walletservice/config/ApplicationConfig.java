@@ -13,6 +13,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.sql.DataSource;
 
+/**
+ * Application configuration class.
+ */
 @Configuration
 @EnableWebMvc
 @ComponentScan("org.example.walletservice")
@@ -21,6 +24,7 @@ import javax.sql.DataSource;
 })
 @EnableAspectJAutoProxy
 public class ApplicationConfig implements WebMvcConfigurer {
+
 	@Value("${database.url}")
 	private String url;
 	@Value("${database.username}")
@@ -30,10 +34,11 @@ public class ApplicationConfig implements WebMvcConfigurer {
 	@Value("${liquibase.change-log}")
 	private String changelogFile;
 
-	@Autowired
-	public ApplicationConfig() {
-	}
-
+	/**
+	 * Configures the data source.
+	 *
+	 * @return The configured data source.
+	 */
 	@Bean
 	public DataSource dataSource() {
 		PGSimpleDataSource dataSource = new PGSimpleDataSource();
@@ -43,30 +48,41 @@ public class ApplicationConfig implements WebMvcConfigurer {
 		return dataSource;
 	}
 
+	/**
+	 * Configures the JDBC template.
+	 *
+	 * @return The configured JDBC template.
+	 */
 	@Bean
 	public JdbcTemplate jdbcTemplate() {
 		return new JdbcTemplate(dataSource());
 	}
 
+	/**
+	 * Configures the JWT service.
+	 *
+	 * @return The configured JWT service.
+	 */
 	@Bean
 	public JwtService jwtService() {
 		return new JwtService();
 	}
 
-//	@Bean
-//	public SpringLiquibase liquibase(DataSource dataSource) {
-//		SpringLiquibase liquibase = new SpringLiquibase();
-//		liquibase.setDataSource(dataSource);
-//		liquibase.setChangeLog(changelogFile);
-//		//TODO нужно создать схему для Liquibase!
-//		return null;
-//	}
-
+	/**
+	 * Configures the JWT interceptor.
+	 *
+	 * @return The configured JWT interceptor.
+	 */
 	@Bean
 	public JwtInterceptor jwtInterceptor() {
 		return new JwtInterceptor(jwtService());
 	}
 
+	/**
+	 * Adds the JWT interceptor to the registry.
+	 *
+	 * @param registry The interceptor registry.
+	 */
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(jwtInterceptor()).addPathPatterns("/**");

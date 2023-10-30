@@ -21,15 +21,16 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Provides functionality
- * for player registration, login, balance management, credit, debit, transaction history,
+ * Provides functionality for player registration, login, balance management, credit, debit, transaction history,
  * and log display.
  */
 @Service
 public class PlayerServiceImpl implements PlayerService {
+
 	private static final String PLAYER_EXIST_EXCEPTION = "This user is already registered. Try again.";
 	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.";
 	private static final String INCORRECT_PASSWORD = "Incorrect password.";
+
 	private final PlayerRepository playerRepository;
 	private final PlayerMapper playerMapper;
 	private final LoggerService loggerService;
@@ -130,7 +131,7 @@ public class PlayerServiceImpl implements PlayerService {
 		password = playerRequestDto.password();
 
 		if (username == null || password == null) {
-			throw new InvalidInputDataException("Username or password can`t be empty.");
+			throw new InvalidInputDataException("Username or password can't be empty.");
 		}
 		if (username.length() < 1 || password.length() < 1) {
 			throw new InvalidInputDataException("The length of the username or password cannot be less than 1");

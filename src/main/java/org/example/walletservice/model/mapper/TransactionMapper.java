@@ -6,7 +6,6 @@ import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.service.enums.Operation;
 import org.mapstruct.Mapper;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 

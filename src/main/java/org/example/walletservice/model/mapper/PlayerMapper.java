@@ -5,7 +5,6 @@ import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.stereotype.Component;
 
 /**
  * Mapper for converting between Player entity and AuthPlayerDto.
