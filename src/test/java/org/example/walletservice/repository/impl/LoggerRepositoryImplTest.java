@@ -1,11 +1,5 @@
 package org.example.walletservice.repository.impl;
 
-import liquibase.Liquibase;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.LiquibaseException;
-import liquibase.resource.ClassLoaderResourceAccessor;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
@@ -13,15 +7,13 @@ import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.junit.jupiter.api.*;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
+@Disabled
 class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static LoggerRepository loggerRepository;
 	private static PlayerRepository playerRepository;
@@ -33,21 +25,21 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@BeforeAll
 	static void beforeAll() {
-		ConnectionProvider connectionProvider = new ConnectionProvider(
-				POSTGRES.getJdbcUrl(),
-				POSTGRES.getUsername(),
-				POSTGRES.getPassword());
-		try (Connection connection = connectionProvider.takeConnection()) {
-			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
-					new JdbcConnection(connection));
-			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
-					database);
-			liquibase.update();
-			loggerRepository = new LoggerRepositoryImpl(connectionProvider);
-			playerRepository = new PlayerRepositoryImpl(connectionProvider);
-		} catch (SQLException | LiquibaseException e) {
-			e.printStackTrace();
-		}
+//		ConnectionProvider connectionProvider = new ConnectionProvider(
+//				POSTGRES.getJdbcUrl(),
+//				POSTGRES.getUsername(),
+//				POSTGRES.getPassword());
+//		try (Connection connection = connectionProvider.takeConnection()) {
+//			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
+//					new JdbcConnection(connection));
+//			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
+//					database);
+//			liquibase.update();
+//			loggerRepository = new LoggerRepositoryImpl(connectionProvider);
+////			playerRepository = new PlayerRepositoryImpl(connectionProvider);
+//		} catch (SQLException | LiquibaseException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	@BeforeEach

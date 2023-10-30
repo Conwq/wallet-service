@@ -22,6 +22,15 @@ public class Transaction {
 	public Transaction() {
 	}
 
+	public Transaction(int transactionID, String record, String token, String operation, BigDecimal amount, int playerID) {
+		this.transactionID = transactionID;
+		this.record = record;
+		this.token = token;
+		this.operation = operation;
+		this.amount = amount;
+		this.playerID = playerID;
+	}
+
 	public int getTransactionID() {
 		return transactionID;
 	}

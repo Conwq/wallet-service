@@ -1,6 +1,7 @@
 package org.example.walletservice.service;
 
 import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
@@ -45,5 +46,5 @@ public interface PlayerService {
 	 * @param authPlayerDto The authenticated player for whom the balance is requested.
 	 * @return The balance of the player as a {@code BigDecimal}.
 	 */
-	BigDecimal getPlayerBalance(AuthPlayerDto authPlayerDto) throws PlayerNotLoggedInException;
+	BalanceResponseDto getPlayerBalance(AuthPlayerDto authPlayerDto) throws PlayerNotLoggedInException;
 }

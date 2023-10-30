@@ -33,5 +33,5 @@ public interface TransactionRepository {
 	 * @param player The player whose transaction history you want to find.
 	 * @return A card representing the player's transactional history.
 	 */
-	List<Transaction> findPlayerTransactionalHistoryByPlayer(Player player);
+	List<Transaction> findPlayerTransactionalHistory(Player player);
 }

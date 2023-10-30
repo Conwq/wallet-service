@@ -1,5 +1,7 @@
 package org.example.walletservice.in.command;
 
+import org.springframework.stereotype.Component;
+
 import java.util.HashMap;
 import java.util.Map;
 

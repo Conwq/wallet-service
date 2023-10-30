@@ -4,14 +4,13 @@ import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 
 /**
  * Mapper for converting between Log entity and LogResponseDto.
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface LogMapper {
-	LogMapper instance = Mappers.getMapper(LogMapper.class);
 
 	/**
 	 * Converts log details and player ID to a Log entity.

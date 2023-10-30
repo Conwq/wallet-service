@@ -30,5 +30,5 @@ public interface PlayerRepository {
 	 * @param player The player whose balance you want to receive.
 	 * @return String representation of the player's balance.
 	 */
-	BigDecimal findPlayerBalanceByPlayer(Player player);
+	Player findPlayerBalance(Player player);
 }

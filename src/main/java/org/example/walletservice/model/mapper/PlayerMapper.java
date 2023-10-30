@@ -5,14 +5,13 @@ import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 
 /**
  * Mapper for converting between Player entity and AuthPlayerDto.
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface PlayerMapper {
-	PlayerMapper instance = Mappers.getMapper(PlayerMapper.class);
 
 	/**
 	 * Converts PlayerRequestDto to a Player entity.

@@ -12,15 +12,17 @@ import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class LoggerServiceImpl implements LoggerService {
-	private final LoggerRepository loggerRepository;
 	private final PlayerRepository playerRepository;
 	private final LogMapper logMapper;
 	private final PlayerMapper playerMapper;
+	private final LoggerRepository loggerRepository;
 	private static final String LOG_TEMPLATE =
 			"""
 					-Operation: %s-
@@ -28,12 +30,14 @@ public class LoggerServiceImpl implements LoggerService {
 					-Status: %s-
 					""";
 
-	public LoggerServiceImpl(LoggerRepository loggerRepository, PlayerRepository playerRepository,
-							 LogMapper logMapper, PlayerMapper playerMapper) {
-		this.loggerRepository = loggerRepository;
+	public LoggerServiceImpl(PlayerRepository playerRepository,
+							 LogMapper logMapper,
+							 PlayerMapper playerMapper,
+							 LoggerRepository loggerRepository) {
 		this.playerRepository = playerRepository;
 		this.logMapper = logMapper;
 		this.playerMapper = playerMapper;
+		this.loggerRepository = loggerRepository;
 	}
 
 	/**
@@ -53,12 +57,7 @@ public class LoggerServiceImpl implements LoggerService {
 	public List<LogResponseDto> getAllLogs(AuthPlayerDto authPlayerDto) {
 		Player player = playerMapper.toEntity(authPlayerDto);
 		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
-
-		if (playersRecords == null) {
-			System.out.println("[FAIL] Database error.");
-			recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.FAIL);
-			return null;
-		}
+		recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
 		return playersRecords.stream().map(logMapper::toDto).toList();
 	}
 
@@ -66,18 +65,12 @@ public class LoggerServiceImpl implements LoggerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<LogResponseDto> getLogsByUsername(AuthPlayerDto authPlayerDto, String inputUsernameForSearch)
-			throws PlayerNotFoundException {
+	public List<LogResponseDto> getLogsByUsername(AuthPlayerDto authPlayerDto,
+												  String inputUsernameForSearch) throws PlayerNotFoundException {
 		Player player = playerMapper.toEntity(authPlayerDto);
-		Player findPlayer = checkingForExistenceOfUser(inputUsernameForSearch);
-
+		Player findPlayer = checkingForExistenceOfUser(player, inputUsernameForSearch);
 		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
-
-		if (playerLogs == null) {
-			System.out.println("[FAIL] Database error.");
-			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.FAIL);
-			return null;
-		}
+		recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.SUCCESSFUL);
 		return playerLogs.stream().map(logMapper::toDto).toList();
 	}
 
@@ -88,10 +81,11 @@ public class LoggerServiceImpl implements LoggerService {
 	 * @return The player if present.
 	 * @throws PlayerNotFoundException If the player is not found.
 	 */
-	private Player checkingForExistenceOfUser(String inputUsernameForSearch) throws PlayerNotFoundException {
+	private Player checkingForExistenceOfUser(Player player,
+											  String inputUsernameForSearch) throws PlayerNotFoundException {
 		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
-
 		if (optionalPlayer.isEmpty()) {
+			recordActionInLog(Operation.SHOW_LOGS_PLAYER, player, Status.FAIL);
 			throw new PlayerNotFoundException(String.format("Player %s not found", inputUsernameForSearch));
 		}
 		return optionalPlayer.get();

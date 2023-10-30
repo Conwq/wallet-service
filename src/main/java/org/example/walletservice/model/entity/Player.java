@@ -19,6 +19,11 @@ public final class Player {
 	public Player() {
 	}
 
+	public Player(String username, BigDecimal balance){
+		this.username = username;
+		this.balance = balance;
+	}
+
 	public Player(Integer playerID, String username, String password, Role role, BigDecimal balance) {
 		this.playerID = playerID;
 		this.username = username;
@@ -79,5 +84,16 @@ public final class Player {
 	@Override
 	public int hashCode() {
 		return Objects.hash(playerID, username, password, role, balance);
+	}
+
+	@Override
+	public String toString() {
+		return "Player{" +
+				"playerID=" + playerID +
+				", username='" + username + '\'' +
+				", password='" + password + '\'' +
+				", role=" + role +
+				", balance=" + balance +
+				'}';
 	}
 }

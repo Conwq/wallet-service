@@ -1,0 +1,6 @@
+database:
+  url: jdbc:postgresql://localhost:5432/wallet_service
+  username: root
+  password: 1
+liquibase:
+  change-log: classpath:changelog/changelog.xml
