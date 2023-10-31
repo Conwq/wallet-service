@@ -1,12 +1,10 @@
 package org.example.walletservice.config;
 
-import io.micrometer.common.lang.NonNullApi;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 /**
  * Dispatcher servlet initializer for the application.
  */
-@NonNullApi
 public class DispatcherServletInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
 	/**

@@ -19,7 +19,7 @@ public final class Player {
 	public Player() {
 	}
 
-	public Player(String username, BigDecimal balance){
+	public Player(String username, BigDecimal balance) {
 		this.username = username;
 		this.balance = balance;
 	}

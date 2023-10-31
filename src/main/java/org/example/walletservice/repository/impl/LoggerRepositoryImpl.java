@@ -2,6 +2,7 @@ package org.example.walletservice.repository.impl;
 
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.repository.LoggerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -13,6 +14,7 @@ import java.util.List;
 public class LoggerRepositoryImpl implements LoggerRepository {
 	private final JdbcTemplate jdbcTemplate;
 
+	@Autowired
 	public LoggerRepositoryImpl(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}

@@ -22,7 +22,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-@Disabled
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static final String TRANSACTION_TOKEN = "transaction_token";
 	private static final BigDecimal BALANCE_PLAYER = BigDecimal.valueOf(1000);

@@ -15,6 +15,7 @@ import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,12 +23,10 @@ import java.util.Optional;
 
 @Service
 public class LoggerServiceImpl implements LoggerService {
-
 	private final PlayerRepository playerRepository;
 	private final LogMapper logMapper;
 	private final PlayerMapper playerMapper;
 	private final LoggerRepository loggerRepository;
-
 	private static final String LOG_TEMPLATE =
 			"""
 					-Operation: %s-
@@ -35,6 +34,7 @@ public class LoggerServiceImpl implements LoggerService {
 					-Status: %s-
 					""";
 
+	@Autowired
 	public LoggerServiceImpl(PlayerRepository playerRepository,
 							 LogMapper logMapper,
 							 PlayerMapper playerMapper,

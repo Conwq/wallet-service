@@ -23,7 +23,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-@Disabled
 class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static LoggerRepository loggerRepository;
 	private static PlayerRepository playerRepository;

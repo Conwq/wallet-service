@@ -23,8 +23,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
 
-@Disabled
-
 class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;

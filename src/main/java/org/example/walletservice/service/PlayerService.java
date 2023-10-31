@@ -6,7 +6,6 @@ import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 /**

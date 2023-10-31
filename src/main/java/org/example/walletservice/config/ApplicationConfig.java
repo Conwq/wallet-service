@@ -8,7 +8,13 @@ import org.springframework.context.annotation.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.sql.DataSource;
 
@@ -22,6 +28,7 @@ import javax.sql.DataSource;
 		@PropertySource(value = "classpath:application.yml", factory = YamlProperty.class)
 })
 @EnableAspectJAutoProxy
+@EnableSwagger2
 public class ApplicationConfig implements WebMvcConfigurer {
 	@Value("${database.url}")
 	private String url;
@@ -29,8 +36,6 @@ public class ApplicationConfig implements WebMvcConfigurer {
 	private String username;
 	@Value("${database.password}")
 	private String password;
-	@Value("${liquibase.change-log}")
-	private String changelogFile;
 
 	/**
 	 * Configures the data source.
@@ -86,15 +91,21 @@ public class ApplicationConfig implements WebMvcConfigurer {
 		registry.addInterceptor(jwtInterceptor()).addPathPatterns("/**");
 	}
 
-//	@Bean
-//	public LiquibaseMigration liquibaseMigration(){
-//		return new LiquibaseMigration(dataSource());
-//	}
-//
-//	@EventListener(ContextRefreshedEvent.class)
-//	public void migration() {
-//		System.out.println("dada");
-//		liquibaseMigration.performingDatabaseMigration();
-//		System.out.println("121");
-//	}
+	@Bean
+	public Docket api() {
+		return new Docket(DocumentationType.SWAGGER_2)
+				.select()
+				.apis(RequestHandlerSelectors.basePackage("org.example.walletservice.in"))
+				.paths(PathSelectors.any())
+				.build();
+	}
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("swagger-ui.html")
+				.addResourceLocations("classpath:/META-INF/resources/");
+
+		registry.addResourceHandler("/webjars/**")
+				.addResourceLocations("classpath:/META-INF/resources/webjars/");
+	}
 }

@@ -1,12 +1,11 @@
 package org.example.walletservice.config;
 
-import io.micrometer.common.lang.NonNullApi;
-import io.micrometer.common.lang.Nullable;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.DefaultPropertySourceFactory;
 import org.springframework.core.io.support.EncodedResource;
+import org.springframework.lang.Nullable;
 
 import java.util.Objects;
 import java.util.Properties;
@@ -14,7 +13,6 @@ import java.util.Properties;
 /**
  * Custom property source factory for YAML files.
  */
-@NonNullApi
 public class YamlProperty extends DefaultPropertySourceFactory {
 
 	/**
