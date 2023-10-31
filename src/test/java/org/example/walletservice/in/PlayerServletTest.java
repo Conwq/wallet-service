@@ -1,284 +1,105 @@
 package org.example.walletservice.in;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.example.walletservice.in.command.Command;
-import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.jwt.JwtService;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.service.PlayerService;
-import org.example.walletservice.service.exception.InvalidInputDataException;
-import org.example.walletservice.service.exception.PlayerAlreadyExistException;
-import org.example.walletservice.service.exception.PlayerNotFoundException;
-import org.example.walletservice.service.exception.PlayerNotLoggedInException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectWriter;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.HashMap;
 
-@Disabled
+@RunWith(MockitoJUnitRunner.class)
 class PlayerServletTest {
-//	private ObjectMapper objectMapper;
-//	private PlayerService playerService;
-//	private CommandProvider commandProvider;
-//	private JwtService jwtService;
-//	private PlayerServlet playerServlet;
-//	private HttpServletRequest req;
-//	private HttpServletResponse resp;
-//	private ServletOutputStream outputStream;
-//	private BufferedReader bufferedReader;
-//	private AuthPlayerDto authPlayer;
-//	private static final String AUTH_PLAYER = "authPlayer";
-//	private static final String CONTENT_TYPE = "application/json";
-//	private static final String COMMAND = "command";
-//
-//	@BeforeEach
-//	public void setUp() {
-//		objectMapper = new ObjectMapper();
-//		playerService = Mockito.mock(PlayerService.class);
-//		commandProvider = Mockito.mock(CommandProvider.class);
-//		jwtService = Mockito.mock(JwtService.class);
-//		req = Mockito.mock(HttpServletRequest.class);
-//		resp = Mockito.mock(HttpServletResponse.class);
-//		outputStream = Mockito.mock(ServletOutputStream.class);
-//		bufferedReader = Mockito.mock(BufferedReader.class);
-////		playerServlet = new PlayerServlet(objectMapper, playerService, commandProvider, jwtService);
-//		authPlayer = new AuthPlayerDto(1, "admin", Role.ADMIN);
-//	}
-//
-//	@Test
-//	@DisplayName("Should show player balance")
-//	void shouldShowPlayerBalance() throws IOException, ServletException {
-//		final BigDecimal balance = new BigDecimal(100);
-//
-//		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
-//		Mockito.when(playerService.getPlayerBalance(authPlayer)).thenReturn(balance);
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//
-//		playerServlet.doGet(req, resp);
-//
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
-//
-//	@Test
-//	@DisplayName("Should throw exception that player is not logged in")
-//	void shouldThrowExceptionThatPlayerNotLoggedIn() throws IOException, ServletException {
-//		final String message = "Performing an operation by an unregistered user.";
-//
-//		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(null);
-//		Mockito.when(playerService.getPlayerBalance(null))
-//				.thenThrow(new PlayerNotLoggedInException(message));
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//
-//		playerServlet.doGet(req, resp);
-//
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
-//
-//	@Test
-//	@DisplayName("Should register player")
-//	public void shouldRegisterPlayer() throws IOException, ServletException {
-//		final String command = "registration";
-//
-//		PlayerRequestDto playerRequest = new PlayerRequestDto("username", "password");
-//		String jsonObject = objectMapper.writeValueAsString(playerRequest);
-//
-//		Mockito.when(req.getReader()).thenReturn(bufferedReader);
-//		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-//		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.REGISTRATION);
-//		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
-//		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//
-//		playerServlet.doPost(req, resp);
-//
-//		Mockito.verify(playerService).registrationPlayer(playerRequest);
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
-//
-//	@Test
-//	@DisplayName("Should throw invalid input exception when username is null")
-//	public void shouldThrowInvalidInputException_usernameNull() throws IOException, ServletException {
-//		final String command = "registration";
-//		final String message = "Username or password can`t be empty.";
-//
-//		PlayerRequestDto playerRequest = new PlayerRequestDto(null, "password");
-//		String jsonObject = objectMapper.writeValueAsString(playerRequest);
-//
-//		Mockito.when(req.getReader()).thenReturn(bufferedReader);
-//		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-//		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.REGISTRATION);
-//		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
-//		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//		Mockito.doThrow(new InvalidInputDataException(message))
-//				.when(playerService).registrationPlayer(playerRequest);
-//
-//		playerServlet.doPost(req, resp);
-//
-//		Mockito.verify(playerService).registrationPlayer(playerRequest);
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
-//
-//	@Test
-//	@DisplayName("Should throw invalid input exception when password is null")
-//	public void shouldThrowInvalidInputException_passwordNull() throws IOException, ServletException {
-//		final String command = "registration";
-//		final String message = "Username or password can`t be empty.";
-//
-//		PlayerRequestDto playerRequest = new PlayerRequestDto("username", null);
-//		String jsonObject = objectMapper.writeValueAsString(playerRequest);
-//
-//		Mockito.when(req.getReader()).thenReturn(bufferedReader);
-//		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-//		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.REGISTRATION);
-//		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
-//		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//		Mockito.doThrow(new InvalidInputDataException(message))
-//				.when(playerService).registrationPlayer(playerRequest);
-//
-//		playerServlet.doPost(req, resp);
-//
-//		Mockito.verify(playerService).registrationPlayer(playerRequest);
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
-//
-//	@Test
-//	@DisplayName("Should throw invalid input exception when username length is less than one")
-//	public void shouldThrowInvalidInputException_usernameLengthLessThanOne() throws IOException, ServletException {
-//		final String command = "registration";
-//		final String message = "The length of the username or password cannot be less than 1";
-//
-//		PlayerRequestDto playerRequest = new PlayerRequestDto("", "password");
-//		String jsonObject = objectMapper.writeValueAsString(playerRequest);
-//
-//		Mockito.when(req.getReader()).thenReturn(bufferedReader);
-//		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-//		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.REGISTRATION);
-//		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
-//		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//		Mockito.doThrow(new InvalidInputDataException(message))
-//				.when(playerService).registrationPlayer(playerRequest);
-//
-//		playerServlet.doPost(req, resp);
-//
-//		Mockito.verify(playerService).registrationPlayer(playerRequest);
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
-//
-//	@Test
-//	@DisplayName("Should throw invalid input exception when password length is less than one")
-//	public void shouldThrowInvalidInputException_passwordLengthLessThanOne() throws IOException, ServletException {
-//		final String command = "registration";
-//		final String message = "The length of the username or password cannot be less than 1";
-//
-//		PlayerRequestDto playerRequest = new PlayerRequestDto("username", "");
-//		String jsonObject = objectMapper.writeValueAsString(playerRequest);
-//
-//		Mockito.when(req.getReader()).thenReturn(bufferedReader);
-//		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-//		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.REGISTRATION);
-//		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
-//		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//		Mockito.doThrow(new InvalidInputDataException(message))
-//				.when(playerService).registrationPlayer(playerRequest);
-//
-//		playerServlet.doPost(req, resp);
-//
-//		Mockito.verify(playerService).registrationPlayer(playerRequest);
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
-//
-//	@Test
-//	@DisplayName("Should throw exception PlayerAlreadyExist")
-//	public void shouldThrowExceptionPlayerAlreadyExists() throws IOException, ServletException {
-//		final String command = "registration";
-//		final String message = "This user is already registered. Try again.";
-//
-//		PlayerRequestDto playerRequest = new PlayerRequestDto("username", "password");
-//		String jsonObject = objectMapper.writeValueAsString(playerRequest);
-//
-//		Mockito.when(req.getReader()).thenReturn(bufferedReader);
-//		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-//		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.REGISTRATION);
-//		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
-//		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//		Mockito.doThrow(new PlayerAlreadyExistException(message)).when(playerService).registrationPlayer(playerRequest);
-//
-//		playerServlet.doPost(req, resp);
-//
-//		Mockito.verify(playerService).registrationPlayer(playerRequest);
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_CONFLICT);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
-//
-//	@Test
-//	@DisplayName("Should perform sign-in operation")
-//	public void shouldPerformSigInOperation() throws IOException, ServletException {
-//		final String command = "sign_in";
-//
-//		PlayerRequestDto playerRequest = new PlayerRequestDto("username", "password");
-//		AuthPlayerDto authPlayer = new AuthPlayerDto(2, playerRequest.username(), Role.USER);
-//		String jsonObject = objectMapper.writeValueAsString(playerRequest);
-//
-//		Mockito.when(req.getReader()).thenReturn(bufferedReader);
-//		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-//		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.SIGN_IN);
-//		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
-//		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//		Mockito.when(playerService.logIn(playerRequest)).thenReturn(authPlayer);
-//
-//		playerServlet.doPost(req, resp);
-//
-//		Mockito.verify(jwtService).generateWebToken(Mockito.anyMap(), Mockito.any(AuthPlayerDto.class));
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_OK);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
-//
-//	@Test
-//	@DisplayName("Should throw exception when login PlayerNotFoundException")
-//	public void shouldThrowExceptionWhenLogIn_PlayerNotFoundException() throws IOException, ServletException {
-//		final String command = "sign_in";
-//		final String message = "Current player not found. Please try again.";
-//
-//		PlayerRequestDto playerRequest = new PlayerRequestDto("username", "password");
-//		String jsonObject = objectMapper.writeValueAsString(playerRequest);
-//
-//		Mockito.when(req.getReader()).thenReturn(bufferedReader);
-//		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-//		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.SIGN_IN);
-//		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
-//		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
-//		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
-//		Mockito.when(playerService.logIn(playerRequest))
-//				.thenThrow(new PlayerNotFoundException(message));
-//
-//		playerServlet.doPost(req, resp);
-//
-//		Mockito.verify(jwtService, Mockito.never()).generateWebToken(Mockito.anyMap(), Mockito.any(AuthPlayerDto.class));
-//		Mockito.verify(resp).setStatus(HttpServletResponse.SC_NOT_FOUND);
-//		Mockito.verify(resp).setContentType(CONTENT_TYPE);
-//	}
+	private static PlayerService playerService;
+	private static JwtService jwtService;
+	private static AuthPlayerDto authPlayer;
+	private static ObjectWriter objectWriter;
+	private static MockMvc mockMvc;
+	private static final String AUTH_PLAYER = "authPlayer";
+
+
+	@BeforeAll
+	public static void setUp() {
+		playerService = Mockito.mock(PlayerService.class);
+		jwtService = Mockito.mock(JwtService.class);
+		authPlayer = new AuthPlayerDto(1, "admin", Role.ADMIN);
+
+		PlayerServlet playerServlet = new PlayerServlet(playerService, jwtService);
+		mockMvc = MockMvcBuilders.standaloneSetup(playerServlet).build();
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectWriter = objectMapper.writer();
+	}
+
+	@Test
+	@DisplayName("Should show player balance")
+	void shouldShowPlayerBalance() throws Exception {
+		final BigDecimal balance = new BigDecimal(100);
+
+		BalanceResponseDto balanceResponse = new BalanceResponseDto(authPlayer.username(), balance);
+		Mockito.when(playerService.getPlayerBalance(authPlayer)).thenReturn(balanceResponse);
+
+		ResultActions perform = mockMvc.perform(MockMvcRequestBuilders
+				.get("/players/balance")
+				.contentType(MediaType.APPLICATION_JSON)
+				.requestAttr(AUTH_PLAYER, authPlayer));
+
+		perform.andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(MockMvcResultMatchers.jsonPath("$.username", Matchers.is(authPlayer.username())));
+	}
+
+	@Test
+	@DisplayName("Should register player")
+	public void shouldRegisterPlayer() throws Exception {
+		PlayerRequestDto playerRequest = new PlayerRequestDto("username", "password");
+
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+				.post("/players/registration")
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)
+				.content(objectWriter.writeValueAsBytes(playerRequest));
+
+		ResultActions perform = mockMvc.perform(request);
+
+		perform.andExpect(MockMvcResultMatchers.status().isOk());
+		Mockito.verify(playerService).registrationPlayer(playerRequest);
+	}
+
+	@Test
+	@DisplayName("Should perform sign-in operation")
+	public void shouldPerformSigInOperation() throws Exception {
+		PlayerRequestDto playerRequest = new PlayerRequestDto("user", "user123");
+		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "user", Role.USER);
+		String jwtToken = "jwt_token";
+
+		Mockito.when(playerService.logIn(playerRequest)).thenReturn(authPlayerDto);
+		Mockito.when(jwtService.generateWebToken(new HashMap<>(), authPlayerDto)).thenReturn(jwtToken);
+
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+				.post("/players/log_in")
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)
+				.content(objectWriter.writeValueAsBytes(playerRequest));
+
+		ResultActions perform = mockMvc.perform(request);
+
+		perform.andExpect(MockMvcResultMatchers.status().isOk());
+	}
 }

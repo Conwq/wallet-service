@@ -26,7 +26,7 @@ public class PlayerExceptionHandler {
 
 	@ExceptionHandler(PlayerNotLoggedInException.class)
 	public ResponseEntity<InfoResponse> playerNotLoggedInExceptionHandler(PlayerNotLoggedInException e) {
-		return generateResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+		return generateResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
 	}
 
 	@ExceptionHandler(PlayerNotFoundException.class)

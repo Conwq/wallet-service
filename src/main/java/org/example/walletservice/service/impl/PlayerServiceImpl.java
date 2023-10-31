@@ -26,11 +26,6 @@ import java.util.Optional;
  */
 @Service
 public class PlayerServiceImpl implements PlayerService {
-
-	private static final String PLAYER_EXIST_EXCEPTION = "This user is already registered. Try again.";
-	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.";
-	private static final String INCORRECT_PASSWORD = "Incorrect password.";
-
 	private final PlayerRepository playerRepository;
 	private final PlayerMapper playerMapper;
 	private final LoggerService loggerService;
@@ -57,7 +52,7 @@ public class PlayerServiceImpl implements PlayerService {
 		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
 
 		if (optionalPlayer.isPresent()) {
-			throw new PlayerAlreadyExistException(PLAYER_EXIST_EXCEPTION);
+			throw new PlayerAlreadyExistException("This user is already registered. Try again.");
 		}
 		Player player = playerMapper.toEntityFromRequest(playerRequestDto);
 		int playerID = playerRepository.registrationPayer(player);
@@ -75,14 +70,14 @@ public class PlayerServiceImpl implements PlayerService {
 
 		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
 		if (optionalPlayer.isEmpty()) {
-			throw new PlayerNotFoundException(PLAYER_NOT_FOUND);
+			throw new PlayerNotFoundException("Current player not found. Please try again.");
 		}
 
 		Player player = optionalPlayer.get();
 
 		if (!player.getPassword().equals(playerRequestDto.password())) {
 			loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.FAIL);
-			throw new PlayerNotFoundException(INCORRECT_PASSWORD);
+			throw new PlayerNotFoundException("Incorrect password.");
 		}
 
 		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);

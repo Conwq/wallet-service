@@ -45,7 +45,6 @@ public class LoggerServlet {
 	@GetMapping("/all_log")
 	public ResponseEntity<List<LogResponseDto>> getAllLogs(HttpServletRequest request) {
 		AuthPlayerDto authPlayerDto = (AuthPlayerDto) request.getAttribute(AUTH_PLAYER);
-		validateAdminAccess(authPlayerDto);
 		List<LogResponseDto> logList = loggerService.getAllLogs(authPlayerDto);
 		return new ResponseEntity<>(logList, HttpStatus.OK);
 	}
@@ -61,20 +60,7 @@ public class LoggerServlet {
 	public ResponseEntity<List<LogResponseDto>> getPlayerLog(@RequestParam("username") String username,
 															 HttpServletRequest request) {
 		AuthPlayerDto authPlayerDto = (AuthPlayerDto) request.getAttribute(AUTH_PLAYER);
-		validateAdminAccess(authPlayerDto);
 		List<LogResponseDto> logList = loggerService.getLogsByUsername(authPlayerDto, username);
 		return new ResponseEntity<>(logList, HttpStatus.OK);
-	}
-
-	/**
-	 * Validates that the authenticated player has admin access.
-	 *
-	 * @param authPlayerDto The AuthPlayerDto containing player information.
-	 * @throws PlayerDoesNotHaveAccessException If the player does not have admin access.
-	 */
-	private void validateAdminAccess(AuthPlayerDto authPlayerDto) {
-		if (authPlayerDto == null || authPlayerDto.role() != Role.ADMIN) {
-			throw new PlayerDoesNotHaveAccessException("You do not have access to this resource.");
-		}
 	}
 }

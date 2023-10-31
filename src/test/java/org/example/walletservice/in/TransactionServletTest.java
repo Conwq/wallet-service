@@ -5,8 +5,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.walletservice.in.command.Command;
-import org.example.walletservice.in.command.CommandProvider;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.TransactionRequestDto;
@@ -36,7 +34,6 @@ class TransactionServletTest {
 	private HttpServletRequest req;
 	private HttpServletResponse resp;
 	private ObjectMapper objectMapper;
-	private CommandProvider commandProvider;
 	private TransactionService transactionService;
 	private ServletOutputStream outputStream;
 	private static final String AUTH_PLAYER = "authPlayer";
@@ -48,7 +45,6 @@ class TransactionServletTest {
 		objectMapper = new ObjectMapper();
 		transactionService = Mockito.mock(TransactionService.class);
 		bufferedReader = Mockito.mock(BufferedReader.class);
-		commandProvider = Mockito.mock(CommandProvider.class);
 //		transactionServlet = new TransactionServlet(transactionService, objectMapper, commandProvider);
 		outputStream = Mockito.mock(ServletOutputStream.class);
 		req = Mockito.mock(HttpServletRequest.class);
@@ -120,7 +116,6 @@ class TransactionServletTest {
 		Mockito.when(req.getReader()).thenReturn(bufferedReader);
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
 		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.CREDIT);
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
@@ -145,7 +140,6 @@ class TransactionServletTest {
 		Mockito.when(req.getReader()).thenReturn(bufferedReader);
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
 		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.CREDIT);
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
@@ -172,7 +166,6 @@ class TransactionServletTest {
 		Mockito.when(req.getReader()).thenReturn(bufferedReader);
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
 		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.CREDIT);
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
@@ -199,7 +192,6 @@ class TransactionServletTest {
 		Mockito.when(req.getReader()).thenReturn(bufferedReader);
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(null);
 		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.CREDIT);
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
@@ -225,7 +217,6 @@ class TransactionServletTest {
 		Mockito.when(req.getReader()).thenReturn(bufferedReader);
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
 		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.DEBIT);
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
@@ -250,7 +241,6 @@ class TransactionServletTest {
 		Mockito.when(req.getReader()).thenReturn(bufferedReader);
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
 		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.DEBIT);
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
@@ -277,7 +267,6 @@ class TransactionServletTest {
 		Mockito.when(req.getReader()).thenReturn(bufferedReader);
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
 		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.DEBIT);
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
@@ -304,7 +293,6 @@ class TransactionServletTest {
 		Mockito.when(req.getReader()).thenReturn(bufferedReader);
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(authPlayer);
 		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.DEBIT);
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);
@@ -331,7 +319,6 @@ class TransactionServletTest {
 		Mockito.when(req.getReader()).thenReturn(bufferedReader);
 		Mockito.when(req.getAttribute(AUTH_PLAYER)).thenReturn(null);
 		Mockito.when(req.getParameter(COMMAND)).thenReturn(command);
-		Mockito.when(commandProvider.getCommand(command)).thenReturn(Command.DEBIT);
 		Mockito.when(bufferedReader.ready()).thenReturn(true).thenReturn(false);
 		Mockito.when(bufferedReader.readLine()).thenReturn(jsonObject);
 		Mockito.when(resp.getOutputStream()).thenReturn(outputStream);

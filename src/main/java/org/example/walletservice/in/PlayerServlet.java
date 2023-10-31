@@ -55,7 +55,8 @@ public final class PlayerServlet {
 	 * @return ResponseEntity containing the InfoResponse and HTTP status.
 	 */
 	@PostMapping("/log_in")
-	public ResponseEntity<InfoResponse> logIn(@RequestBody PlayerRequestDto playerRequest, HttpServletResponse resp) {
+	public ResponseEntity<InfoResponse> logIn(@RequestBody PlayerRequestDto playerRequest,
+											  HttpServletResponse resp) {
 		AuthPlayerDto authPlayerDto = playerService.logIn(playerRequest);
 		addedHeader(authPlayerDto, resp);
 		return generateResponse(HttpStatus.OK, "You've successfully logged in");

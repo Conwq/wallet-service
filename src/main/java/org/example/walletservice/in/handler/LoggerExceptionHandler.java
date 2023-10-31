@@ -20,7 +20,7 @@ public class LoggerExceptionHandler {
 
 	@ExceptionHandler(PlayerDoesNotHaveAccessException.class)
 	public ResponseEntity<InfoResponse> playerDoesNotHaveAccessExceptionHandler(PlayerDoesNotHaveAccessException e) {
-		return generateResponse(HttpStatus.NOT_ACCEPTABLE, e.getMessage());
+		return generateResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
 	}
 
 	private ResponseEntity<InfoResponse> generateResponse(HttpStatus status, String message) {
