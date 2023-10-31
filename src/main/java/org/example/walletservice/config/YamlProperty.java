@@ -5,6 +5,7 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.DefaultPropertySourceFactory;
 import org.springframework.core.io.support.EncodedResource;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.Objects;
@@ -24,7 +25,7 @@ public class YamlProperty extends DefaultPropertySourceFactory {
 	 */
 	@Override
 	public PropertySource<?> createPropertySource(@Nullable String name,
-												  EncodedResource resource) {
+												  @NonNull EncodedResource resource) {
 		Properties propertiesFromYaml = loadYamlIntoProperties(resource);
 		String sourceName = name != null ? name : resource.getResource().getFilename();
 		return new PropertiesPropertySource(Objects.requireNonNull(sourceName), propertiesFromYaml);

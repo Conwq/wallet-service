@@ -13,7 +13,10 @@ import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.enums.Operation;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -21,6 +24,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+
 
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static final String TRANSACTION_TOKEN = "transaction_token";
@@ -43,11 +47,12 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 		try (Connection connection = dataSource.getConnection()) {
 			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
 					new JdbcConnection(connection));
-			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
-					database);
+			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(), database);
 			liquibase.update();
+
 			transactionRepository = new TransactionRepositoryImpl(jdbcTemplate);
 			playerRepository = new PlayerRepositoryImpl(jdbcTemplate);
+
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
