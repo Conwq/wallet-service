@@ -12,8 +12,14 @@
 
 	В данной версии проекта применялись следующие технологии:
         -- Java 17
+        -- Java EE (Jakarta EE)
+        -- REST API
+        -- JSON
+        -- MapStruct
+        -- Tomcat 10.1.8
         -- JDBC
         -- PostgreSQL
         -- Liquibase
-        -- Lombok
+        -- AspectJ
+        -- JWT
         -- Тестирование - JUnit5, Mockito, AssertJ, Test-containers

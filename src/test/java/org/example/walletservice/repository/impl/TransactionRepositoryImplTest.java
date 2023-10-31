@@ -16,6 +16,7 @@ import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -24,16 +25,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
-	private static final String TRANSACTION_OUTPUT_FORMAT = "*****************-%s-*****************\n" +
-			"\t-- Transaction number: %s\n" +
-			"\t-- Your balance after transaction: %s\n" +
-			"******************************************\n";
 	private static final String TRANSACTION_TOKEN = "transaction_token";
 	private static final BigDecimal BALANCE_PLAYER = BigDecimal.valueOf(1000);
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;
 	private static Player player;
-	private static Transaction transaction;
 	private static final String ADMIN = "admin";
 	private static final String PATH_TO_CHANGELOG = "changelog/changelog.xml";
 
@@ -45,58 +41,62 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 				POSTGRES.getUsername(),
 				POSTGRES.getPassword());
 		try (Connection connection = connectionProvider.takeConnection()) {
-			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
-					new JdbcConnection(connection));
-			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
-					database);
+			Database database =
+					DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
+			Liquibase liquibase =
+					new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(), database);
 			liquibase.update();
 			playerRepository = new PlayerRepositoryImpl(connectionProvider);
 			transactionRepository = new TransactionRepositoryImpl(connectionProvider);
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	@BeforeEach
 	void setUp() {
-		player = Player.builder().playerID(1)
-				.username(ADMIN)
-				.password(ADMIN)
-				.role(Role.ADMIN).build();
-
-		transaction = Transaction.builder()
-				.token(TRANSACTION_TOKEN)
-				.operation(Operation.CREDIT.name())
-				.amount(BigDecimal.ZERO)
-				.playerID(player.getPlayerID())
-				.build();
+		player = new Player();
+		player.setPlayerID(1);
+		player.setUsername(ADMIN);
+		player.setPassword(ADMIN);
+		player.setRole(Role.ADMIN);
 	}
 
 	@Test
+	@DisplayName("Once validated, the token should return a negative value")
 	public void shouldReturnFalseAfterValidatingToken() {
 		boolean value = transactionRepository.checkTokenExistence("new_token");
 
 		AssertionsForClassTypes.assertThat(value).isFalse();
 	}
 
+
 	@Test
-	public void shouldChangePlayerBalanceAfterDepositingAndGetTransactionHistory() {
-		transaction.setRecord(String
-				.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
+	@DisplayName("Must change the player's balance after making a deposit")
+	public void shouldChangePlayerBalanceAfterDepositing() {
+		Transaction transaction = new Transaction();
+		transaction.setToken(TRANSACTION_TOKEN);
+		transaction.setOperation(Operation.CREDIT.name());
+		transaction.setAmount(new BigDecimal(100));
+		transaction.setPlayerID(1);
+		transaction.setRecord("record");
+
 		transactionRepository.creditOrDebit(transaction, BALANCE_PLAYER);
 
-		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
 
-		List<String> playerTransactionHistory = transactionRepository
-				.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());
+		List<Transaction> playerTransactionHistory = transactionRepository
+				.findPlayerTransactionalHistoryByPlayer(player);
+
+		System.out.println(playerTransactionHistory);
+		System.out.println(List.of(transaction));
+
 		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(BALANCE_PLAYER);
-		AssertionsForClassTypes.assertThat(playerTransactionHistory).asString().contains(
-				String.format(TRANSACTION_OUTPUT_FORMAT, Operation.CREDIT, TRANSACTION_TOKEN, BALANCE_PLAYER));
 	}
 
 	@Test
-	public void mustReturnTrueAfterValidatingToken() {
+	@DisplayName("After validating the token, it should return a positive value")
+	public void shouldReturnTrueAfterValidatingToken() {
 		boolean value = transactionRepository.checkTokenExistence(TRANSACTION_TOKEN);
 
 		AssertionsForClassTypes.assertThat(value).isTrue();

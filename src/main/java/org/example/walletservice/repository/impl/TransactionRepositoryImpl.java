@@ -1,5 +1,6 @@
 package org.example.walletservice.repository.impl;
 
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
@@ -14,9 +15,6 @@ import java.util.List;
 
 public final class TransactionRepositoryImpl implements TransactionRepository {
 	private final ConnectionProvider connectionProvider;
-	private static final String ERROR_CONNECTION_DATABASE =
-			"There is an error with the database. Try again later.";
-	private static final String RECORD = "record";
 
 	public TransactionRepositoryImpl(ConnectionProvider connectionProvider) {
 		this.connectionProvider = connectionProvider;
@@ -44,7 +42,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			connection.commit();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 		} finally {
 			connectionProvider.closeConnection(connection, statementToChangePlayerBalance);
 		}
@@ -71,6 +69,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			resultSet = statement.executeQuery();
 			return resultSet.next();
 		} catch (SQLException e) {
+			System.out.println("[FAIL] Database error.");
 			throw new RuntimeException(e);
 		} finally {
 			connectionProvider.closeConnection(connection, statement, resultSet);
@@ -81,9 +80,9 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<String> findPlayerTransactionalHistoryByPlayerID(int playerID) {
+	public List<Transaction> findPlayerTransactionalHistoryByPlayer(Player player) {
 		final String RECORD_REQUEST = """
-				SELECT record FROM wallet_service.transaction WHERE player_id = ?
+				SELECT * FROM wallet_service.transaction WHERE player_id = ?
 				""";
 
 		Connection connection = null;
@@ -94,13 +93,15 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			connection = connectionProvider.takeConnection();
 			statement = connection.prepareStatement(RECORD_REQUEST);
 
-			statement.setInt(1, playerID);
+			statement.setInt(1, player.getPlayerID());
 			resultSet = statement.executeQuery();
-			List<String> transactionHistory = new ArrayList<>();
+			List<Transaction> transactionHistory = new ArrayList<>();
 			while (resultSet.next()) {
-				if (resultSet.getString(RECORD) != null) {
-					transactionHistory.add(resultSet.getString(RECORD));
-				}
+				Transaction transaction = new Transaction();
+				transaction.setOperation(resultSet.getString("operation"));
+				transaction.setAmount(resultSet.getBigDecimal("amount"));
+				transaction.setToken(resultSet.getString("token"));
+				transactionHistory.add(transaction);
 			}
 			return transactionHistory;
 		} catch (SQLException e) {
@@ -134,7 +135,7 @@ public final class TransactionRepositoryImpl implements TransactionRepository {
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 		} finally {
 			connectionProvider.closeConnection(statement);
 		}

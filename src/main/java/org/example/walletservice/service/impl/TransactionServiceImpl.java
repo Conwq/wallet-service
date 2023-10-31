@@ -1,143 +1,116 @@
 package org.example.walletservice.service.impl;
 
+import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.TransactionRequestDto;
+import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
+import org.example.walletservice.model.mapper.PlayerMapper;
+import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
-import org.example.walletservice.service.enums.Status;
+import org.example.walletservice.service.exception.InvalidInputDataException;
+import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
+import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public final class TransactionServiceImpl implements TransactionService {
-	private final LoggerService loggerService;
 	private final TransactionRepository transactionRepository;
 	private final PlayerRepository playerRepository;
-	private static final String CREDIT_SUCCESSFUL = "*Credit successfully.*\n";
-	private static final String DEBIT_SUCCESSFUL = "*Debit successfully.*\n";
-	private static final String FAIL_NOT_UNIQUE_TRANSACTION_TOKEN =
-			"*{{FAIL}} A transaction with this number already exists!*\n";
-	private static final String FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT =
-			"*{{FAIL}} There are not enough funds in the account!*\n";
-	private static final String ERROR_CONNECTION_DATABASE =
-			"There is an error with the database. Try again later.";
-	private static final String TRANSACTIONS_EMPTY =
-					"""
-					**********************
-					Transactions is empty.
-					**********************
-					""";
-	private static final String TRANSACTION_RECORD_TEMPLATE =
-					"""
-					*****************-%s-*****************
-					\t-- Transaction number: %s
-					\t-- Your balance after transaction: %s
-					******************************************
-					""";
+	private final TransactionMapper transactionMapper;
+	private final PlayerMapper playerMapper;
 
-	public TransactionServiceImpl(LoggerService loggerService, TransactionRepository transactionRepository,
-								  PlayerRepository playerRepository) {
-		this.loggerService = loggerService;
+	public TransactionServiceImpl(TransactionRepository transactionRepository,
+								  PlayerRepository playerRepository, TransactionMapper transactionMapper,
+								  PlayerMapper playerMapper) {
 		this.transactionRepository = transactionRepository;
 		this.playerRepository = playerRepository;
+		this.transactionMapper = transactionMapper;
+		this.playerMapper = playerMapper;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void credit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
-		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
-				!transactionRepository.checkTokenExistence(transactionToken)) {
-			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
-			BigDecimal newPlayerBalance = playerBalance.add(inputPlayerAmount);
+	public void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
+		validatingInputData(transactionRequestDto);
+		Player player = checkForData(authPlayerDto);
 
-			Transaction transaction = createTransaction(transactionToken, Operation.CREDIT,
-					inputPlayerAmount, player, newPlayerBalance);
+		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
+		BigDecimal newPlayerBalance = playerBalance.add(transactionRequestDto.inputPlayerAmount());
+		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.CREDIT,
+				newPlayerBalance);
 
-			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
-			System.out.println(CREDIT_SUCCESSFUL);
-			loggerService.recordActionInLog(Operation.CREDIT, player, Status.SUCCESSFUL);
-		} else {
-			System.out.println(FAIL_NOT_UNIQUE_TRANSACTION_TOKEN);
-			loggerService.recordActionInLog(Operation.CREDIT, player, Status.FAIL);
+		transactionRepository.creditOrDebit(transaction, newPlayerBalance);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
+		validatingInputData(transactionRequestDto);
+
+		Player player = checkForData(authPlayerDto);
+		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
+		BigDecimal newPlayerBalance = playerBalance.subtract(transactionRequestDto.inputPlayerAmount());
+
+		if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
+			throw new InvalidInputDataException(
+					"The number of funds to be withdrawn exceeds the number of funds on the account.");
 		}
+
+		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.DEBIT,
+				newPlayerBalance);
+		transactionRepository.creditOrDebit(transaction, newPlayerBalance);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void debit(Player player, BigDecimal inputPlayerAmount, String transactionToken) {
-		if (inputPlayerAmount.compareTo(BigDecimal.ZERO) >= 0.0 &&
-				!transactionRepository.checkTokenExistence(transactionToken)) {
-			BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
+	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
+		Player player = checkForData(authPlayerDto);
 
-			BigDecimal newPlayerBalance = playerBalance.subtract(inputPlayerAmount);
-			if (newPlayerBalance.compareTo(BigDecimal.ZERO) < 0.0) {
-				System.out.println(FAIL_NOT_ENOUGH_FUNDS_ON_THE_ACCOUNT);
-				loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
-				return;
-			}
-
-			Transaction transaction = createTransaction(transactionToken, Operation.DEBIT,
-					inputPlayerAmount, player, newPlayerBalance);
-
-			transactionRepository.creditOrDebit(transaction, newPlayerBalance);
-			System.out.println(DEBIT_SUCCESSFUL);
-			loggerService.recordActionInLog(Operation.DEBIT, player, Status.SUCCESSFUL);
-		} else {
-			System.out.println(FAIL_NOT_UNIQUE_TRANSACTION_TOKEN);
-			loggerService.recordActionInLog(Operation.DEBIT, player, Status.FAIL);
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void displayPlayerTransactionalHistory(Player player) {
-		List<String> playerTransactionalHistory =
-				transactionRepository.findPlayerTransactionalHistoryByPlayerID(player.getPlayerID());
+		List<Transaction> playerTransactionalHistory = transactionRepository.findPlayerTransactionalHistoryByPlayer(player);
 
 		if (playerTransactionalHistory == null) {
-			System.out.println(ERROR_CONNECTION_DATABASE);
-			return;
+			System.out.println("[FAIL] Database error.");
+			return null;
 		}
-
-		if (playerTransactionalHistory.isEmpty()) {
-			System.out.println(TRANSACTIONS_EMPTY);
-			loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
-			return;
-		}
-
-		for (String transaction : playerTransactionalHistory) {
-			System.out.println(transaction);
-		}
-		loggerService.recordActionInLog(Operation.TRANSACTIONAL_HISTORY, player, Status.SUCCESSFUL);
+		return playerTransactionalHistory.stream().map(transactionMapper::toDto).toList();
 	}
 
 	/**
-	 * Creates a Transaction object based on the provided parameters.
+	 * Validates the input data in the provided TransactionRequestDto.
 	 *
-	 * @param token             The unique identifier for the transaction.
-	 * @param operation         The operation type (e.g., CREDIT, DEBIT).
-	 * @param inputPlayerAmount The amount involved in the transaction.
-	 * @param player            The Player associated with the transaction.
-	 * @param newPlayerBalance  The new balance of the Player after the transaction.
-	 * @return A Transaction object representing the transaction details.
+	 * @param transactionRequestDto The TransactionRequestDto containing transaction information.
+	 * @throws InvalidInputDataException If the input data is invalid, such as a negative amount or an existing transaction number.
 	 */
-	private Transaction createTransaction(String token, Operation operation, BigDecimal inputPlayerAmount,
-										  Player player, BigDecimal newPlayerBalance) {
-		return Transaction.builder()
-				.token(token)
-				.operation(Operation.CREDIT.name())
-				.amount(inputPlayerAmount)
-				.playerID(player.getPlayerID())
-				.record(String.format(TRANSACTION_RECORD_TEMPLATE, operation.name(), token, newPlayerBalance))
-				.build();
+	private void validatingInputData(TransactionRequestDto transactionRequestDto) {
+		if (transactionRequestDto.inputPlayerAmount().compareTo(BigDecimal.ZERO) < 0) {
+			throw new InvalidInputDataException("The amount to be entered cannot be less than 0.");
+		}
+		if (transactionRepository.checkTokenExistence(transactionRequestDto.transactionToken())) {
+			throw new TransactionNumberAlreadyExist("A transaction with this number already exists.");
+		}
+	}
+
+	/**
+	 * Checks if the AuthPlayerDto is valid (not null).
+	 *
+	 * @param authPlayerDto The AuthPlayerDto to check.
+	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayerDto is null, indicating an unregistered user.
+	 */
+	private Player checkForData(AuthPlayerDto authPlayerDto) {
+		if (authPlayerDto == null) {
+			throw new PlayerDoesNotHaveAccessException("You need to log in. This resource is not available to you.");
+		}
+		return playerMapper.toEntity(authPlayerDto);
 	}
 }

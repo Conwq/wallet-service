@@ -10,11 +10,6 @@ import java.util.List;
 
 public class LoggerRepositoryImpl implements LoggerRepository {
 	private final ConnectionProvider connectionProvider;
-	private static final String LOG = "log";
-	private static final String LOG_ID = "log_id";
-	private static final String PLAYER_ID = "player_id";
-	private static final String ERROR_CONNECTION_DATABASE =
-			"There is an error with the database. Try again later.";
 
 	public LoggerRepositoryImpl(ConnectionProvider connectionProvider) {
 		this.connectionProvider = connectionProvider;
@@ -41,9 +36,11 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 			statement.setInt(2, log.getPlayerID());
 			statement.executeUpdate();
 			connection.commit();
+
 		} catch (SQLException e) {
 			connectionProvider.rollbackCommit(connection);
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
+
 		} finally {
 			connectionProvider.closeConnection(connection, statement);
 		}
@@ -111,8 +108,10 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 * @return Log object.
 	 */
 	private Log mapToLog(ResultSet resultSet) throws SQLException {
-		return Log.builder().logID(resultSet.getInt(LOG_ID))
-				.log(resultSet.getString(LOG))
-				.playerID(resultSet.getInt(PLAYER_ID)).build();
+		Log log = new Log();
+		log.setLogID(resultSet.getInt("log_id"));
+		log.setLog(resultSet.getString("log"));
+		log.setPlayerID(resultSet.getInt("player_id"));
+		return log;
 	}
 }

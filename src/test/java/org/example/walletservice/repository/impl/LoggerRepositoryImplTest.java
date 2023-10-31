@@ -16,9 +16,7 @@ import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -54,21 +52,27 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@BeforeEach
 	void setUp() {
-		player = Player.builder().playerID(2)
-				.username(TEST)
-				.password(TEST)
-				.role(Role.ADMIN).build();
+		player = new Player();
+		player.setPlayerID(2);
+		player.setUsername(TEST);
+		player.setPassword(TEST);
+		player.setRole(Role.ADMIN);
 	}
 
 	@Test
+	@DisplayName("Must return records all operations players")
 	public void shouldReturnAllActivity() {
 		playerRepository.registrationPayer(player);
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, player.getUsername(), Status.SUCCESSFUL);
 		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
-		Log firstLog = Log.builder().log(firstRecord).playerID(player.getPlayerID()).build();
-		Log secondtLog = Log.builder().log(secondRecord).playerID(player.getPlayerID()).build();
+		Log firstLog = new Log();
+		firstLog.setLog(firstRecord);
+		firstLog.setPlayerID(player.getPlayerID());
+		Log secondLog = new Log();
+		secondLog.setLog(secondRecord);
+		secondLog.setPlayerID(player.getPlayerID());
 		loggerRepository.recordAction(firstLog);
-		loggerRepository.recordAction(secondtLog);
+		loggerRepository.recordAction(secondLog);
 
 		List<Log> allLog = loggerRepository.findAllActivityRecords();
 
@@ -78,10 +82,12 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Must record action player")
 	public void shouldRecordAction() {
 		String playerActionRecord = String.format(LOG_FORMAT, Operation.DEBIT, ADMIN, Status.SUCCESSFUL);
-		Log log = Log.builder().log(playerActionRecord).playerID(1).build();
-
+		Log log = new Log();
+		log.setLog(playerActionRecord);
+		log.setPlayerID(1);
 		loggerRepository.recordAction(log);
 
 		List<Log> playerAction = loggerRepository.findActivityRecordsForPlayer(1);
@@ -90,6 +96,7 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Should return an empty list of player activity records")
 	public void shouldReturnEmptyRecordAction() {
 		List<Log> recordAction = loggerRepository.findActivityRecordsForPlayer(13);
 
@@ -97,11 +104,17 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	}
 
 	@Test
+	@DisplayName("Must return all action of a particular user")
 	public void shouldReturnRecordActionForPlayer() {
 		String firstRecord = String.format(LOG_FORMAT, Operation.REGISTRATION, ADMIN, Status.SUCCESSFUL);
 		String secondRecord = String.format(LOG_FORMAT, Operation.CREDIT, ADMIN, Status.SUCCESSFUL);
-		Log firstLog = Log.builder().log(firstRecord).playerID(1).build();
-		Log secondLog = Log.builder().log(secondRecord).playerID(1).build();
+		Log firstLog = new Log();
+		firstLog.setLog(firstRecord);
+		firstLog.setPlayerID(1);
+		Log secondLog = new Log();
+		secondLog.setLog(secondRecord);
+		secondLog.setPlayerID(1);
+
 		loggerRepository.recordAction(firstLog);
 		loggerRepository.recordAction(secondLog);
 

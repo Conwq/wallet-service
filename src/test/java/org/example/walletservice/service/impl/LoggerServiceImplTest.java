@@ -1,109 +1,111 @@
 package org.example.walletservice.service.impl;
 
-import org.assertj.core.api.AssertionsForClassTypes;
+import org.assertj.core.api.Assertions;
 import org.example.walletservice.model.Role;
+import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.mapper.LogMapper;
+import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
-import org.junit.jupiter.api.AfterEach;
+import org.example.walletservice.service.enums.Operation;
+import org.example.walletservice.service.enums.Status;
+import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 class LoggerServiceImplTest {
 	private LoggerService loggerService;
-	private final LoggerRepository loggerRepository = Mockito.mock(LoggerRepository.class);
-	private final PlayerRepository playerRepository = Mockito.mock(PlayerRepository.class);
-	private final PrintStream origOut = System.out;
+	private LoggerRepository loggerRepository;
+	private PlayerRepository playerRepository;
+	private LogMapper logMapper;
+	private PlayerMapper playerMapper;
 	private Player player;
-	private ByteArrayOutputStream outputStream;
+	private AuthPlayerDto authPlayerDto;
 
 	@BeforeEach
 	void setUp() {
-		loggerService = new LoggerServiceImpl(loggerRepository, playerRepository);
+		logMapper = LogMapper.instance;
+		playerMapper = Mockito.mock(PlayerMapper.class);
+		playerRepository = Mockito.mock(PlayerRepository.class);
+		loggerRepository = Mockito.mock(LoggerRepository.class);
+		loggerService = new LoggerServiceImpl(loggerRepository, playerRepository, logMapper, playerMapper);
 
-		player = Player.builder()
-				.playerID(1)
-				.username("user123")
-				.password("2312")
-				.role(Role.USER).build();
+		player = new Player();
+		player.setPlayerID(1);
+		player.setUsername("user123");
+		player.setPassword("2312");
+		player.setRole(Role.USER);
 
-		outputStream = new ByteArrayOutputStream();
-		System.setOut(new PrintStream(outputStream));
-	}
-
-	@AfterEach
-	void tearDown() {
-		System.setOut(origOut);
-	}
-
-	@Test
-	public void shouldShowAllLogs_successful() {
-		Log firstLog = Log.builder().log("log #1").playerID(player.getPlayerID()).build();
-		Log secondLog = Log.builder().log("log #2").playerID(player.getPlayerID()).build();
-		List<Log> logsPlayer = new ArrayList<>(List.of(firstLog, secondLog));
-
-		Mockito.when(loggerRepository.findAllActivityRecords()).thenReturn(logsPlayer);
-
-		loggerService.showAllLogs(player);
-
-		Mockito.verify(loggerRepository, Mockito.times(1)).findAllActivityRecords();
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains("log #1", "log #2");
+		authPlayerDto = new AuthPlayerDto(1, "username", Role.ADMIN);
 	}
 
 	@Test
-	public void shouldNotShowAllLogs_logsIsEmpty() {
-		Mockito.when(loggerRepository.findAllActivityRecords()).thenReturn(new ArrayList<>());
+	@DisplayName("Should successfully return all logs ")
+	public void shouldReturnAllLogs_successful() {
+		Log log = new Log();
+		log.setLog("log #1");
 
-		loggerService.showAllLogs(player);
+		List<Log> logs = Collections.singletonList(log);
+		Mockito.when(loggerRepository.findAllActivityRecords()).thenReturn(logs);
 
-		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("*No logs.*");
+		List<LogResponseDto> result = loggerService.getAllLogs(authPlayerDto);
+
+		assertEquals(logMapper.toDto(logs.get(0)), result.get(0));
 	}
 
 	@Test
-	public void shouldShowPlayerLogs_successful() {
+	@DisplayName("Must successfully return a specific player's logs")
+	public void shouldReturnPlayerLogs_successful() {
+		Log first = new Log();
+		first.setLog("log #1");
+		first.setPlayerID(player.getPlayerID());
+
+		Log second = new Log();
+		second.setLog("log #2");
+		second.setPlayerID(player.getPlayerID());
+
 		Mockito.when(playerRepository.findPlayer(Mockito.any(String.class))).
 				thenReturn(Optional.of(player));
-		Log firstLog = Log.builder().log("Transact #1").build();
-		Log secondLog = Log.builder().log("Transact #2").build();
 		Mockito.when(loggerRepository.findActivityRecordsForPlayer(player.getPlayerID()))
-				.thenReturn(new ArrayList<>(List.of(firstLog, secondLog)));
+				.thenReturn(new ArrayList<>(List.of(first, second)));
 
-		loggerService.showLogsByUsername(player, player.getUsername());
+		List<LogResponseDto> logsByUsername = loggerService.getLogsByUsername(authPlayerDto, player.getUsername());
 
-		AssertionsForClassTypes.assertThat(outputStream.toString()).contains("Transact #1", "Transact #2");
+		Assertions.assertThat(logsByUsername)
+				.extracting(LogResponseDto::record)
+				.contains(first.getLog(), second.getLog());
 	}
 
 	@Test
+	@DisplayName("Should not show player logs as they have not been found")
 	public void shouldNotShowPlayerLogs_playerNotFound() {
-		Mockito.when(loggerRepository.findActivityRecordsForPlayer(player.getPlayerID()))
-				.thenReturn(null);
+		String inputUsernameForSearch = "username";
+		Mockito.when(playerRepository.findPlayer(inputUsernameForSearch)).thenReturn(Optional.empty());
 
-		loggerService.showLogsByUsername(player, player.getUsername());
-
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains(String.format("*Player %s not found*", player.getUsername()));
+		assertThrows(PlayerNotFoundException.class, () -> {
+			loggerService.getLogsByUsername(authPlayerDto, inputUsernameForSearch);
+		});
 	}
 
 	@Test
-	public void shouldNotShowPlayerLogs_playerLogsIsEmpty() {
-		Mockito.when(playerRepository.findPlayer(Mockito.any(String.class))).
-				thenReturn(Optional.of(player));
-		Mockito.when(loggerRepository.findActivityRecordsForPlayer(player.getPlayerID()))
-				.thenReturn(new ArrayList<>());
+	@DisplayName("Must make a log entry")
+	public void shouldRecordLog() {
+		loggerService.recordActionInLog(Operation.SHOW_ALL_LOGS, player, Status.SUCCESSFUL);
 
-		loggerService.showLogsByUsername(player, player.getUsername());
-
-		AssertionsForClassTypes.assertThat(outputStream.toString())
-				.contains(String.format("*No logs for player %s*", player.getUsername()));
+		Mockito.verify(loggerRepository).recordAction(Mockito.any(Log.class));
 	}
 }

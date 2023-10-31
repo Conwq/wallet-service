@@ -1,12 +1,18 @@
 package org.example.walletservice.service.impl;
 
-import org.example.walletservice.model.Role;
+import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
+import org.example.walletservice.service.exception.InvalidInputDataException;
+import org.example.walletservice.service.exception.PlayerAlreadyExistException;
+import org.example.walletservice.service.exception.PlayerNotFoundException;
+import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -19,44 +25,40 @@ import java.util.Optional;
 public final class PlayerServiceImpl implements PlayerService {
 	private final PlayerRepository playerRepository;
 	private final LoggerService loggerService;
-	private static final String ERROR_CONNECTION_DATABASE =
-			"There is an error with the database. Try again later.";
-	private static final String USER_EXIST_ERROR = "*{{FAIL}} This user is already registered. Try again.*\n";
-	private static final String SUCCESSFUL_REGISTRATION = "*User successfully registered!*\n";
-	private static final String PLAYER_NOT_FOUND = "*{{FAIL}} Current player not found. Please try again.*\n";
-	private static final String INCORRECT_PASSWORD = "*{{FAIL}} Incorrect password!*\n";
-	private static final String BALANCE_TEMPLATE = "*Balance -- %s*\n";
+	private final PlayerMapper playerMapper;
+	private static final String PLAYER_EXIST_EXCEPTION = "This user is already registered. Try again.";
+	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.";
+	private static final String INCORRECT_PASSWORD = "Incorrect password.";
 
-	public PlayerServiceImpl(PlayerRepository playerRepository, LoggerService loggerService) {
+	public PlayerServiceImpl(PlayerRepository playerRepository, LoggerService loggerService,
+							 PlayerMapper playerMapper) {
 		this.playerRepository = playerRepository;
 		this.loggerService = loggerService;
+		this.playerMapper = playerMapper;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void registrationPlayer(String username, String password) {
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
+	public void registrationPlayer(PlayerRequestDto playerRequestDto) {
+		inputValidation(playerRequestDto);
+		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
 
 		if (optionalPlayer.isPresent()) {
-			System.out.println(USER_EXIST_ERROR);
-			return;
+			throw new PlayerAlreadyExistException(PLAYER_EXIST_EXCEPTION);
 		}
 
-		Player player = Player.builder()
-				.username(username)
-				.password(password)
-				.role(Role.USER).build();
-
+		Player player = playerMapper.toEntityFromRequest(playerRequestDto);
 		int playerID = playerRepository.registrationPayer(player);
+
 		if (playerID == -1) {
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
+			loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.FAIL);
 			return;
 		}
-		player.setPlayerID(playerID);
 
-		System.out.println(SUCCESSFUL_REGISTRATION);
+		player.setPlayerID(playerID);
 		loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.SUCCESSFUL);
 	}
 
@@ -64,34 +66,73 @@ public final class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Player logIn(String username, String password) {
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(username);
+	public AuthPlayerDto logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException, InvalidInputDataException {
+		inputValidation(playerRequestDto);
 
+		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
 		if (optionalPlayer.isEmpty()) {
-			System.out.println(PLAYER_NOT_FOUND);
-			return null;
+			throw new PlayerNotFoundException(PLAYER_NOT_FOUND);
 		}
 
 		Player player = optionalPlayer.get();
-		if (!player.getPassword().equals(password)) {
-			System.out.println(INCORRECT_PASSWORD);
-			return null;
+
+		if (!player.getPassword().equals(playerRequestDto.password())) {
+			throw new PlayerNotFoundException(INCORRECT_PASSWORD);
 		}
-		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
-		return player;
+
+		return playerMapper.toAuthPlayerDto(player);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void displayPlayerBalance(Player player) {
-		BigDecimal balance = playerRepository.findPlayerBalanceByPlayerID(player.getPlayerID());
-		if (balance.equals(BigDecimal.valueOf(-1))) {
-			System.out.println(ERROR_CONNECTION_DATABASE);
-			return;
+	public Optional<Player> findByUsername(String username) {
+		return playerRepository.findPlayer(username);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public BigDecimal getPlayerBalance(AuthPlayerDto authPlayerDto) throws PlayerNotLoggedInException {
+		if (authPlayerDto == null) {
+			throw new PlayerNotLoggedInException("Performing an operation by an unregistered user.");
 		}
-		System.out.printf(BALANCE_TEMPLATE, balance);
-		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
+
+		Player player = playerMapper.toEntity(authPlayerDto);
+		BigDecimal balance = playerRepository.findPlayerBalanceByPlayer(player);
+
+		if (balance.equals(BigDecimal.valueOf(-1))) {
+			System.out.println("[FAIL] Database error.");
+			loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.FAIL);
+			return null;
+		}
+		return balance;
+	}
+
+	/**
+	 * Validates the input data in the provided PlayerRequestDto.
+	 *
+	 * @param playerRequestDto The PlayerRequestDto containing player information.
+	 * @throws InvalidInputDataException If the input data is invalid, such as empty or too short username/password.
+	 */
+	private void inputValidation(PlayerRequestDto playerRequestDto) throws InvalidInputDataException {
+		String username;
+		String password;
+
+		if (playerRequestDto == null) {
+			throw new InvalidInputDataException("To log in, you need to enter your login and password");
+		}
+
+		username = playerRequestDto.username();
+		password = playerRequestDto.password();
+
+		if (username == null || password == null) {
+			throw new InvalidInputDataException("Username or password can`t be empty.");
+		}
+		if (username.length() < 1 || password.length() < 1) {
+			throw new InvalidInputDataException("The length of the username or password cannot be less than 1");
+		}
 	}
 }

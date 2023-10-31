@@ -14,13 +14,6 @@ import java.util.Optional;
  */
 public final class PlayerRepositoryImpl implements PlayerRepository {
 	private final ConnectionProvider connectionProvider;
-	private static final String ERROR_CONNECTION_DATABASE =
-			"There is an error with the database. Try again later.";
-	private static final String PLAYER_ID = "player_id";
-	private static final String USERNAME = "username";
-	private static final String PASSWORD = "password";
-	private static final String ROLE_NAME = "role_name";
-	private static final String BALANCE = "balance";
 
 	public PlayerRepositoryImpl(ConnectionProvider connectionProvider) {
 		this.connectionProvider = connectionProvider;
@@ -49,14 +42,15 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			resultSet = statement.executeQuery();
 			Player player = null;
 			if (resultSet.next()) {
-				player = Player.builder().playerID(resultSet.getInt(PLAYER_ID))
-						.username(resultSet.getString(USERNAME))
-						.password(resultSet.getString(PASSWORD))
-						.role(Role.valueOf(resultSet.getString(ROLE_NAME).toUpperCase())).build();
+				player = new Player();
+				player.setPlayerID(resultSet.getInt("player_id"));
+				player.setUsername(resultSet.getString("username"));
+				player.setPassword(resultSet.getString("password"));
+				player.setRole(Role.valueOf(resultSet.getString("role_name").toUpperCase()));
 			}
 			return Optional.ofNullable(player);
 		} catch (SQLException e) {
-			System.out.println(ERROR_CONNECTION_DATABASE);
+			System.out.println("[FAIL] Database error.");
 			throw new RuntimeException(e);
 		} finally {
 			connectionProvider.closeConnection(connection, statement, resultSet);
@@ -101,7 +95,7 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public BigDecimal findPlayerBalanceByPlayerID(int playerID) {
+	public BigDecimal findPlayerBalanceByPlayer(Player player) {
 		final String REQUEST_FOR_USER_BALANCE = """
 				SELECT balance FROM wallet_service.players WHERE player_id = ?
 				""";
@@ -114,11 +108,11 @@ public final class PlayerRepositoryImpl implements PlayerRepository {
 			connection = connectionProvider.takeConnection();
 			statement = connection.prepareStatement(REQUEST_FOR_USER_BALANCE);
 
-			statement.setInt(1, playerID);
+			statement.setInt(1, player.getPlayerID());
 			resultSet = statement.executeQuery();
 
 			if (resultSet.next()) {
-				return resultSet.getBigDecimal(BALANCE);
+				return resultSet.getBigDecimal("balance");
 			}
 			return BigDecimal.ZERO;
 		} catch (SQLException e) {

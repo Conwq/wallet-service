@@ -1,5 +1,6 @@
 package org.example.walletservice.repository;
 
+import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 
 import java.math.BigDecimal;
@@ -29,8 +30,8 @@ public interface TransactionRepository {
 	/**
 	 * Retrieves the player's transaction history.
 	 *
-	 * @param playerID The ID of the player.
+	 * @param player The player whose transaction history you want to find.
 	 * @return A card representing the player's transactional history.
 	 */
-	List<String> findPlayerTransactionalHistoryByPlayerID(int playerID);
+	List<Transaction> findPlayerTransactionalHistoryByPlayer(Player player);
 }
