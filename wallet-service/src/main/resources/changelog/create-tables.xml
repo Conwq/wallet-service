@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="1" author="Sergey.Patseev">
+        <createTable schemaName="wallet_service" tableName="roles">
+            <column name="role_id" type="INTEGER" defaultValueSequenceNext="role_id_seq">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="role_name" type="VARCHAR(10)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="Sergey.Patseev">
+        <createTable schemaName="wallet_service" tableName="players">
+            <column name="player_id" type="INTEGER" defaultValueSequenceNext="player_id_seq">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="username" type="VARCHAR(50)"/>
+            <column name="password" type="VARCHAR(50)"/>
+            <column name="balance" type="DOUBLE PRECISION"
+                    defaultValue="0.0"/>
+            <column name="role_id" type="INT">
+                <constraints foreignKeyName="fk_players_roles"
+                             references="wallet_service.roles(role_id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="3" author="Sergey.Patseev">
+        <createTable schemaName="wallet_service" tableName="transaction">
+            <column name="transaction_id" type="INTEGER" defaultValueSequenceNext="transaction_id_seq">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="record" type="VARCHAR(200)"/>
+            <column name="token" type="VARCHAR(20)"/>
+            <column name="operation" type="VARCHAR(20)"/>
+            <column name="amount" type="NUMERIC(10,2)"/>
+            <column name="player_id" type="INT">
+                <constraints foreignKeyName="fk_transaction_players"
+                             references="wallet_service.players(player_id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="4" author="Sergey.Patseev">
+        <createTable schemaName="wallet_service" tableName="log">
+            <column name="log_id" type="INTEGER" defaultValueSequenceNext="log_id_seq">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="log" type="VARCHAR(255)"/>
+            <column name="player_id" type="INT">
+                <constraints foreignKeyName="fk_log_players"
+                             references="wallet_service.players(player_id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

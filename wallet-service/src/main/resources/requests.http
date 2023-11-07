@@ -1,0 +1,50 @@
+###Debit
+POST http://localhost:8080/transaction/debit
+Content-Type: application/json
+
+{
+  "transactionToken": "8a"
+}
+
+###Credit
+POST http://localhost:8080/transaction/credit
+Content-Type: application/json
+
+{
+  "inputPlayerAmount": 1001213,
+  "transactionToken": "8cza"
+}
+
+###Transaction
+GET http://localhost:8080/transaction
+Accept: application/json
+
+###Player Log
+GET http://localhost:8080/log/player_log?username=admin
+Accept: application/json
+
+###All logs
+GET http://localhost:8080/log/all_log
+Accept: application/json
+
+###Balance
+GET http://localhost:8080/players/balance
+Accept: application/json
+
+###Registration
+POST http://localhost:8080/players/registration
+Content-Type: application/json
+
+{
+  "username": "1",
+  "password": "1"
+}
+
+### LogIn
+POST http://localhost:8080/players/log_in
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
