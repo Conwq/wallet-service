@@ -13,10 +13,14 @@ import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.enums.Status;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.postgresql.ds.PGSimpleDataSource;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -33,18 +37,21 @@ class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@BeforeAll
 	static void beforeAll() {
-		ConnectionProvider connectionProvider = new ConnectionProvider(
-				POSTGRES.getJdbcUrl(),
-				POSTGRES.getUsername(),
-				POSTGRES.getPassword());
-		try (Connection connection = connectionProvider.takeConnection()) {
+		PGSimpleDataSource dataSource = new PGSimpleDataSource();
+		dataSource.setUrl(POSTGRES.getJdbcUrl());
+		dataSource.setUser(POSTGRES.getUsername());
+		dataSource.setPassword(POSTGRES.getPassword());
+
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
+		try (Connection connection = dataSource.getConnection()) {
 			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
 					new JdbcConnection(connection));
 			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(),
 					database);
 			liquibase.update();
-			loggerRepository = new LoggerRepositoryImpl(connectionProvider);
-			playerRepository = new PlayerRepositoryImpl(connectionProvider);
+			loggerRepository = new LoggerRepositoryImpl(jdbcTemplate);
+			playerRepository = new PlayerRepositoryImpl(jdbcTemplate);
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}

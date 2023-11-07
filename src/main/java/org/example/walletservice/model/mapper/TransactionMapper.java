@@ -6,25 +6,22 @@ import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.service.enums.Operation;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
 
 /**
  * Mapper for converting between Transaction entity and TransactionRequestDto.
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface TransactionMapper {
-	TransactionMapper instance = Mappers.getMapper(TransactionMapper.class);
 
 	/**
 	 * Converts TransactionRequestDto, Player entity, Operation, and new player balance to a Transaction entity.
 	 *
-	 * @param dto               The TransactionRequestDto.
-	 * @param player            The Player entity.
-	 * @param operation         The Operation type.
-	 * @param newPlayerBalance  The new player balance after the transaction.
+	 * @param dto              The TransactionRequestDto.
+	 * @param player           The Player entity.
+	 * @param operation        The Operation type.
+	 * @param newPlayerBalance The new player balance after the transaction.
 	 * @return The Transaction entity.
 	 */
 	default Transaction toEntity(TransactionRequestDto dto, Player player, Operation operation, BigDecimal newPlayerBalance) {

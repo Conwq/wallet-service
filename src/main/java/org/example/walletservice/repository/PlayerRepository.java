@@ -2,7 +2,6 @@ package org.example.walletservice.repository;
 
 import org.example.walletservice.model.entity.Player;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
@@ -30,5 +29,5 @@ public interface PlayerRepository {
 	 * @param player The player whose balance you want to receive.
 	 * @return String representation of the player's balance.
 	 */
-	BigDecimal findPlayerBalanceByPlayer(Player player);
+	Player findPlayerBalance(Player player);
 }

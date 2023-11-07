@@ -12,17 +12,19 @@ import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.repository.manager.ConnectionProvider;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.postgresql.ds.PGSimpleDataSource;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+
 
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static final String TRANSACTION_TOKEN = "transaction_token";
@@ -35,19 +37,22 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 	@BeforeAll
 	static void beforeAll() {
-		POSTGRES.start();
-		ConnectionProvider connectionProvider = new ConnectionProvider(
-				POSTGRES.getJdbcUrl(),
-				POSTGRES.getUsername(),
-				POSTGRES.getPassword());
-		try (Connection connection = connectionProvider.takeConnection()) {
-			Database database =
-					DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
-			Liquibase liquibase =
-					new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(), database);
+		PGSimpleDataSource dataSource = new PGSimpleDataSource();
+		dataSource.setUrl(POSTGRES.getJdbcUrl());
+		dataSource.setUser(POSTGRES.getUsername());
+		dataSource.setPassword(POSTGRES.getPassword());
+
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
+		try (Connection connection = dataSource.getConnection()) {
+			Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(
+					new JdbcConnection(connection));
+			Liquibase liquibase = new Liquibase(PATH_TO_CHANGELOG, new ClassLoaderResourceAccessor(), database);
 			liquibase.update();
-			playerRepository = new PlayerRepositoryImpl(connectionProvider);
-			transactionRepository = new TransactionRepositoryImpl(connectionProvider);
+
+			transactionRepository = new TransactionRepositoryImpl(jdbcTemplate);
+			playerRepository = new PlayerRepositoryImpl(jdbcTemplate);
+
 		} catch (SQLException | LiquibaseException e) {
 			e.printStackTrace();
 		}
@@ -83,15 +88,15 @@ class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 
 		transactionRepository.creditOrDebit(transaction, BALANCE_PLAYER);
 
-		BigDecimal playerBalance = playerRepository.findPlayerBalanceByPlayer(player);
+		Player playerExpected = playerRepository.findPlayerBalance(player);
 
 		List<Transaction> playerTransactionHistory = transactionRepository
-				.findPlayerTransactionalHistoryByPlayer(player);
+				.findPlayerTransactionalHistory(player);
 
 		System.out.println(playerTransactionHistory);
 		System.out.println(List.of(transaction));
 
-		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(BALANCE_PLAYER);
+		AssertionsForClassTypes.assertThat(playerExpected.getBalance()).isEqualTo(BALANCE_PLAYER);
 	}
 
 	@Test

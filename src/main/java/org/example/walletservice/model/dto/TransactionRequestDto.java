@@ -8,5 +8,5 @@ import java.math.BigDecimal;
  * @param inputPlayerAmount The amount involved in the transaction.
  * @param transactionToken  The transaction token associated with the transaction.
  */
-public record TransactionRequestDto (BigDecimal inputPlayerAmount, String transactionToken) {
+public record TransactionRequestDto(BigDecimal inputPlayerAmount, String transactionToken) {
 }

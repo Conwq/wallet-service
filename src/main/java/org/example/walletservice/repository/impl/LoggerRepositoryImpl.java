@@ -2,17 +2,21 @@ package org.example.walletservice.repository.impl;
 
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.repository.LoggerRepository;
-import org.example.walletservice.repository.manager.ConnectionProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
+@Repository
 public class LoggerRepositoryImpl implements LoggerRepository {
-	private final ConnectionProvider connectionProvider;
+	private final JdbcTemplate jdbcTemplate;
 
-	public LoggerRepositoryImpl(ConnectionProvider connectionProvider) {
-		this.connectionProvider = connectionProvider;
+	@Autowired
+	public LoggerRepositoryImpl(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
 	}
 
 	/**
@@ -20,30 +24,16 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	@Override
 	public void recordAction(Log log) {
-		final String REQUEST_TO_ADD_PLAYER_ACTIONS = """
-				INSERT INTO wallet_service.log(log, player_id) 
+		final String requestToAddPlayerActions = """
+				INSERT INTO wallet_service.log(log, player_id)
 				VALUES (?, ?)
 				""";
 
-		Connection connection = null;
-		PreparedStatement statement = null;
-
-		try {
-			connection = connectionProvider.takeConnection();
-			statement = connection.prepareStatement(REQUEST_TO_ADD_PLAYER_ACTIONS);
-
-			statement.setString(1, log.getLog());
-			statement.setInt(2, log.getPlayerID());
-			statement.executeUpdate();
-			connection.commit();
-
-		} catch (SQLException e) {
-			connectionProvider.rollbackCommit(connection);
-			System.out.println("[FAIL] Database error.");
-
-		} finally {
-			connectionProvider.closeConnection(connection, statement);
-		}
+		jdbcTemplate.update(requestToAddPlayerActions,
+				ps -> {
+					ps.setString(1, log.getLog());
+					ps.setInt(2, log.getPlayerID());
+				});
 	}
 
 	/**
@@ -51,22 +41,12 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	@Override
 	public List<Log> findAllActivityRecords() {
-		final String REQUEST_TO_RECEIVE_ALL_ACTIONS = """
+		final String requestToReceiveAllActions = """
 				SELECT * FROM wallet_service.log
 				""";
 
-		try (Connection connection = connectionProvider.takeConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet resultSet = statement.executeQuery(REQUEST_TO_RECEIVE_ALL_ACTIONS)) {
-
-			List<Log> playerLogRecords = new ArrayList<>();
-			while (resultSet.next()) {
-				playerLogRecords.add(mapToLog(resultSet));
-			}
-			return playerLogRecords;
-		} catch (SQLException e) {
-			return null;
-		}
+		return jdbcTemplate.query(requestToReceiveAllActions,
+				(rs, rowNum) -> mapToLog(rs));
 	}
 
 
@@ -75,30 +55,13 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	@Override
 	public List<Log> findActivityRecordsForPlayer(int playerID) {
-		final String REQUEST_TO_RECEIVE_ALL_PLAYER_ACTIONS = """
+		final String requestToReceiveAllPlayerActions = """
 				SELECT * FROM wallet_service.log WHERE player_id = ?
 				""";
 
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-
-		try {
-			connection = connectionProvider.takeConnection();
-			statement = connection.prepareStatement(REQUEST_TO_RECEIVE_ALL_PLAYER_ACTIONS);
-			statement.setInt(1, playerID);
-			resultSet = statement.executeQuery();
-
-			List<Log> recordsPlayer = new ArrayList<>();
-			while (resultSet.next()) {
-				recordsPlayer.add(mapToLog(resultSet));
-			}
-			return recordsPlayer;
-		} catch (SQLException e) {
-			return null;
-		} finally {
-			connectionProvider.closeConnection(connection, statement, resultSet);
-		}
+		return jdbcTemplate.query(requestToReceiveAllPlayerActions,
+				(rs, rowNum) -> mapToLog(rs),
+				playerID);
 	}
 
 	/**

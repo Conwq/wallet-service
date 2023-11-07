@@ -3,8 +3,10 @@ package org.example.walletservice.service.impl;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.mapper.BalanceMapper;
 import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
@@ -31,13 +33,15 @@ class PlayerServiceTest {
 	private Player player;
 	private PlayerMapper playerMapper;
 	private PlayerRequestDto playerRequest;
+	private BalanceMapper balanceMapper;
 
 	@BeforeEach
 	public void setUp() {
 		playerMapper = Mockito.mock(PlayerMapper.class);
-		loggerService = Mockito.mock(LoggerServiceImpl.class);
+		loggerService = Mockito.mock(LoggerService.class);
+		balanceMapper = Mockito.mock(BalanceMapper.class);
 		playerRepository = Mockito.mock(PlayerRepository.class);
-		playerService = new PlayerServiceImpl(playerRepository, loggerService, playerMapper);
+		playerService = new PlayerServiceImpl(playerRepository, playerMapper, loggerService, balanceMapper);
 
 		player = new Player();
 		player.setPlayerID(1);
@@ -76,7 +80,7 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("Must not register the user because the name is empty")
 	public void shouldNotRegisteredPlayer_invalidUsernameEqNull() {
-		final String message = "Username or password can`t be empty.";
+		final String message = "Username or password can't be empty.";
 		playerRequest = new PlayerRequestDto(null, "password");
 
 		InvalidInputDataException exception = Assertions.assertThrows(InvalidInputDataException.class, () -> {
@@ -93,7 +97,7 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("Doesn't have to register the user because the password is blank")
 	public void shouldNotRegisteredPlayer_invalidPasswordEqNull() {
-		final String message = "Username or password can`t be empty.";
+		final String message = "Username or password can't be empty.";
 		playerRequest = new PlayerRequestDto("username", null);
 
 		InvalidInputDataException exception = Assertions.assertThrows(InvalidInputDataException.class, () -> {
@@ -145,10 +149,10 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("")
 	public void shouldNotRegistrationPlayer_emptyInputData() {
-		final String message = "To log in, you need to enter your login and password";
+		final String message = "Username or password can't be empty.";
 
 		InvalidInputDataException exception = Assertions.assertThrows(InvalidInputDataException.class, () -> {
-			playerService.registrationPlayer(null);
+			playerService.registrationPlayer(new PlayerRequestDto(null, null));
 		});
 
 		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
@@ -202,7 +206,7 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("Must not be logged in because the name is empty")
 	public void shouldNotLogInPlayer_invalidUsernameEqNull() {
-		final String message = "Username or password can`t be empty.";
+		final String message = "Username or password can't be empty.";
 		playerRequest = new PlayerRequestDto(null, "password");
 
 		InvalidInputDataException exception = Assertions.assertThrows(InvalidInputDataException.class, () -> {
@@ -218,7 +222,7 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("The user does not have to log in to the user because the password is blank")
 	public void shouldNotLogInPlayer_invalidPasswordEqNull() {
-		final String message = "Username or password can`t be empty.";
+		final String message = "Username or password can't be empty.";
 		playerRequest = new PlayerRequestDto("username", null);
 
 		InvalidInputDataException exception = Assertions.assertThrows(InvalidInputDataException.class, () -> {
@@ -265,9 +269,9 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("The user doesn't have to sign in because no data has been entered")
 	public void shouldNotLogInPlayer_emptyInputData() {
-		final String message = "To log in, you need to enter your login and password";
+		final String message = "Performing an operation by an unregistered user.";
 
-		InvalidInputDataException exception = Assertions.assertThrows(InvalidInputDataException.class, () -> {
+		PlayerNotLoggedInException exception = Assertions.assertThrows(PlayerNotLoggedInException.class, () -> {
 			playerService.logIn(null);
 		});
 
@@ -291,14 +295,15 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("The user should receive the balance")
 	public void shouldGetBalancePlayer_successful() {
-		AuthPlayerDto authPlayer = new AuthPlayerDto(1, "admin", Role.ADMIN);
-		BigDecimal balance = new BigDecimal(100);
+		AuthPlayerDto authPlayer = new AuthPlayerDto(1, "username", Role.USER);
+		BalanceResponseDto balance = new BalanceResponseDto("admin", new BigDecimal(100));
 
 		Mockito.when(playerMapper.toEntity(authPlayer)).thenReturn(player);
-		Mockito.when(playerRepository.findPlayerBalanceByPlayer(player)).thenReturn(balance);
+		Mockito.when(playerRepository.findPlayerBalance(player)).thenReturn(player);
+		Mockito.when(balanceMapper.toDto(player.getUsername(), player.getBalance())).thenReturn(balance);
 
-		BigDecimal playerBalance = playerService.getPlayerBalance(authPlayer);
+		BalanceResponseDto balanceResponseDto = playerService.getPlayerBalance(authPlayer);
 
-		AssertionsForClassTypes.assertThat(playerBalance).isEqualTo(balance);
+		AssertionsForClassTypes.assertThat(balanceResponseDto).isEqualTo(balance);
 	}
 }

@@ -1,8 +1,10 @@
 package org.example.walletservice.service.impl;
 
 import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.mapper.BalanceMapper;
 import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
@@ -13,28 +15,31 @@ import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
- * Provides functionality
- * for player registration, login, balance management, credit, debit, transaction history,
+ * Provides functionality for player registration, login, balance management, credit, debit, transaction history,
  * and log display.
  */
-public final class PlayerServiceImpl implements PlayerService {
+@Service
+public class PlayerServiceImpl implements PlayerService {
 	private final PlayerRepository playerRepository;
-	private final LoggerService loggerService;
 	private final PlayerMapper playerMapper;
-	private static final String PLAYER_EXIST_EXCEPTION = "This user is already registered. Try again.";
-	private static final String PLAYER_NOT_FOUND = "Current player not found. Please try again.";
-	private static final String INCORRECT_PASSWORD = "Incorrect password.";
+	private final LoggerService loggerService;
+	private final BalanceMapper balanceMapper;
 
-	public PlayerServiceImpl(PlayerRepository playerRepository, LoggerService loggerService,
-							 PlayerMapper playerMapper) {
+	@Autowired
+	public PlayerServiceImpl(PlayerRepository playerRepository,
+							 PlayerMapper playerMapper,
+							 LoggerService loggerService,
+							 BalanceMapper balanceMapper) {
 		this.playerRepository = playerRepository;
-		this.loggerService = loggerService;
 		this.playerMapper = playerMapper;
+		this.loggerService = loggerService;
+		this.balanceMapper = balanceMapper;
 	}
 
 	/**
@@ -43,22 +48,16 @@ public final class PlayerServiceImpl implements PlayerService {
 	@Override
 	public void registrationPlayer(PlayerRequestDto playerRequestDto) {
 		inputValidation(playerRequestDto);
+
 		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
 
 		if (optionalPlayer.isPresent()) {
-			throw new PlayerAlreadyExistException(PLAYER_EXIST_EXCEPTION);
+			throw new PlayerAlreadyExistException("This user is already registered. Try again.");
 		}
-
 		Player player = playerMapper.toEntityFromRequest(playerRequestDto);
 		int playerID = playerRepository.registrationPayer(player);
-
-		if (playerID == -1) {
-			System.out.println("[FAIL] Database error.");
-			loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.FAIL);
-			return;
-		}
-
 		player.setPlayerID(playerID);
+
 		loggerService.recordActionInLog(Operation.REGISTRATION, player, Status.SUCCESSFUL);
 	}
 
@@ -71,15 +70,17 @@ public final class PlayerServiceImpl implements PlayerService {
 
 		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
 		if (optionalPlayer.isEmpty()) {
-			throw new PlayerNotFoundException(PLAYER_NOT_FOUND);
+			throw new PlayerNotFoundException("Current player not found. Please try again.");
 		}
 
 		Player player = optionalPlayer.get();
 
 		if (!player.getPassword().equals(playerRequestDto.password())) {
-			throw new PlayerNotFoundException(INCORRECT_PASSWORD);
+			loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.FAIL);
+			throw new PlayerNotFoundException("Incorrect password.");
 		}
 
+		loggerService.recordActionInLog(Operation.LOG_IN, player, Status.SUCCESSFUL);
 		return playerMapper.toAuthPlayerDto(player);
 	}
 
@@ -95,20 +96,16 @@ public final class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public BigDecimal getPlayerBalance(AuthPlayerDto authPlayerDto) throws PlayerNotLoggedInException {
+	public BalanceResponseDto getPlayerBalance(AuthPlayerDto authPlayerDto) throws PlayerNotLoggedInException {
 		if (authPlayerDto == null) {
 			throw new PlayerNotLoggedInException("Performing an operation by an unregistered user.");
 		}
 
 		Player player = playerMapper.toEntity(authPlayerDto);
-		BigDecimal balance = playerRepository.findPlayerBalanceByPlayer(player);
+		Player findPlayer = playerRepository.findPlayerBalance(player);
 
-		if (balance.equals(BigDecimal.valueOf(-1))) {
-			System.out.println("[FAIL] Database error.");
-			loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.FAIL);
-			return null;
-		}
-		return balance;
+		loggerService.recordActionInLog(Operation.VIEW_BALANCE, player, Status.SUCCESSFUL);
+		return balanceMapper.toDto(findPlayer.getUsername(), findPlayer.getBalance());
 	}
 
 	/**
@@ -122,14 +119,14 @@ public final class PlayerServiceImpl implements PlayerService {
 		String password;
 
 		if (playerRequestDto == null) {
-			throw new InvalidInputDataException("To log in, you need to enter your login and password");
+			throw new PlayerNotLoggedInException("Performing an operation by an unregistered user.");
 		}
 
 		username = playerRequestDto.username();
 		password = playerRequestDto.password();
 
 		if (username == null || password == null) {
-			throw new InvalidInputDataException("Username or password can`t be empty.");
+			throw new InvalidInputDataException("Username or password can't be empty.");
 		}
 		if (username.length() < 1 || password.length() < 1) {
 			throw new InvalidInputDataException("The length of the username or password cannot be less than 1");

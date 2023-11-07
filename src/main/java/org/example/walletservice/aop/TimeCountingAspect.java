@@ -3,10 +3,22 @@ package org.example.walletservice.aop;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.stereotype.Component;
 
+/**
+ * Aspect for counting the execution time of the logIn method in PlayerService.
+ */
 @Aspect
+@Component
 public class TimeCountingAspect {
 
+	/**
+	 * Around advice for the logIn method in PlayerService.
+	 *
+	 * @param joinPoint The proceeding join point.
+	 * @return The result of the method execution.
+	 * @throws Throwable If an error occurs during the method execution.
+	 */
 	@Around("execution(* org.example.walletservice.service.PlayerService.logIn(..))")
 	public Object logInAspect(ProceedingJoinPoint joinPoint) throws Throwable {
 		long startTime = System.currentTimeMillis();

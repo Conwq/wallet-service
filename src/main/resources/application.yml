@@ -1,0 +1,8 @@
+database:
+  url: jdbc:postgresql://localhost:5432/wallet_service
+  username: root
+  password: 1
+liquibase:
+  change-log: changelog/changelog.xml
+  schema-migration: migration
+  default-schema: wallet_service

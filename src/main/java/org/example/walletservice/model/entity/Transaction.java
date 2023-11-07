@@ -1,9 +1,5 @@
 package org.example.walletservice.model.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -20,6 +16,15 @@ public class Transaction {
 	private int playerID;
 
 	public Transaction() {
+	}
+
+	public Transaction(int transactionID, String record, String token, String operation, BigDecimal amount, int playerID) {
+		this.transactionID = transactionID;
+		this.record = record;
+		this.token = token;
+		this.operation = operation;
+		this.amount = amount;
+		this.playerID = playerID;
 	}
 
 	public int getTransactionID() {
