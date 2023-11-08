@@ -22,28 +22,32 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
+@SpringBootTest
 class PlayerServiceTest {
+	@MockBean
 	private PlayerRepository playerRepository;
-	private LoggerService loggerService;
-	private PlayerService playerService;
-	private Player player;
+	@MockBean
 	private PlayerMapper playerMapper;
-	private PlayerRequestDto playerRequest;
+	@MockBean
 	private BalanceMapper balanceMapper;
+	private final PlayerService playerService;
+	private Player player;
+	private PlayerRequestDto playerRequest;
+
+	@Autowired
+	public PlayerServiceTest(PlayerService playerService) {
+		this.playerService = playerService;
+	}
 
 	@BeforeEach
 	public void setUp() {
-		playerMapper = Mockito.mock(PlayerMapper.class);
-		loggerService = Mockito.mock(LoggerService.class);
-		balanceMapper = Mockito.mock(BalanceMapper.class);
-		playerRepository = Mockito.mock(PlayerRepository.class);
-		playerService = new PlayerServiceImpl(playerRepository,
-				playerMapper, loggerService, balanceMapper);
-
 		player = new Player();
 		player.setPlayerID(1);
 		player.setUsername("username");

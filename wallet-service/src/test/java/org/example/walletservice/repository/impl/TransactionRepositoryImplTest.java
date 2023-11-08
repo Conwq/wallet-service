@@ -15,6 +15,7 @@ import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.*;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Disabled
+@SpringBootTest
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static final String TRANSACTION_TOKEN = "transaction_token";
 	private static final BigDecimal BALANCE_PLAYER = BigDecimal.valueOf(1000);

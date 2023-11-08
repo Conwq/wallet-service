@@ -1,7 +1,6 @@
 package org.example.walletservice.in;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.example.walletservice.model.Role;
 import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.TransactionRequestDto;
@@ -9,45 +8,39 @@ import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 @SpringBootTest
-@RunWith(SpringJUnit4ClassRunner.class)
 @AutoConfigureMockMvc
 class TransactionServletTest {
-	private static ObjectWriter objectWriter;
-	private static TransactionService transactionService;
-	private static final String AUTH_PLAYER = "authPlayer";
-	private static AuthPlayerDto authPlayer;
-	private static MockMvc mockMvc;
+	@MockBean
+	private TransactionService transactionService;
+	private final MockMvc mockMvc;
+	private AuthPlayerDto authPlayer;
 
-	@BeforeAll
-	static void setUp() {
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectWriter = objectMapper.writer();
-		transactionService = Mockito.mock(TransactionService.class);
-		TransactionServlet transactionServlet = new TransactionServlet(transactionService);
+	@Autowired
+	public TransactionServletTest(MockMvc mockMvc) {
+		this.mockMvc = mockMvc;
+	}
 
-		mockMvc = MockMvcBuilders.standaloneSetup(transactionServlet).build();
-
+	@BeforeEach
+	void setUp() {
 		authPlayer = new AuthPlayerDto(1, "admin", Role.ADMIN);
 	}
 
@@ -60,14 +53,11 @@ class TransactionServletTest {
 		}};
 		Mockito.when(transactionService.getPlayerTransactionalHistory(authPlayer)).thenReturn(transactionList);
 
-		MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/transaction")
-				.contentType(MediaType.APPLICATION_JSON)
-				.requestAttr(AUTH_PLAYER, authPlayer);
-
-		ResultActions perform = mockMvc.perform(requestBuilder);
-
-		perform.andExpect(MockMvcResultMatchers.status().isOk())
-				.andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(2)));
+		mockMvc.perform(MockMvcRequestBuilders.get("/transaction")
+						.contentType(MediaType.APPLICATION_JSON)
+						.requestAttr("authPlayer", authPlayer))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(2)));
 	}
 
 	@Test
@@ -76,14 +66,11 @@ class TransactionServletTest {
 		final List<TransactionResponseDto> transactionList = new ArrayList<>();
 		Mockito.when(transactionService.getPlayerTransactionalHistory(authPlayer)).thenReturn(transactionList);
 
-		MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/transaction")
-				.contentType(MediaType.APPLICATION_JSON)
-				.requestAttr(AUTH_PLAYER, authPlayer);
-
-		ResultActions perform = mockMvc.perform(requestBuilder);
-
-		perform.andExpect(MockMvcResultMatchers.status().isOk())
-				.andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(0)));
+		mockMvc.perform(MockMvcRequestBuilders.get("/transaction")
+						.contentType(MediaType.APPLICATION_JSON)
+						.requestAttr("authPlayer", authPlayer))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(0)));
 	}
 
 	@Test
@@ -93,16 +80,13 @@ class TransactionServletTest {
 				new TransactionRequestDto(new BigDecimal(100), "token");
 		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
 
-		MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
-				.post("/transaction/credit")
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.content(objectWriter.writeValueAsString(transactionRequest))
-				.requestAttr(AUTH_PLAYER, authPlayerDto);
+		mockMvc.perform(MockMvcRequestBuilders.post("/transaction/credit")
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON)
+						.content(new ObjectMapper().writeValueAsString(transactionRequest))
+						.requestAttr("authPlayer", authPlayerDto))
+				.andExpect(status().isOk());
 
-		ResultActions perform = mockMvc.perform(requestBuilder);
-
-		perform.andExpect(MockMvcResultMatchers.status().isOk());
 		Mockito.verify(transactionService).credit(authPlayerDto, transactionRequest);
 	}
 
@@ -113,16 +97,13 @@ class TransactionServletTest {
 				new TransactionRequestDto(BigDecimal.ZERO, "token");
 		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
 
-		MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
-				.post("/transaction/debit")
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.content(objectWriter.writeValueAsString(transactionRequest))
-				.requestAttr(AUTH_PLAYER, authPlayerDto);
+		mockMvc.perform(MockMvcRequestBuilders.post("/transaction/debit")
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_JSON)
+						.content(new ObjectMapper().writeValueAsString(transactionRequest))
+						.requestAttr("authPlayer", authPlayerDto))
+				.andExpect(status().isOk());
 
-		ResultActions perform = mockMvc.perform(requestBuilder);
-
-		perform.andExpect(MockMvcResultMatchers.status().isOk());
 		Mockito.verify(transactionService).debit(authPlayerDto, transactionRequest);
 	}
 }

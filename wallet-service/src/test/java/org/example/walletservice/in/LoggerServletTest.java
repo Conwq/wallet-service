@@ -5,36 +5,32 @@ import org.example.walletservice.model.dto.AuthPlayerDto;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.service.LoggerService;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest
-@RunWith(SpringJUnit4ClassRunner.class)
 @AutoConfigureMockMvc
 class LoggerServletTest {
-	private static MockMvc mockMvc;
+	@MockBean
 	private static LoggerService loggerService;
+	private final MockMvc mockMvc;
 	private static final String AUTH_PLAYER = "authPlayer";
 
-	@BeforeAll
-	public static void setUp() {
-		loggerService = Mockito.mock(LoggerService.class);
-		LoggerServlet loggerServlet = new LoggerServlet(loggerService);
-		mockMvc = MockMvcBuilders.standaloneSetup(loggerServlet).build();
+	@Autowired
+	public LoggerServletTest(MockMvc mockMvc) {
+		this.mockMvc = mockMvc;
 	}
 
 	@Test

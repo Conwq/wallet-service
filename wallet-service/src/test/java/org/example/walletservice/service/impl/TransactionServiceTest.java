@@ -11,7 +11,6 @@ import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.exception.InvalidInputDataException;
@@ -22,6 +21,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,31 +33,29 @@ import java.util.List;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SpringBootTest
 class TransactionServiceTest {
+	@MockBean
 	private TransactionRepository transactionRepository;
+	@MockBean
 	private PlayerRepository playerRepository;
-	private TransactionService transactionService;
-	private TransactionMapper transactionMapper;
+	@MockBean
 	private PlayerMapper playerMapper;
-	private LoggerService loggerService;
+	@MockBean
+	private TransactionMapper transactionMapper;
+	private final TransactionService transactionService;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
 	private AuthPlayerDto authPlayerDto;
 	private TransactionRequestDto transactionRequestDto;
 
+	@Autowired
+	public TransactionServiceTest(TransactionService transactionService) {
+		this.transactionService = transactionService;
+	}
+
 	@BeforeEach
 	public void setUp() {
-		transactionRepository = Mockito.mock(TransactionRepository.class);
-		playerRepository = Mockito.mock(PlayerRepository.class);
-		playerRepository = Mockito.mock(PlayerRepository.class);
-		transactionMapper = Mockito.mock(TransactionMapper.class);
-		playerMapper = Mockito.mock(PlayerMapper.class);
-		loggerService = Mockito.mock(LoggerService.class);
-
-		transactionService = new TransactionServiceImpl(
-				transactionRepository, playerRepository, loggerService, transactionMapper, playerMapper
-		);
-
 		player = new Player();
 		player.setPlayerID(1);
 		player.setUsername("admin");

@@ -16,6 +16,7 @@ import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.enums.Operation;
 import org.junit.jupiter.api.*;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
@@ -24,6 +25,7 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 @Disabled
+@SpringBootTest
 class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static PlayerRepository playerRepository;
 	private static TransactionRepository transactionRepository;

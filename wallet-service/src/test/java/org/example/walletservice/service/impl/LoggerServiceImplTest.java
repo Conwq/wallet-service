@@ -7,18 +7,18 @@ import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.mapper.LogMapper;
-import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.repository.LoggerRepository;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.service.LoggerService;
-import org.example.walletservice.service.enums.Operation;
-import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,22 +28,25 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@SpringBootTest
 class LoggerServiceImplTest {
-	private LoggerService loggerService;
+	@MockBean
 	private LoggerRepository loggerRepository;
+	@MockBean
 	private PlayerRepository playerRepository;
+	private final LoggerService loggerService;
 	private LogMapper logMapper;
-	private PlayerMapper playerMapper;
 	private Player player;
 	private AuthPlayerDto authPlayerDto;
+
+	@Autowired
+	public LoggerServiceImplTest(LoggerService loggerService) {
+		this.loggerService = loggerService;
+	}
 
 	@BeforeEach
 	void setUp() {
 		logMapper = Mappers.getMapper(LogMapper.class);
-		playerMapper = Mappers.getMapper(PlayerMapper.class);
-		playerRepository = Mockito.mock(PlayerRepository.class);
-		loggerRepository = Mockito.mock(LoggerRepository.class);
-		loggerService = new LoggerServiceImpl(playerRepository, logMapper, playerMapper, loggerRepository);
 
 		player = new Player();
 		player.setPlayerID(1);
