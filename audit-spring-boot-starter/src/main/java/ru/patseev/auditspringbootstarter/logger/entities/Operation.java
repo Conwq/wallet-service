@@ -1,4 +1,4 @@
-package ru.patseev.auditspringbootstarter.logger.model;
+package ru.patseev.auditspringbootstarter.logger.entities;
 
 /**
  * An enum representing various operations related to player actions.

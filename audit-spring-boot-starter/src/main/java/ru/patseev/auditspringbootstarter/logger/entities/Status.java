@@ -1,4 +1,4 @@
-package ru.patseev.auditspringbootstarter.logger.model;
+package ru.patseev.auditspringbootstarter.logger.entities;
 
 /**
  * An enum representing the status of various operations.

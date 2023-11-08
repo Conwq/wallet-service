@@ -1,4 +1,4 @@
-package ru.patseev.auditspringbootstarter.audit.bean;
+package ru.patseev.auditspringbootstarter.audit.aspect;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
