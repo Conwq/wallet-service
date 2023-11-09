@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import ru.patseev.auditspringbootstarter.audit.annotation.EnableAuditService;
 
 @SpringBootApplication
-//@EnableAuditService
+@EnableAuditService
 public class WalletServiceApplication {
 
 	public static void main(String[] args) {

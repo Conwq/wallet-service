@@ -23,7 +23,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-@Disabled
 @SpringBootTest
 class TransactionRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static final String TRANSACTION_TOKEN = "transaction_token";
