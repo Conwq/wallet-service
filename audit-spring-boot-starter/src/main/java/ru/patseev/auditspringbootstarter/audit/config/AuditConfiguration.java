@@ -1,14 +1,14 @@
 package ru.patseev.auditspringbootstarter.audit.config;
 
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import ru.patseev.auditspringbootstarter.audit.aspect.AuditAspect;
 import ru.patseev.auditspringbootstarter.audit.aspect.TimeCountingAspect;
 
 /**
  * Configuration class for Audit-related aspects.
  */
-@AutoConfiguration
+@Configuration
 public class AuditConfiguration {
 
 	/**

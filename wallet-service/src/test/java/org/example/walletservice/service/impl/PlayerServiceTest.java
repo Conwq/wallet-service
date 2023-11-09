@@ -2,17 +2,14 @@ package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.mapper.BalanceMapper;
 import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.PlayerService;
-import org.example.walletservice.service.enums.Operation;
-import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
@@ -25,6 +22,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -168,12 +166,12 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("Must be successfully logged in")
 	public void shouldLogInPlayer_success() {
-		AuthPlayerDto expected = new AuthPlayerDto(player.getPlayerID(), playerRequest.username(), player.getRole());
+		AuthPlayer expected = new AuthPlayer(player.getPlayerID(), playerRequest.username(), Roles.USER);
 
 		Mockito.when(playerRepository.findPlayer(playerRequest.username())).thenReturn(Optional.of(player));
-		Mockito.when(playerMapper.toAuthPlayerDto(player)).thenReturn(expected);
+		Mockito.when(playerMapper.toAuthPlayer(player)).thenReturn(expected);
 
-		AuthPlayerDto authPlayer = playerService.logIn(playerRequest);
+		AuthPlayer authPlayer = playerService.logIn(playerRequest);
 
 		AssertionsForClassTypes.assertThat(expected).isEqualTo(authPlayer);
 		Mockito.verify(playerRepository).findPlayer(playerRequest.username());
@@ -206,7 +204,7 @@ class PlayerServiceTest {
 
 		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
 		Mockito.verify(playerRepository).findPlayer(playerRequest.username());
-		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayerDto(player);
+		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayer(player);
 	}
 
 	@Test
@@ -221,7 +219,7 @@ class PlayerServiceTest {
 
 		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
 
-		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayerDto(Mockito.any(Player.class));
+		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayer(Mockito.any(Player.class));
 		Mockito.verify(playerRepository, Mockito.never()).findPlayer(playerRequest.username());
 	}
 
@@ -237,7 +235,7 @@ class PlayerServiceTest {
 
 		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
 
-		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayerDto(Mockito.any(Player.class));
+		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayer(Mockito.any(Player.class));
 		Mockito.verify(playerRepository, Mockito.never()).findPlayer(playerRequest.username());
 	}
 
@@ -253,7 +251,7 @@ class PlayerServiceTest {
 
 		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
 
-		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayerDto(Mockito.any(Player.class));
+		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayer(Mockito.any(Player.class));
 		Mockito.verify(playerRepository, Mockito.never()).findPlayer(playerRequest.username());
 	}
 
@@ -268,7 +266,7 @@ class PlayerServiceTest {
 		});
 
 		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
-		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayerDto(Mockito.any(Player.class));
+		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayer(Mockito.any(Player.class));
 		Mockito.verify(playerRepository, Mockito.never()).findPlayer(playerRequest.username());
 	}
 
@@ -282,7 +280,7 @@ class PlayerServiceTest {
 		});
 
 		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
-		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayerDto(Mockito.any(Player.class));
+		Mockito.verify(playerMapper, Mockito.never()).toAuthPlayer(Mockito.any(Player.class));
 		Mockito.verify(playerRepository, Mockito.never()).findPlayer(playerRequest.username());
 	}
 
@@ -301,7 +299,7 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("The user should receive the balance")
 	public void shouldGetBalancePlayer_successful() {
-		AuthPlayerDto authPlayer = new AuthPlayerDto(1, "username", Role.USER);
+		AuthPlayer authPlayer = new AuthPlayer(1, "username", Roles.USER);
 		BalanceResponseDto balance = new BalanceResponseDto("admin", new BigDecimal(100));
 
 		Mockito.when(playerMapper.toEntity(authPlayer)).thenReturn(player);

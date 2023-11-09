@@ -1,7 +1,6 @@
 package org.example.walletservice.service.impl;
 
-import org.example.walletservice.model.Role;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
@@ -15,6 +14,7 @@ import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,8 +41,8 @@ public class LoggerServiceImpl implements LoggerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<LogResponseDto> getAllLogs(AuthPlayerDto authPlayerDto) {
-		Player player = userAuthorizationVerification(authPlayerDto);
+	public List<LogResponseDto> getAllLogs(AuthPlayer authPlayer) {
+		Player player = userAuthorizationVerification(authPlayer);
 		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
 		return playersRecords.stream().map(logMapper::toDto).toList();
 	}
@@ -51,9 +51,9 @@ public class LoggerServiceImpl implements LoggerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<LogResponseDto> getLogsByUsername(AuthPlayerDto authPlayerDto,
+	public List<LogResponseDto> getLogsByUsername(AuthPlayer authPlayer,
 												  String inputUsernameForSearch) throws PlayerNotFoundException {
-		Player player = userAuthorizationVerification(authPlayerDto);
+		Player player = userAuthorizationVerification(authPlayer);
 		Player findPlayer = checkingForExistenceOfUser(inputUsernameForSearch);
 		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(findPlayer.getPlayerID());
 		return playerLogs.stream().map(logMapper::toDto).toList();
@@ -62,21 +62,21 @@ public class LoggerServiceImpl implements LoggerService {
 	/**
 	 * Verifies user authorization based on the provided authentication DTO.
 	 *
-	 * @param authPlayerDto The authentication DTO.
+	 * @param authPlayer The authentication DTO.
 	 * @return The authorized player.
 	 * @throws PlayerNotLoggedInException       If the player is not logged in.
 	 * @throws PlayerDoesNotHaveAccessException If the player does not have access to the resource.
 	 */
-	private Player userAuthorizationVerification(AuthPlayerDto authPlayerDto) {
-		if (authPlayerDto == null) {
+	private Player userAuthorizationVerification(AuthPlayer authPlayer) {
+		if (authPlayer == null) {
 			throw new PlayerNotLoggedInException("Only an authorized administrator can perform this operation.");
 		}
 
-		if (authPlayerDto.role() != Role.ADMIN) {
+		if (authPlayer.role() != Roles.ADMIN) {
 			throw new PlayerDoesNotHaveAccessException("You do not have access to this resource.");
 		}
 
-		return playerMapper.toEntity(authPlayerDto);
+		return playerMapper.toEntity(authPlayer);
 	}
 
 	/**

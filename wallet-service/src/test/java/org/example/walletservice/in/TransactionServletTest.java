@@ -1,8 +1,7 @@
 package org.example.walletservice.in;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.walletservice.model.Role;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.service.TransactionService;
@@ -19,12 +18,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -32,7 +33,7 @@ class TransactionServletTest {
 	@MockBean
 	private TransactionService transactionService;
 	private final MockMvc mockMvc;
-	private AuthPlayerDto authPlayer;
+	private AuthPlayer authPlayer;
 
 	@Autowired
 	public TransactionServletTest(MockMvc mockMvc) {
@@ -41,7 +42,7 @@ class TransactionServletTest {
 
 	@BeforeEach
 	void setUp() {
-		authPlayer = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
 	}
 
 	@Test
@@ -78,16 +79,16 @@ class TransactionServletTest {
 	public void shouldCredit() throws Exception {
 		TransactionRequestDto transactionRequest =
 				new TransactionRequestDto(new BigDecimal(100), "token");
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		AuthPlayer newAuthPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/transaction/credit")
 						.contentType(MediaType.APPLICATION_JSON)
 						.accept(MediaType.APPLICATION_JSON)
 						.content(new ObjectMapper().writeValueAsString(transactionRequest))
-						.requestAttr("authPlayer", authPlayerDto))
+						.requestAttr("authPlayer", newAuthPlayer))
 				.andExpect(status().isOk());
 
-		Mockito.verify(transactionService).credit(authPlayerDto, transactionRequest);
+		Mockito.verify(transactionService).credit(newAuthPlayer, transactionRequest);
 	}
 
 	@Test
@@ -95,15 +96,15 @@ class TransactionServletTest {
 	public void shouldDebit() throws Exception {
 		TransactionRequestDto transactionRequest =
 				new TransactionRequestDto(BigDecimal.ZERO, "token");
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		AuthPlayer newAuthPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/transaction/debit")
 						.contentType(MediaType.APPLICATION_JSON)
 						.accept(MediaType.APPLICATION_JSON)
 						.content(new ObjectMapper().writeValueAsString(transactionRequest))
-						.requestAttr("authPlayer", authPlayerDto))
+						.requestAttr("authPlayer", newAuthPlayer))
 				.andExpect(status().isOk());
 
-		Mockito.verify(transactionService).debit(authPlayerDto, transactionRequest);
+		Mockito.verify(transactionService).debit(newAuthPlayer, transactionRequest);
 	}
 }

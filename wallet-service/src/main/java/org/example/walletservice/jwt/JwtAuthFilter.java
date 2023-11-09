@@ -4,12 +4,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.walletservice.model.Role;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.io.IOException;
 
@@ -42,9 +42,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			roleParam = jwtService.extractRole(jwt);
 
 			if (usernameParam != null && roleParam != null && playerID > -1) {
-				Role role = Role.valueOf(roleParam);
-				AuthPlayerDto authPlayerDto = new AuthPlayerDto(playerID, usernameParam, role);
-				request.setAttribute("authPlayer", authPlayerDto);
+				Roles role = Roles.valueOf(roleParam);
+				AuthPlayer authPlayer = new AuthPlayer(playerID, usernameParam, role);
+				request.setAttribute("authPlayer", authPlayer);
 			}
 		}
 		filterChain.doFilter(request, response);

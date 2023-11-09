@@ -1,8 +1,7 @@
 package org.example.walletservice.in;
 
 import org.example.walletservice.jwt.JwtService;
-import org.example.walletservice.model.Role;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.service.PlayerService;
@@ -22,6 +21,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -34,7 +34,7 @@ class PlayerServletTest {
 	@MockBean
 	private static JwtService jwtService;
 	private final MockMvc mockMvc;
-	private AuthPlayerDto authPlayer;
+	private AuthPlayer authPlayer;
 	private static final String AUTH_PLAYER = "authPlayer";
 
 	@Autowired
@@ -44,7 +44,7 @@ class PlayerServletTest {
 
 	@BeforeEach
 	public void setUp() {
-		authPlayer = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
 	}
 
 	@Test
@@ -85,11 +85,11 @@ class PlayerServletTest {
 	@DisplayName("Should perform sign-in operation")
 	public void shouldPerformSigInOperation() throws Exception {
 		PlayerRequestDto playerRequest = new PlayerRequestDto("user", "user123");
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "user", Role.USER);
+		AuthPlayer newAuthPlayer = new AuthPlayer(1, "user", Roles.USER);
 		String jwtToken = "jwt_token";
 
-		Mockito.when(playerService.logIn(playerRequest)).thenReturn(authPlayerDto);
-		Mockito.when(jwtService.generateWebToken(new HashMap<>(), authPlayerDto)).thenReturn(jwtToken);
+		Mockito.when(playerService.logIn(playerRequest)).thenReturn(newAuthPlayer);
+		Mockito.when(jwtService.generateWebToken(new HashMap<>(), newAuthPlayer)).thenReturn(jwtToken);
 
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders
 				.post("/players/log_in")

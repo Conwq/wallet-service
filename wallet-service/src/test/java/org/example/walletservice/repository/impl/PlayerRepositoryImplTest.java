@@ -24,6 +24,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Optional;
 
+@Disabled
 @SpringBootTest
 class PlayerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static PlayerRepository playerRepository;

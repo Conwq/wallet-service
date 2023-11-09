@@ -2,7 +2,7 @@ package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.Assertions;
 import org.example.walletservice.model.Role;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.model.entity.Player;
@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +38,7 @@ class LoggerServiceImplTest {
 	private final LoggerService loggerService;
 	private LogMapper logMapper;
 	private Player player;
-	private AuthPlayerDto authPlayerDto;
+	private AuthPlayer authPlayer;
 
 	@Autowired
 	public LoggerServiceImplTest(LoggerService loggerService) {
@@ -54,7 +55,7 @@ class LoggerServiceImplTest {
 		player.setPassword("2312");
 		player.setRole(Role.USER);
 
-		authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
 	}
 
 	@Test
@@ -66,7 +67,7 @@ class LoggerServiceImplTest {
 		List<Log> logs = Collections.singletonList(log);
 		Mockito.when(loggerRepository.findAllActivityRecords()).thenReturn(logs);
 
-		List<LogResponseDto> result = loggerService.getAllLogs(authPlayerDto);
+		List<LogResponseDto> result = loggerService.getAllLogs(authPlayer);
 
 		assertEquals(logMapper.toDto(logs.get(0)), result.get(0));
 	}
@@ -87,7 +88,7 @@ class LoggerServiceImplTest {
 		Mockito.when(loggerRepository.findActivityRecordsForPlayer(player.getPlayerID()))
 				.thenReturn(new ArrayList<>(List.of(first, second)));
 
-		List<LogResponseDto> logsByUsername = loggerService.getLogsByUsername(authPlayerDto, player.getUsername());
+		List<LogResponseDto> logsByUsername = loggerService.getLogsByUsername(authPlayer, player.getUsername());
 
 		Assertions.assertThat(logsByUsername)
 				.extracting(LogResponseDto::record)
@@ -101,7 +102,7 @@ class LoggerServiceImplTest {
 		Mockito.when(playerRepository.findPlayer(inputUsernameForSearch)).thenReturn(Optional.empty());
 
 		assertThrows(PlayerNotFoundException.class, () -> {
-			loggerService.getLogsByUsername(authPlayerDto, inputUsernameForSearch);
+			loggerService.getLogsByUsername(authPlayer, inputUsernameForSearch);
 		});
 	}
 }

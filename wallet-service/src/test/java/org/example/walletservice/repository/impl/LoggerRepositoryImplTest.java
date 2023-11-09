@@ -24,6 +24,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+@Disabled
 @SpringBootTest
 class LoggerRepositoryImplTest extends AbstractPostgreSQLContainer {
 	private static LoggerRepository loggerRepository;

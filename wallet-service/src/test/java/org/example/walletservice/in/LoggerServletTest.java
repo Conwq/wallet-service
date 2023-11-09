@@ -1,7 +1,6 @@
 package org.example.walletservice.in;
 
-import org.example.walletservice.model.Role;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.service.LoggerService;
 import org.hamcrest.Matchers;
@@ -16,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,13 +40,13 @@ class LoggerServletTest {
 			add(new LogResponseDto("Log message 1"));
 			add(new LogResponseDto("Log message 2"));
 		}};
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
 
-		Mockito.when(loggerService.getAllLogs(authPlayerDto)).thenReturn(logList);
+		Mockito.when(loggerService.getAllLogs(authPlayer)).thenReturn(logList);
 
 		mockMvc.perform(MockMvcRequestBuilders
 						.get("/log/all_log")
-						.requestAttr(AUTH_PLAYER, authPlayerDto)
+						.requestAttr(AUTH_PLAYER, authPlayer)
 						.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(2)))
@@ -60,13 +60,13 @@ class LoggerServletTest {
 			add(new LogResponseDto("Log message 1"));
 			add(new LogResponseDto("Log message 2"));
 		}};
-		AuthPlayerDto authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
-		Mockito.when(loggerService.getLogsByUsername(authPlayerDto, "admin")).thenReturn(logList);
+		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
+		Mockito.when(loggerService.getLogsByUsername(authPlayer, "admin")).thenReturn(logList);
 
 		mockMvc.perform(MockMvcRequestBuilders
 						.get("/log/player_log")
 						.param("username", "admin")
-						.requestAttr(AUTH_PLAYER, authPlayerDto)
+						.requestAttr(AUTH_PLAYER, authPlayer)
 						.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(2)))

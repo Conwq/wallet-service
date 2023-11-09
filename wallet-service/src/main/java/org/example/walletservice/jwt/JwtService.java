@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -54,13 +54,13 @@ public class JwtService {
 	 * Generates a JWT with the specified extra claims and player details.
 	 *
 	 * @param extraClaims   Additional claims to include in the JWT.
-	 * @param authPlayerDto The player details used to generate the JWT.
+	 * @param authPlayer The player details used to generate the JWT.
 	 * @return The generated JWT.
 	 */
-	public String generateWebToken(Map<String, Object> extraClaims, AuthPlayerDto authPlayerDto) {
+	public String generateWebToken(Map<String, Object> extraClaims, AuthPlayer authPlayer) {
 		return Jwts.builder()
 				.setClaims(extraClaims)
-				.setSubject(authPlayerDto.username())
+				.setSubject(authPlayer.username())
 				.setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + 12000000))
 				.signWith(generateKey(), SignatureAlgorithm.HS256)

@@ -1,6 +1,6 @@
 package org.example.walletservice.service;
 
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
 
@@ -14,24 +14,24 @@ public interface TransactionService {
 	/**
 	 * Credits a player's account.
 	 *
-	 * @param authPlayerDto      The authenticated player to which the account is credited.
+	 * @param authPlayer      The authenticated player to which the account is credited.
 	 * @param transactionRequest The transaction data, including the amount and transaction token.
 	 */
-	void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequest);
+	void credit(AuthPlayer authPlayer, TransactionRequestDto transactionRequest);
 
 	/**
 	 * Debits funds from a player's account.
 	 *
-	 * @param authPlayerDto      The authenticated player from which funds are debited.
+	 * @param authPlayer      The authenticated player from which funds are debited.
 	 * @param transactionRequest The transaction data, including the amount and transaction token.
 	 */
-	void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequest);
+	void debit(AuthPlayer authPlayer, TransactionRequestDto transactionRequest);
 
 	/**
 	 * Gets the transaction history of a player.
 	 *
-	 * @param authPlayerDto The authenticated player for whom the transaction history is being requested.
+	 * @param authPlayer The authenticated player for whom the transaction history is being requested.
 	 * @return A list of strings representing the player's transaction history.
 	 */
-	List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto);
+	List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayer authPlayer);
 }

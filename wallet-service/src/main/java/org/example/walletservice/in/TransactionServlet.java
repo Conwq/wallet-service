@@ -1,7 +1,7 @@
 package org.example.walletservice.in;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
@@ -36,10 +36,10 @@ public class TransactionServlet {
 	 */
 	@GetMapping
 	public ResponseEntity<List<TransactionResponseDto>> getTransactionHistory(HttpServletRequest req) {
-		AuthPlayerDto authPlayerDto = (AuthPlayerDto) req.getAttribute(AUTH_PLAYER);
+		AuthPlayer authPlayer = (AuthPlayer) req.getAttribute(AUTH_PLAYER);
 
 		List<TransactionResponseDto> playerTransactionHistory = transactionService
-				.getPlayerTransactionalHistory(authPlayerDto);
+				.getPlayerTransactionalHistory(authPlayer);
 		return new ResponseEntity<>(playerTransactionHistory, HttpStatus.OK);
 	}
 
@@ -53,9 +53,9 @@ public class TransactionServlet {
 	@PostMapping("/credit")
 	public ResponseEntity<InfoResponse> credit(@RequestBody TransactionRequestDto transactionRequest,
 											   HttpServletRequest request) {
-		AuthPlayerDto authPlayerDto = (AuthPlayerDto) request.getAttribute(AUTH_PLAYER);
+		AuthPlayer authPlayer = (AuthPlayer) request.getAttribute(AUTH_PLAYER);
 
-		transactionService.credit(authPlayerDto, transactionRequest);
+		transactionService.credit(authPlayer, transactionRequest);
 		return generateResponse(HttpStatus.OK, "Credit successfully.");
 	}
 
@@ -69,9 +69,9 @@ public class TransactionServlet {
 	@PostMapping("/debit")
 	public ResponseEntity<InfoResponse> debit(@RequestBody TransactionRequestDto transactionRequest,
 											  HttpServletRequest request) {
-		AuthPlayerDto authPlayerDto = (AuthPlayerDto) request.getAttribute(AUTH_PLAYER);
+		AuthPlayer authPlayer = (AuthPlayer) request.getAttribute(AUTH_PLAYER);
 
-		transactionService.debit(authPlayerDto, transactionRequest);
+		transactionService.debit(authPlayer, transactionRequest);
 		return generateResponse(HttpStatus.OK, "Debit successfully.");
 	}
 
