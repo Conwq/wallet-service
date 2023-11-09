@@ -1,6 +1,7 @@
 package org.example.walletservice.model.dto;
 
-import org.example.walletservice.model.Role;
+
+import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 /**
  * Data transfer object representing authenticated player information.
@@ -9,5 +10,5 @@ import org.example.walletservice.model.Role;
  * @param username The player's username.
  * @param role     The player's role.
  */
-public record AuthPlayerDto(int playerID, String username, Role role) {
+public record AuthPlayer(int playerID, String username, Roles role) {
 }

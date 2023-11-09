@@ -2,7 +2,7 @@ package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.example.walletservice.model.Role;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.model.entity.Player;
@@ -11,7 +11,6 @@ import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.exception.InvalidInputDataException;
@@ -22,6 +21,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,31 +34,29 @@ import java.util.List;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SpringBootTest
 class TransactionServiceTest {
+	@MockBean
 	private TransactionRepository transactionRepository;
+	@MockBean
 	private PlayerRepository playerRepository;
-	private TransactionService transactionService;
-	private TransactionMapper transactionMapper;
+	@MockBean
 	private PlayerMapper playerMapper;
-	private LoggerService loggerService;
+	@MockBean
+	private TransactionMapper transactionMapper;
+	private final TransactionService transactionService;
 	private static final String TRANSACTIONAL_TOKEN = "transactional_token";
 	private Player player;
-	private AuthPlayerDto authPlayerDto;
+	private AuthPlayer authPlayer;
 	private TransactionRequestDto transactionRequestDto;
+
+	@Autowired
+	public TransactionServiceTest(TransactionService transactionService) {
+		this.transactionService = transactionService;
+	}
 
 	@BeforeEach
 	public void setUp() {
-		transactionRepository = Mockito.mock(TransactionRepository.class);
-		playerRepository = Mockito.mock(PlayerRepository.class);
-		playerRepository = Mockito.mock(PlayerRepository.class);
-		transactionMapper = Mockito.mock(TransactionMapper.class);
-		playerMapper = Mockito.mock(PlayerMapper.class);
-		loggerService = Mockito.mock(LoggerService.class);
-
-		transactionService = new TransactionServiceImpl(
-				transactionRepository, playerRepository, loggerService, transactionMapper, playerMapper
-		);
-
 		player = new Player();
 		player.setPlayerID(1);
 		player.setUsername("admin");
@@ -63,7 +64,7 @@ class TransactionServiceTest {
 		player.setBalance(BigDecimal.TEN);
 		player.setRole(Role.ADMIN);
 
-		authPlayerDto = new AuthPlayerDto(1, "admin", Role.ADMIN);
+		authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
 		transactionRequestDto = new TransactionRequestDto(BigDecimal.TEN, "token");
 	}
 
@@ -73,12 +74,12 @@ class TransactionServiceTest {
 		Transaction transaction = new Transaction();
 		player.setBalance(BigDecimal.ZERO);
 
-		when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
+		when(playerMapper.toEntity(authPlayer)).thenReturn(player);
 		when(playerRepository.findPlayerBalance(player)).thenReturn(player);
 		when(transactionMapper.toEntity(transactionRequestDto, player, Operation.CREDIT, BigDecimal.TEN))
 				.thenReturn(transaction);
 
-		transactionService.credit(authPlayerDto, transactionRequestDto);
+		transactionService.credit(authPlayer, transactionRequestDto);
 
 		verify(transactionRepository).creditOrDebit(transaction, BigDecimal.TEN);
 	}
@@ -103,7 +104,7 @@ class TransactionServiceTest {
 		transactionRequestDto = new TransactionRequestDto(new BigDecimal(-100), TRANSACTIONAL_TOKEN);
 
 		InvalidInputDataException exception = Assertions.assertThrows(InvalidInputDataException.class, () -> {
-			transactionService.credit(authPlayerDto, transactionRequestDto);
+			transactionService.credit(authPlayer, transactionRequestDto);
 		});
 
 		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
@@ -119,7 +120,7 @@ class TransactionServiceTest {
 				.thenReturn(true);
 
 		TransactionNumberAlreadyExist exception = Assertions.assertThrows(TransactionNumberAlreadyExist.class, () -> {
-			transactionService.credit(authPlayerDto, transactionRequestDto);
+			transactionService.credit(authPlayer, transactionRequestDto);
 		});
 
 		AssertionsForClassTypes.assertThat(exception.getMessage()).isEqualTo(message);
@@ -130,12 +131,12 @@ class TransactionServiceTest {
 	public void shouldDebit_successful() {
 		Transaction transaction = new Transaction();
 
-		when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
+		when(playerMapper.toEntity(authPlayer)).thenReturn(player);
 		when(playerRepository.findPlayerBalance(player)).thenReturn(player);
 		when(transactionMapper.toEntity(transactionRequestDto, player, Operation.DEBIT, BigDecimal.ZERO))
 				.thenReturn(transaction);
 
-		transactionService.debit(authPlayerDto, transactionRequestDto);
+		transactionService.debit(authPlayer, transactionRequestDto);
 
 		verify(transactionRepository).creditOrDebit(transaction, BigDecimal.ZERO);
 	}
@@ -147,9 +148,9 @@ class TransactionServiceTest {
 
 		Mockito.when(transactionRepository.findPlayerTransactionalHistory(player))
 				.thenReturn(new ArrayList<>());
-		Mockito.when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
+		Mockito.when(playerMapper.toEntity(authPlayer)).thenReturn(player);
 
-		List<TransactionResponseDto> transactions = transactionService.getPlayerTransactionalHistory(authPlayerDto);
+		List<TransactionResponseDto> transactions = transactionService.getPlayerTransactionalHistory(authPlayer);
 		AssertionsForClassTypes.assertThat(transactions).isEqualTo(testTransactionHistory);
 	}
 
@@ -161,9 +162,9 @@ class TransactionServiceTest {
 
 		Mockito.when(transactionRepository.findPlayerTransactionalHistory(player))
 				.thenReturn(testTransactionHistory);
-		Mockito.when(playerMapper.toEntity(authPlayerDto)).thenReturn(player);
+		Mockito.when(playerMapper.toEntity(authPlayer)).thenReturn(player);
 
-		List<TransactionResponseDto> transactions = transactionService.getPlayerTransactionalHistory(authPlayerDto);
+		List<TransactionResponseDto> transactions = transactionService.getPlayerTransactionalHistory(authPlayer);
 		AssertionsForClassTypes.assertThat(transactions.size()).isEqualTo(testTransactionHistory.size());
 	}
 }

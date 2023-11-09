@@ -1,9 +1,10 @@
-package ru.patseev.auditspringbootstarter.logger.bean;
+package ru.patseev.auditspringbootstarter.logger.repository.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.patseev.auditspringbootstarter.logger.model.Log;
+import ru.patseev.auditspringbootstarter.logger.repository.LoggerRepository;
 
 @Repository
 public class LoggerRepositoryImpl implements LoggerRepository {

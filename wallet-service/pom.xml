@@ -76,25 +76,11 @@
             <version>2.2.0</version>
         </dependency>
 
-
-
-
-<!--        <dependency>-->
-<!--            <groupId>com.example</groupId>-->
-<!--            <artifactId>util</artifactId>-->
-<!--            <version>0.0.1-SNAPSHOT</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.lance.demo</groupId>-->
-<!--            <artifactId>my-spring-boot-starter</artifactId>-->
-<!--            <version>1.0.0-SNAPSHOT</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>ru.patseev</groupId>
             <artifactId>audit-spring-boot-starter</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

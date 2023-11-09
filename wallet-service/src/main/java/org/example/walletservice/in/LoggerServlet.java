@@ -1,7 +1,7 @@
 package org.example.walletservice.in;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.service.LoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +41,8 @@ public class LoggerServlet {
 	 */
 	@GetMapping("/all_log")
 	public ResponseEntity<List<LogResponseDto>> getAllLogs(HttpServletRequest request) {
-		AuthPlayerDto authPlayerDto = (AuthPlayerDto) request.getAttribute(AUTH_PLAYER);
-		List<LogResponseDto> logList = loggerService.getAllLogs(authPlayerDto);
+		AuthPlayer authPlayer = (AuthPlayer) request.getAttribute(AUTH_PLAYER);
+		List<LogResponseDto> logList = loggerService.getAllLogs(authPlayer);
 		return new ResponseEntity<>(logList, HttpStatus.OK);
 	}
 
@@ -56,8 +56,8 @@ public class LoggerServlet {
 	@GetMapping("/player_log")
 	public ResponseEntity<List<LogResponseDto>> getPlayerLog(@RequestParam("username") String username,
 															 HttpServletRequest request) {
-		AuthPlayerDto authPlayerDto = (AuthPlayerDto) request.getAttribute(AUTH_PLAYER);
-		List<LogResponseDto> logList = loggerService.getLogsByUsername(authPlayerDto, username);
+		AuthPlayer authPlayer = (AuthPlayer) request.getAttribute(AUTH_PLAYER);
+		List<LogResponseDto> logList = loggerService.getLogsByUsername(authPlayer, username);
 		return new ResponseEntity<>(logList, HttpStatus.OK);
 	}
 }

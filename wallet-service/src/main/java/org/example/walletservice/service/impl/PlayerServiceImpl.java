@@ -1,16 +1,13 @@
 package org.example.walletservice.service.impl;
 
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.mapper.BalanceMapper;
 import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.PlayerService;
-import org.example.walletservice.service.enums.Operation;
-import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
@@ -28,17 +25,14 @@ import java.util.Optional;
 public class PlayerServiceImpl implements PlayerService {
 	private final PlayerRepository playerRepository;
 	private final PlayerMapper playerMapper;
-	private final LoggerService loggerService;
 	private final BalanceMapper balanceMapper;
 
 	@Autowired
 	public PlayerServiceImpl(PlayerRepository playerRepository,
 							 PlayerMapper playerMapper,
-							 LoggerService loggerService,
 							 BalanceMapper balanceMapper) {
 		this.playerRepository = playerRepository;
 		this.playerMapper = playerMapper;
-		this.loggerService = loggerService;
 		this.balanceMapper = balanceMapper;
 	}
 
@@ -63,7 +57,7 @@ public class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public AuthPlayerDto logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException, InvalidInputDataException {
+	public AuthPlayer logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException, InvalidInputDataException {
 		inputValidation(playerRequestDto);
 
 		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
@@ -77,7 +71,7 @@ public class PlayerServiceImpl implements PlayerService {
 			throw new PlayerNotFoundException("Incorrect password.");
 		}
 
-		return playerMapper.toAuthPlayerDto(player);
+		return playerMapper.toAuthPlayer(player);
 	}
 
 	/**
@@ -92,12 +86,12 @@ public class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public BalanceResponseDto getPlayerBalance(AuthPlayerDto authPlayerDto) throws PlayerNotLoggedInException {
-		if (authPlayerDto == null) {
+	public BalanceResponseDto getPlayerBalance(AuthPlayer authPlayer) throws PlayerNotLoggedInException {
+		if (authPlayer == null) {
 			throw new PlayerNotLoggedInException("Performing an operation by an unregistered user.");
 		}
 
-		Player player = playerMapper.toEntity(authPlayerDto);
+		Player player = playerMapper.toEntity(authPlayer);
 		Player findPlayer = playerRepository.findPlayerBalance(player);
 
 		return balanceMapper.toDto(findPlayer.getUsername(), findPlayer.getBalance());

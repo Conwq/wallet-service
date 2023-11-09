@@ -1,6 +1,6 @@
 package org.example.walletservice.service.impl;
 
-import org.example.walletservice.model.dto.AuthPlayerDto;
+import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.model.entity.Player;
@@ -9,10 +9,8 @@ import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.TransactionService;
 import org.example.walletservice.service.enums.Operation;
-import org.example.walletservice.service.enums.Status;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
@@ -28,27 +26,24 @@ public class TransactionServiceImpl implements TransactionService {
 	private final PlayerRepository playerRepository;
 	private final TransactionMapper transactionMapper;
 	private final PlayerMapper playerMapper;
-	private final LoggerService loggerService;
 
 	@Autowired
 	public TransactionServiceImpl(TransactionRepository transactionRepository,
 								  PlayerRepository playerRepository,
-								  LoggerService loggerService,
 								  TransactionMapper transactionMapper,
 								  PlayerMapper playerMapper) {
 		this.transactionRepository = transactionRepository;
 		this.playerRepository = playerRepository;
 		this.transactionMapper = transactionMapper;
 		this.playerMapper = playerMapper;
-		this.loggerService = loggerService;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayerDto authPlayerDto) {
-		Player player = userAuthorizationVerification(authPlayerDto);
+	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayer authPlayer) {
+		Player player = userAuthorizationVerification(authPlayer);
 		List<Transaction> playerTransactionalHistory = transactionRepository.findPlayerTransactionalHistory(player);
 		return playerTransactionalHistory.stream().map(transactionMapper::toDto).toList();
 	}
@@ -57,9 +52,9 @@ public class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void credit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
-		Player player = userAuthorizationVerification(authPlayerDto);
-		validatingInputData(player, transactionRequestDto);
+	public void credit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto) {
+		Player player = userAuthorizationVerification(authPlayer);
+		validatingInputData(transactionRequestDto);
 
 		Player findPlayer = playerRepository.findPlayerBalance(player);
 
@@ -79,9 +74,9 @@ public class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void debit(AuthPlayerDto authPlayerDto, TransactionRequestDto transactionRequestDto) {
-		Player player = userAuthorizationVerification(authPlayerDto);
-		validatingInputData(player, transactionRequestDto);
+	public void debit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto) {
+		Player player = userAuthorizationVerification(authPlayer);
+		validatingInputData(transactionRequestDto);
 
 		Player findPlayer = playerRepository.findPlayerBalance(player);
 
@@ -104,12 +99,11 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * Validates the input data in the provided TransactionRequestDto.
 	 *
-	 * @param player                The player initiating the transaction.
 	 * @param transactionRequestDto The TransactionRequestDto containing transaction information.
 	 * @throws InvalidInputDataException        If the input data is invalid, such as a negative amount or an existing transaction number.
-	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayerDto is null, indicating an unregistered user.
+	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayer is null, indicating an unregistered user.
 	 */
-	private void validatingInputData(Player player, TransactionRequestDto transactionRequestDto) {
+	private void validatingInputData(TransactionRequestDto transactionRequestDto) {
 		final String token = transactionRequestDto.transactionToken();
 		final BigDecimal amount = transactionRequestDto.inputPlayerAmount();
 
@@ -125,16 +119,16 @@ public class TransactionServiceImpl implements TransactionService {
 	}
 
 	/**
-	 * Checks if the AuthPlayerDto is valid (not null).
+	 * Checks if the AuthPlayer is valid (not null).
 	 *
-	 * @param authPlayerDto The AuthPlayerDto to check.
-	 * @return The player associated with the AuthPlayerDto.
-	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayerDto is null, indicating an unregistered user.
+	 * @param AuthPlayer The AuthPlayer to check.
+	 * @return The player associated with the AuthPlayer.
+	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayer is null, indicating an unregistered user.
 	 */
-	private Player userAuthorizationVerification(AuthPlayerDto authPlayerDto) {
-		if (authPlayerDto == null) {
+	private Player userAuthorizationVerification(AuthPlayer AuthPlayer) {
+		if (AuthPlayer == null) {
 			throw new PlayerDoesNotHaveAccessException("You need to log in. This resource is not available to you.");
 		}
-		return playerMapper.toEntity(authPlayerDto);
+		return playerMapper.toEntity(AuthPlayer);
 	}
 }

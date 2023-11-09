@@ -1,4 +1,4 @@
-package ru.patseev.auditspringbootstarter.logger.bean;
+package ru.patseev.auditspringbootstarter.logger.repository;
 
 
 import ru.patseev.auditspringbootstarter.logger.model.Log;
