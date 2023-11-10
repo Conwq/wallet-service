@@ -15,6 +15,7 @@ import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessExcept
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -30,6 +31,7 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional(readOnly = true)
 	@Override
 	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayer authPlayer)
 			throws PlayerDoesNotHaveAccessException {
@@ -44,6 +46,7 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional
 	@Override
 	public void credit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto)
 			throws PlayerDoesNotHaveAccessException, InvalidInputDataException, TransactionNumberAlreadyExist {
@@ -64,6 +67,7 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional
 	@Override
 	public void debit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto)
 			throws PlayerDoesNotHaveAccessException, InvalidInputDataException, TransactionNumberAlreadyExist {

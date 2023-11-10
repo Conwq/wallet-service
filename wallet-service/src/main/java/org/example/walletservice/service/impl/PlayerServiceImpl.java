@@ -17,6 +17,7 @@ import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Provides functionality for player registration, login, balance management, credit, debit, transaction history,
@@ -33,6 +34,7 @@ public class PlayerServiceImpl implements PlayerService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional
 	@Override
 	public void registrationPlayer(PlayerRequestDto playerRequestDto)
 			throws PlayerAlreadyExistException, PlayerNotLoggedInException, InvalidInputDataException {
@@ -51,6 +53,7 @@ public class PlayerServiceImpl implements PlayerService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional(readOnly = true)
 	@Override
 	public AuthPlayer logIn(PlayerRequestDto playerRequestDto)
 			throws PlayerNotFoundException, PlayerNotLoggedInException, InvalidInputDataException {
@@ -68,6 +71,7 @@ public class PlayerServiceImpl implements PlayerService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional(readOnly = true)
 	@Override
 	public BalanceResponseDto getPlayerBalance(AuthPlayer authPlayer)
 			throws PlayerNotLoggedInException, PlayerNotFoundException {

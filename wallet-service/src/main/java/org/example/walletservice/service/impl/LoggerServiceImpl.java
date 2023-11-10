@@ -13,6 +13,7 @@ import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessExcept
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ public class LoggerServiceImpl implements LoggerService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional(readOnly = true)
 	@Override
 	public List<LogResponseDto> getAllLogs(AuthPlayer authPlayer)
 			throws PlayerNotLoggedInException, PlayerDoesNotHaveAccessException {
@@ -37,6 +39,7 @@ public class LoggerServiceImpl implements LoggerService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional(readOnly = true)
 	@Override
 	public List<LogResponseDto> getLogsByUsername(AuthPlayer authPlayer, String inputUsernameForSearch)
 			throws PlayerNotFoundException, PlayerNotLoggedInException, PlayerDoesNotHaveAccessException {
