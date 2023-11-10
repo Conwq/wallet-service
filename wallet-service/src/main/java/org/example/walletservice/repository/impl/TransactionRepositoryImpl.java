@@ -1,9 +1,9 @@
 package org.example.walletservice.repository.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
 import org.example.walletservice.repository.TransactionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -12,13 +12,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class TransactionRepositoryImpl implements TransactionRepository {
 	private final JdbcTemplate jdbcTemplate;
-
-	@Autowired
-	public TransactionRepositoryImpl(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
-	}
 
 	/**
 	 * {@inheritDoc}

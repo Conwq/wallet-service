@@ -6,6 +6,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.example.walletservice.model.dto.AuthPlayer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -18,7 +19,8 @@ import java.util.function.Function;
  */
 @Service
 public class JwtService {
-	private static final String SECRET_KEY = "f9c9f2c74e849e48aac676442f8eaa67fbc13f62999f8d30ae9417518bd38456";
+	@Value("${spring.jwt.secret-key}")
+	private String secretKey;
 
 	/**
 	 * Extracts the username claim from the provided JWT.
@@ -100,7 +102,7 @@ public class JwtService {
 	 * @return The generated cryptographic key.
 	 */
 	private Key generateKey() {
-		byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+		byte[] keyBytes = Decoders.BASE64.decode(secretKey);
 		return Keys.hmacShaKeyFor(keyBytes);
 	}
 }

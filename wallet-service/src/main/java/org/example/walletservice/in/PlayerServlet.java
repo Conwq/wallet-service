@@ -1,14 +1,13 @@
 package org.example.walletservice.in;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.example.walletservice.jwt.JwtService;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.service.PlayerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,16 +21,10 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/players")
+@RequiredArgsConstructor
 public final class PlayerServlet {
 	private final PlayerService playerService;
 	private final JwtService jwtService;
-
-	@Autowired
-	public PlayerServlet(PlayerService playerService,
-						 JwtService jwtService) {
-		this.playerService = playerService;
-		this.jwtService = jwtService;
-	}
 
 	/**
 	 * Handles the HTTP POST request to register a new player.
@@ -42,7 +35,7 @@ public final class PlayerServlet {
 	@PostMapping("/registration")
 	public ResponseEntity<InfoResponse> registrationNewPlayer(@RequestBody PlayerRequestDto playerRequest) {
 		playerService.registrationPlayer(playerRequest);
-		return generateResponse(HttpStatus.OK, "You have successfully registered.");
+		return generateResponse("You have successfully registered.");
 	}
 
 	/**
@@ -57,18 +50,17 @@ public final class PlayerServlet {
 											  HttpServletResponse resp) {
 		AuthPlayer authPlayer = playerService.logIn(playerRequest);
 		addedHeader(authPlayer, resp);
-		return generateResponse(HttpStatus.OK, "You've successfully logged in");
+		return generateResponse("You've successfully logged in");
 	}
 
 	/**
 	 * Handles the HTTP GET request to retrieve the player balance.
 	 *
-	 * @param request The HttpServletRequest object.
+	 * @param authPlayer Authorized Player Data.
 	 * @return ResponseEntity containing the BalanceResponseDto and HTTP status.
 	 */
 	@GetMapping("/balance")
-	public ResponseEntity<BalanceResponseDto> getBalance(HttpServletRequest request) {
-		AuthPlayer authPlayer = (AuthPlayer) request.getAttribute("authPlayer");
+	public ResponseEntity<BalanceResponseDto> getBalance(@RequestAttribute(required = false) AuthPlayer authPlayer) {
 		BalanceResponseDto balanceResponse = playerService.getPlayerBalance(authPlayer);
 		return new ResponseEntity<>(balanceResponse, HttpStatus.OK);
 	}
@@ -90,12 +82,11 @@ public final class PlayerServlet {
 	/**
 	 * Generates a ResponseEntity with InfoResponse and the provided HTTP status and message.
 	 *
-	 * @param status  The HTTP status.
 	 * @param message The response message.
 	 * @return ResponseEntity containing the InfoResponse and HTTP status.
 	 */
-	private ResponseEntity<InfoResponse> generateResponse(HttpStatus status, String message) {
-		InfoResponse infoResponse = new InfoResponse(new Date().toString(), status.value(), message);
-		return new ResponseEntity<>(infoResponse, status);
+	private ResponseEntity<InfoResponse> generateResponse(String message) {
+		InfoResponse infoResponse = new InfoResponse(new Date().toString(), HttpStatus.OK.value(), message);
+		return new ResponseEntity<>(infoResponse, HttpStatus.OK);
 	}
 }

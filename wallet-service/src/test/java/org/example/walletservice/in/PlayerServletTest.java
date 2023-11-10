@@ -1,6 +1,8 @@
 package org.example.walletservice.in;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.walletservice.jwt.JwtService;
+import org.example.walletservice.model.enums.Role;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
@@ -20,8 +22,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -30,21 +30,23 @@ import java.util.HashMap;
 @AutoConfigureMockMvc
 class PlayerServletTest {
 	@MockBean
-	private static PlayerService playerService;
+	private PlayerService playerService;
 	@MockBean
-	private static JwtService jwtService;
+	private JwtService jwtService;
 	private final MockMvc mockMvc;
+	private final ObjectMapper objectMapper;
 	private AuthPlayer authPlayer;
 	private static final String AUTH_PLAYER = "authPlayer";
 
 	@Autowired
-	public PlayerServletTest(MockMvc mockMvc) {
+	public PlayerServletTest(MockMvc mockMvc, ObjectMapper objectMapper) {
 		this.mockMvc = mockMvc;
+		this.objectMapper = objectMapper;
 	}
 
 	@BeforeEach
 	public void setUp() {
-		authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
+		authPlayer = new AuthPlayer(1, "admin", Role.ADMIN);
 	}
 
 	@Test
@@ -73,7 +75,7 @@ class PlayerServletTest {
 				.post("/players/registration")
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON)
-				.content(new ObjectMapper().writeValueAsBytes(playerRequest));
+				.content(objectMapper.writeValueAsBytes(playerRequest));
 
 		ResultActions perform = mockMvc.perform(request);
 
@@ -85,7 +87,7 @@ class PlayerServletTest {
 	@DisplayName("Should perform sign-in operation")
 	public void shouldPerformSigInOperation() throws Exception {
 		PlayerRequestDto playerRequest = new PlayerRequestDto("user", "user123");
-		AuthPlayer newAuthPlayer = new AuthPlayer(1, "user", Roles.USER);
+		AuthPlayer newAuthPlayer = new AuthPlayer(1, "user", Role.USER);
 		String jwtToken = "jwt_token";
 
 		Mockito.when(playerService.logIn(playerRequest)).thenReturn(newAuthPlayer);
@@ -95,7 +97,7 @@ class PlayerServletTest {
 				.post("/players/log_in")
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON)
-				.content(new ObjectMapper().writeValueAsBytes(playerRequest));
+				.content(objectMapper.writeValueAsBytes(playerRequest));
 
 		ResultActions perform = mockMvc.perform(request);
 

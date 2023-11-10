@@ -3,12 +3,15 @@ package ru.patseev.auditspringbootstarter.audit.aspect;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Aspect for counting the execution time of the logIn method in PlayerService.
  */
 @Aspect
 public class TimeCountingAspect {
+	private final static Logger LOGGER = LoggerFactory.getLogger(TimeCountingAspect.class);
 
 	/**
 	 * Around advice for the logIn method in PlayerService.
@@ -22,10 +25,8 @@ public class TimeCountingAspect {
 		long startTime = System.currentTimeMillis();
 		Object result = joinPoint.proceed();
 		long endTime = System.currentTimeMillis();
-
-		System.out.printf("Execution of method %s finished. Execution time is %s ms\n",
+		LOGGER.info("Execution of method {} finished. Execution time is {} ms\n",
 				joinPoint.getSignature(), (endTime - startTime));
-
 		return result;
 	}
 }

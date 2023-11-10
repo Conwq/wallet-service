@@ -1,5 +1,6 @@
 package org.example.walletservice.in;
 
+import org.example.walletservice.model.enums.Role;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.service.LoggerService;
@@ -15,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ class LoggerServletTest {
 			add(new LogResponseDto("Log message 1"));
 			add(new LogResponseDto("Log message 2"));
 		}};
-		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
+		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Role.ADMIN);
 
 		Mockito.when(loggerService.getAllLogs(authPlayer)).thenReturn(logList);
 
@@ -60,7 +60,7 @@ class LoggerServletTest {
 			add(new LogResponseDto("Log message 1"));
 			add(new LogResponseDto("Log message 2"));
 		}};
-		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
+		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Role.ADMIN);
 		Mockito.when(loggerService.getLogsByUsername(authPlayer, "admin")).thenReturn(logList);
 
 		mockMvc.perform(MockMvcRequestBuilders

@@ -1,8 +1,8 @@
 package org.example.walletservice.repository.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.example.walletservice.model.entity.Log;
 import org.example.walletservice.repository.LoggerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -11,13 +11,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class LoggerRepositoryImpl implements LoggerRepository {
 	private final JdbcTemplate jdbcTemplate;
-
-	@Autowired
-	public LoggerRepositoryImpl(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
-	}
 
 	/**
 	 * {@inheritDoc}
@@ -71,10 +67,10 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 * @return Log object.
 	 */
 	private Log mapToLog(ResultSet resultSet) throws SQLException {
-		Log log = new Log();
-		log.setLogID(resultSet.getInt("log_id"));
-		log.setLog(resultSet.getString("log"));
-		log.setPlayerID(resultSet.getInt("player_id"));
-		return log;
+		return Log.builder()
+				.logID(resultSet.getInt("log_id"))
+				.log(resultSet.getString("log"))
+				.playerID(resultSet.getInt("player_id"))
+				.build();
 	}
 }

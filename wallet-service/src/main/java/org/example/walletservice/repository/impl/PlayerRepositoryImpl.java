@@ -1,9 +1,9 @@
 package org.example.walletservice.repository.impl;
 
-import org.example.walletservice.model.Role;
+import lombok.RequiredArgsConstructor;
 import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.enums.Role;
 import org.example.walletservice.repository.PlayerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -18,13 +18,9 @@ import java.util.Optional;
  * Manage player data and transactions.
  */
 @Repository
+@RequiredArgsConstructor
 public class PlayerRepositoryImpl implements PlayerRepository {
 	private final JdbcTemplate jdbcTemplate;
-
-	@Autowired
-	public PlayerRepositoryImpl(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
-	}
 
 	/**
 	 * {@inheritDoc}
@@ -83,7 +79,10 @@ public class PlayerRepositoryImpl implements PlayerRepository {
 				""";
 
 		return jdbcTemplate.queryForObject(requestForUserBalance, (rs, rowNum) ->
-						new Player(rs.getString("username"), rs.getBigDecimal("balance")),
+						Player.builder()
+								.username(rs.getString("username"))
+								.balance(rs.getBigDecimal("balance"))
+								.build(),
 				player.getPlayerID());
 	}
 }

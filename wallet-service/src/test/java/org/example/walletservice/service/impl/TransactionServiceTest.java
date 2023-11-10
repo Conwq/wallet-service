@@ -1,7 +1,7 @@
 package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.Role;
+import org.example.walletservice.model.enums.Role;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
@@ -12,7 +12,7 @@ import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.TransactionService;
-import org.example.walletservice.service.enums.Operation;
+import org.example.walletservice.model.enums.Operation;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
@@ -24,7 +24,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -64,7 +63,7 @@ class TransactionServiceTest {
 		player.setBalance(BigDecimal.TEN);
 		player.setRole(Role.ADMIN);
 
-		authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
+		authPlayer = new AuthPlayer(1, "admin", Role.ADMIN);
 		transactionRequestDto = new TransactionRequestDto(BigDecimal.TEN, "token");
 	}
 

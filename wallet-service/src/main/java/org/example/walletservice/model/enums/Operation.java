@@ -1,4 +1,4 @@
-package org.example.walletservice.service.enums;
+package org.example.walletservice.model.enums;
 
 /**
  * An enum representing various operations related to player actions.

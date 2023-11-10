@@ -3,21 +3,24 @@ package ru.patseev.auditspringbootstarter.audit.aspect;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Aspect for auditing various operations in the application.
  */
 @Aspect
 public class AuditAspect {
-	private static final String FAIL = "[FAIL] ";
-	private static final String SUCCESSFUL = "[SUCCESSFUL] ";
+	private final static Logger LOGGER = LoggerFactory.getLogger(AuditAspect.class);
+	private static final String FAIL = "[FAIL] {}";
+	private static final String SUCCESSFUL = "[SUCCESSFUL] {}";
 
 	/**
 	 * Audits the successful completion of the getAllLogs operation.
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.LoggerService.getAllLogs(..))")
 	public void getAllLogsAspect() {
-		System.out.println(SUCCESSFUL + "All logs viewed.");
+		LOGGER.info(SUCCESSFUL, "All logs viewed.");
 	}
 
 	/**
@@ -25,7 +28,7 @@ public class AuditAspect {
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.LoggerService.getLogsByUsername(..))")
 	public void getLogsByUsername() {
-		System.out.println(SUCCESSFUL + "Player logs viewed.");
+		LOGGER.info(SUCCESSFUL, "Player logs viewed.");
 	}
 
 	/**
@@ -33,7 +36,7 @@ public class AuditAspect {
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.impl.PlayerServiceImpl.logIn(..))")
 	public void logInAspect() {
-		System.out.println(SUCCESSFUL + "Sign in was successful.");
+		LOGGER.info(SUCCESSFUL, "Sign in was successful.");
 	}
 
 	/**
@@ -41,7 +44,7 @@ public class AuditAspect {
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.impl.PlayerServiceImpl.registrationPlayer(..))")
 	public void registrationPlayerAspect() {
-		System.out.println(SUCCESSFUL + "Registration was successful.");
+		LOGGER.info(SUCCESSFUL, "Registration was successful.");
 	}
 
 	/**
@@ -49,7 +52,7 @@ public class AuditAspect {
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
 	public void getPlayerBalanceAspect() {
-		System.out.println(SUCCESSFUL + "Receiving the balance was successful.");
+		LOGGER.info(SUCCESSFUL, "Receiving the balance was successful.");
 	}
 
 	/**
@@ -57,7 +60,7 @@ public class AuditAspect {
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.TransactionService.credit(..))")
 	public void creditAspect() {
-		System.out.println(SUCCESSFUL + "Credit successful.");
+		LOGGER.info(SUCCESSFUL, "Credit successful.");
 	}
 
 	/**
@@ -65,7 +68,7 @@ public class AuditAspect {
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.TransactionService.debit(..))")
 	public void debitAspect() {
-		System.out.println(SUCCESSFUL + "Debit successful.");
+		LOGGER.info(SUCCESSFUL, "Debit successful.");
 	}
 
 	/**
@@ -73,7 +76,7 @@ public class AuditAspect {
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.TransactionService.getPlayerTransactionalHistory(..))")
 	public void getPlayerTransactionHistoryAspect() {
-		System.out.println(SUCCESSFUL + "Transaction history has been viewed");
+		LOGGER.info(SUCCESSFUL, "Transaction history has been viewed");
 	}
 
 	/**
@@ -83,7 +86,7 @@ public class AuditAspect {
 	 */
 	@AfterThrowing(value = "execution(* org.example.walletservice.service..*(..))", throwing = "e")
 	public void afterThrow(RuntimeException e) {
-		System.out.println(FAIL + e.getMessage());
+		LOGGER.error(FAIL, e.getMessage());
 		throw e;
 	}
 }

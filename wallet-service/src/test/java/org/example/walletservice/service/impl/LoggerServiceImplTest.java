@@ -1,7 +1,7 @@
 package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.Assertions;
-import org.example.walletservice.model.Role;
+import org.example.walletservice.model.enums.Role;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.model.entity.Log;
@@ -19,7 +19,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +54,7 @@ class LoggerServiceImplTest {
 		player.setPassword("2312");
 		player.setRole(Role.USER);
 
-		authPlayer = new AuthPlayer(1, "admin", Roles.ADMIN);
+		authPlayer = new AuthPlayer(1, "admin", Role.ADMIN);
 	}
 
 	@Test

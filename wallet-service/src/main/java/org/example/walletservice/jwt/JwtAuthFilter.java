@@ -4,12 +4,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.example.walletservice.model.dto.AuthPlayer;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.example.walletservice.model.enums.Role;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.io.IOException;
 
@@ -17,13 +17,9 @@ import java.io.IOException;
  * Extracts and validates JWT (JSON Web Token) from the Authorization header of an HTTP request.
  */
 @Component
+@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 	private final JwtService jwtService;
-
-	@Autowired
-	public JwtAuthFilter(JwtService jwtService) {
-		this.jwtService = jwtService;
-	}
 
 	@Override
 	protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -42,7 +38,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			roleParam = jwtService.extractRole(jwt);
 
 			if (usernameParam != null && roleParam != null && playerID > -1) {
-				Roles role = Roles.valueOf(roleParam);
+				Role role = Role.valueOf(roleParam);
 				AuthPlayer authPlayer = new AuthPlayer(playerID, usernameParam, role);
 				request.setAttribute("authPlayer", authPlayer);
 			}

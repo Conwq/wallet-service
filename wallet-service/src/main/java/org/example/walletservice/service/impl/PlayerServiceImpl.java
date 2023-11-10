@@ -1,5 +1,6 @@
 package org.example.walletservice.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
@@ -12,7 +13,6 @@ import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.PlayerNotLoggedInException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -22,25 +22,19 @@ import java.util.Optional;
  * and log display.
  */
 @Service
+@RequiredArgsConstructor
 public class PlayerServiceImpl implements PlayerService {
 	private final PlayerRepository playerRepository;
 	private final PlayerMapper playerMapper;
 	private final BalanceMapper balanceMapper;
 
-	@Autowired
-	public PlayerServiceImpl(PlayerRepository playerRepository,
-							 PlayerMapper playerMapper,
-							 BalanceMapper balanceMapper) {
-		this.playerRepository = playerRepository;
-		this.playerMapper = playerMapper;
-		this.balanceMapper = balanceMapper;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void registrationPlayer(PlayerRequestDto playerRequestDto) {
+	public void registrationPlayer(PlayerRequestDto playerRequestDto)
+			throws PlayerAlreadyExistException, PlayerNotLoggedInException, InvalidInputDataException {
+
 		inputValidation(playerRequestDto);
 
 		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
@@ -57,7 +51,9 @@ public class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public AuthPlayer logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException, InvalidInputDataException {
+	public AuthPlayer logIn(PlayerRequestDto playerRequestDto)
+			throws PlayerNotFoundException, PlayerNotLoggedInException, InvalidInputDataException {
+
 		inputValidation(playerRequestDto);
 
 		Optional<Player> optionalPlayer = findByUsername(playerRequestDto.username());
@@ -68,7 +64,7 @@ public class PlayerServiceImpl implements PlayerService {
 		Player player = optionalPlayer.get();
 
 		if (!player.getPassword().equals(playerRequestDto.password())) {
-			throw new PlayerNotFoundException("Incorrect password.");
+			throw new InvalidInputDataException("Incorrect password.");
 		}
 
 		return playerMapper.toAuthPlayer(player);
@@ -103,7 +99,7 @@ public class PlayerServiceImpl implements PlayerService {
 	 * @param playerRequestDto The PlayerRequestDto containing player information.
 	 * @throws InvalidInputDataException If the input data is invalid, such as empty or too short username/password.
 	 */
-	private void inputValidation(PlayerRequestDto playerRequestDto) throws InvalidInputDataException {
+	private void inputValidation(PlayerRequestDto playerRequestDto) throws InvalidInputDataException, PlayerNotLoggedInException {
 		String username;
 		String password;
 

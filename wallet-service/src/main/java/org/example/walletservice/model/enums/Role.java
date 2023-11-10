@@ -1,4 +1,4 @@
-package org.example.walletservice.model;
+package org.example.walletservice.model.enums;
 
 /**
  * Provides all available roles for players.

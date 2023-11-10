@@ -4,10 +4,10 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.patseev.auditspringbootstarter.logger.mapper.LogMapper;
-import ru.patseev.auditspringbootstarter.logger.model.Log;
 import ru.patseev.auditspringbootstarter.logger.entities.Operation;
 import ru.patseev.auditspringbootstarter.logger.entities.Status;
+import ru.patseev.auditspringbootstarter.logger.mapper.LogMapper;
+import ru.patseev.auditspringbootstarter.logger.model.Log;
 import ru.patseev.auditspringbootstarter.logger.repository.LoggerRepository;
 
 /**
@@ -104,15 +104,9 @@ public class LoggerAspect {
 	 */
 	@Around("execution(* org.example.walletservice.service.impl.PlayerServiceImpl.registrationPlayer(..))")
 	public Object registrationPlayerAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		try {
-			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.REGISTRATION, Status.SUCCESSFUL);
-			return result;
-
-		} catch (RuntimeException e) {
-			recordActionInLog(Operation.REGISTRATION, Status.FAIL);
-			throw e;
-		}
+		Object result = joinPoint.proceed();
+		recordActionInLog(Operation.REGISTRATION, Status.SUCCESSFUL);
+		return result;
 	}
 
 	/**

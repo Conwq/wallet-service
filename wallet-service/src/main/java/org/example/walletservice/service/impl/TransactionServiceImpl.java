@@ -1,48 +1,39 @@
 package org.example.walletservice.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.model.entity.Player;
 import org.example.walletservice.model.entity.Transaction;
+import org.example.walletservice.model.enums.Operation;
 import org.example.walletservice.model.mapper.PlayerMapper;
 import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
 import org.example.walletservice.service.TransactionService;
-import org.example.walletservice.service.enums.Operation;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 	private final TransactionRepository transactionRepository;
 	private final PlayerRepository playerRepository;
 	private final TransactionMapper transactionMapper;
 	private final PlayerMapper playerMapper;
 
-	@Autowired
-	public TransactionServiceImpl(TransactionRepository transactionRepository,
-								  PlayerRepository playerRepository,
-								  TransactionMapper transactionMapper,
-								  PlayerMapper playerMapper) {
-		this.transactionRepository = transactionRepository;
-		this.playerRepository = playerRepository;
-		this.transactionMapper = transactionMapper;
-		this.playerMapper = playerMapper;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayer authPlayer) {
+	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayer authPlayer)
+			throws PlayerDoesNotHaveAccessException {
 		Player player = userAuthorizationVerification(authPlayer);
 		List<Transaction> playerTransactionalHistory = transactionRepository.findPlayerTransactionalHistory(player);
 		return playerTransactionalHistory.stream().map(transactionMapper::toDto).toList();
@@ -52,7 +43,9 @@ public class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void credit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto) {
+	public void credit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto)
+			throws PlayerDoesNotHaveAccessException, InvalidInputDataException, TransactionNumberAlreadyExist {
+
 		Player player = userAuthorizationVerification(authPlayer);
 		validatingInputData(transactionRequestDto);
 
@@ -61,12 +54,8 @@ public class TransactionServiceImpl implements TransactionService {
 		BigDecimal playerBalance = findPlayer.getBalance();
 		BigDecimal newPlayerBalance = playerBalance.add(transactionRequestDto.inputPlayerAmount());
 
-		Transaction transaction = transactionMapper.toEntity(
-				transactionRequestDto,
-				player,
-				Operation.CREDIT,
-				newPlayerBalance
-		);
+		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.CREDIT,
+				newPlayerBalance);
 		transactionRepository.creditOrDebit(transaction, newPlayerBalance);
 	}
 
@@ -74,7 +63,9 @@ public class TransactionServiceImpl implements TransactionService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void debit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto) {
+	public void debit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto)
+			throws PlayerDoesNotHaveAccessException, InvalidInputDataException, TransactionNumberAlreadyExist {
+
 		Player player = userAuthorizationVerification(authPlayer);
 		validatingInputData(transactionRequestDto);
 
@@ -87,10 +78,7 @@ public class TransactionServiceImpl implements TransactionService {
 			throw new InvalidInputDataException("The number of funds to be withdrawn exceeds the number of funds on the account.");
 		}
 
-		Transaction transaction = transactionMapper.toEntity(
-				transactionRequestDto,
-				player,
-				Operation.DEBIT,
+		Transaction transaction = transactionMapper.toEntity(transactionRequestDto, player, Operation.DEBIT,
 				newPlayerBalance);
 
 		transactionRepository.creditOrDebit(transaction, newPlayerBalance);

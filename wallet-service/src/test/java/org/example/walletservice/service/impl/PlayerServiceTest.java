@@ -1,7 +1,7 @@
 package org.example.walletservice.service.impl;
 
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.Role;
+import org.example.walletservice.model.enums.Role;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
@@ -22,7 +22,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import ru.patseev.auditspringbootstarter.logger.model.Roles;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -166,7 +165,7 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("Must be successfully logged in")
 	public void shouldLogInPlayer_success() {
-		AuthPlayer expected = new AuthPlayer(player.getPlayerID(), playerRequest.username(), Roles.USER);
+		AuthPlayer expected = new AuthPlayer(player.getPlayerID(), playerRequest.username(), Role.USER);
 
 		Mockito.when(playerRepository.findPlayer(playerRequest.username())).thenReturn(Optional.of(player));
 		Mockito.when(playerMapper.toAuthPlayer(player)).thenReturn(expected);
@@ -198,7 +197,7 @@ class PlayerServiceTest {
 		player.setPassword("different_password");
 		Mockito.when(playerRepository.findPlayer(playerRequest.username())).thenReturn(Optional.of(player));
 
-		PlayerNotFoundException exception = Assertions.assertThrows(PlayerNotFoundException.class, () -> {
+		InvalidInputDataException exception = Assertions.assertThrows(InvalidInputDataException.class, () -> {
 			playerService.logIn(playerRequest);
 		});
 
@@ -299,7 +298,7 @@ class PlayerServiceTest {
 	@Test
 	@DisplayName("The user should receive the balance")
 	public void shouldGetBalancePlayer_successful() {
-		AuthPlayer authPlayer = new AuthPlayer(1, "username", Roles.USER);
+		AuthPlayer authPlayer = new AuthPlayer(1, "username", Role.USER);
 		BalanceResponseDto balance = new BalanceResponseDto("admin", new BigDecimal(100));
 
 		Mockito.when(playerMapper.toEntity(authPlayer)).thenReturn(player);
