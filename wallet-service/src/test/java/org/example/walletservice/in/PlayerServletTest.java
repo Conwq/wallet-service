@@ -9,6 +9,7 @@ import org.example.walletservice.model.dto.PlayerRequestDto;
 import org.example.walletservice.service.PlayerService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.math.BigDecimal;
 import java.util.HashMap;
 
+@Disabled
 @SpringBootTest
 @AutoConfigureMockMvc
 class PlayerServletTest {

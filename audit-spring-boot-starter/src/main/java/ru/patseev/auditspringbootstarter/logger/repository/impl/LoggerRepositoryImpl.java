@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 import ru.patseev.auditspringbootstarter.logger.model.Log;
 import ru.patseev.auditspringbootstarter.logger.repository.LoggerRepository;
 
-@Repository
 public class LoggerRepositoryImpl implements LoggerRepository {
 	private final JdbcTemplate jdbcTemplate;
 

@@ -1,4 +1,4 @@
-package org.example.walletservice.repository.rep.impl;
+package org.example.walletservice.repository;
 
 import org.example.walletservice.model.ent.entity.RoleEntity;
 import org.example.walletservice.model.enums.Role;

@@ -28,7 +28,8 @@ public class TransactionEntity {
 	@Column(name = "token")
 	private String token;
 	@Column(name = "operation")
-	private String operation;
+	@Enumerated(EnumType.STRING)
+	private Operation operation;
 	@Column(name = "amount")
 	private BigDecimal amount;
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

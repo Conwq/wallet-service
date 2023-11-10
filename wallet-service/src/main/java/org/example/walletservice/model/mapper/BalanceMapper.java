@@ -1,9 +1,9 @@
 package org.example.walletservice.model.mapper;
 
 import org.example.walletservice.model.dto.BalanceResponseDto;
+import org.example.walletservice.model.ent.entity.PlayerEntity;
 import org.mapstruct.Mapper;
-
-import java.math.BigDecimal;
+import org.mapstruct.Mapping;
 
 /**
  * Mapper interface for converting balance-related data between entities and DTOs.
@@ -14,11 +14,9 @@ public interface BalanceMapper {
 	/**
 	 * Converts the provided username and balance values to a {@link BalanceResponseDto}.
 	 *
-	 * @param username The username associated with the player.
-	 * @param balance  The balance amount associated with the player.
-	 * @return A {@link BalanceResponseDto} representing the balance response.
+	 * @param playerEntity Player entity
 	 */
-	default BalanceResponseDto toDto(String username, BigDecimal balance) {
-		return new BalanceResponseDto(username, balance);
-	}
+	@Mapping(target = "username", source = "username")
+	@Mapping(target = "balance", source = "balance")
+	BalanceResponseDto toDto(PlayerEntity playerEntity);
 }

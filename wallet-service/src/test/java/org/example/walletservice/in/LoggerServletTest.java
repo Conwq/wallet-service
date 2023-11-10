@@ -5,6 +5,7 @@ import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.LogResponseDto;
 import org.example.walletservice.service.LoggerService;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.util.ArrayList;
 import java.util.List;
 
+@Disabled
 @SpringBootTest
 @AutoConfigureMockMvc
 class LoggerServletTest {

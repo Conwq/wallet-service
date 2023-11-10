@@ -44,7 +44,7 @@ public class LoggerConfiguration {
 	 * @return An instance of the LoggerRepository.
 	 */
 	@Bean
-	public LoggerRepository loggerRepository() {
+	public LoggerRepository loggerRepositoryImpl() {
 		return new LoggerRepositoryImpl(jdbcTemplate);
 	}
 
@@ -55,6 +55,6 @@ public class LoggerConfiguration {
 	 */
 	@Bean
 	public LoggerAspect loggerAspect() {
-		return new LoggerAspect(loggerRepository(), logMapper());
+		return new LoggerAspect(loggerRepositoryImpl(), logMapper());
 	}
 }
