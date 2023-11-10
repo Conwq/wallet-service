@@ -3,12 +3,11 @@ package org.example.walletservice.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.LogResponseDto;
-import org.example.walletservice.model.entity.Log;
-import org.example.walletservice.model.entity.Player;
+import org.example.walletservice.model.ent.entity.LogEntity;
+import org.example.walletservice.model.ent.entity.PlayerEntity;
 import org.example.walletservice.model.enums.Role;
-import org.example.walletservice.model.mapper.LogMapper;
-import org.example.walletservice.repository.LoggerRepository;
-import org.example.walletservice.repository.PlayerRepository;
+import org.example.walletservice.repository.rep.impl.LoggerRep;
+import org.example.walletservice.repository.rep.impl.PlayerRep;
 import org.example.walletservice.service.LoggerService;
 import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
@@ -16,14 +15,13 @@ import org.example.walletservice.service.exception.PlayerNotLoggedInException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class LoggerServiceImpl implements LoggerService {
-	private final PlayerRepository playerRepository;
-	private final LogMapper logMapper;
-	private final LoggerRepository loggerRepository;
+	private final LoggerRep loggerRep;
+	private final PlayerRep playerRep;
 
 	/**
 	 * {@inheritDoc}
@@ -31,11 +29,8 @@ public class LoggerServiceImpl implements LoggerService {
 	@Override
 	public List<LogResponseDto> getAllLogs(AuthPlayer authPlayer)
 			throws PlayerNotLoggedInException, PlayerDoesNotHaveAccessException {
-
 		userAuthorizationVerification(authPlayer);
-		List<Log> playersRecords = loggerRepository.findAllActivityRecords();
-
-		return playersRecords.stream().map(logMapper::toDto).toList();
+		return loggerRep.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
 	}
 
 	/**
@@ -46,10 +41,19 @@ public class LoggerServiceImpl implements LoggerService {
 			throws PlayerNotFoundException, PlayerNotLoggedInException, PlayerDoesNotHaveAccessException {
 
 		userAuthorizationVerification(authPlayer);
-		Player foundPlayer = checkingForExistenceOfUser(inputUsernameForSearch);
-		List<Log> playerLogs = loggerRepository.findActivityRecordsForPlayer(foundPlayer.getPlayerID());
+		PlayerEntity foundPlayer = playerRep.findByUsername(inputUsernameForSearch)
+				.orElseThrow(() -> new PlayerNotFoundException(String.format("Player %s not found", inputUsernameForSearch)));
 
-		return playerLogs.stream().map(logMapper::toDto).toList();
+		return foundPlayer.getLogEntity().stream().map(this::mapToDto).collect(Collectors.toList());
+	}
+
+	/**
+	 * mapped Entity in Dto
+	 * @param logEntity Entity to map in Dto
+	 * @return Mapped Dto
+	 */
+	private LogResponseDto mapToDto(LogEntity logEntity) {
+		return new LogResponseDto(logEntity.getLog());
 	}
 
 	/**
@@ -67,20 +71,5 @@ public class LoggerServiceImpl implements LoggerService {
 		if (authPlayer.role() != Role.ADMIN) {
 			throw new PlayerDoesNotHaveAccessException("You do not have access to this resource.");
 		}
-	}
-
-	/**
-	 * Checks for the existence of a player based on the provided optional and input username.
-	 *
-	 * @param inputUsernameForSearch The username used for the search.
-	 * @return The player if present.
-	 * @throws PlayerNotFoundException If the player is not found.
-	 */
-	private Player checkingForExistenceOfUser(String inputUsernameForSearch) throws PlayerNotFoundException {
-		Optional<Player> optionalPlayer = playerRepository.findPlayer(inputUsernameForSearch);
-		if (optionalPlayer.isEmpty()) {
-			throw new PlayerNotFoundException(String.format("Player %s not found", inputUsernameForSearch));
-		}
-		return optionalPlayer.get();
 	}
 }

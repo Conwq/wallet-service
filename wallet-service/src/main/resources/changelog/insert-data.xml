@@ -6,12 +6,12 @@
     <changeSet id="insert-data" author="Sergey.Patseev">
         <insert schemaName="wallet_service" tableName="roles">
             <column name="role_id" value="1"/>
-            <column name="role_name" value="user"/>
+            <column name="role_name" value="USER"/>
         </insert>
 
         <insert schemaName="wallet_service" tableName="roles">
             <column name="role_id" value="2"/>
-            <column name="role_name" value="admin"/>
+            <column name="role_name" value="ADMIN"/>
         </insert>
 
         <insert schemaName="wallet_service" tableName="players">

@@ -34,17 +34,6 @@ public interface PlayerService {
 			throws PlayerNotFoundException, PlayerNotLoggedInException, InvalidInputDataException;
 
 	/**
-	 * Retrieves an {@link Optional} containing a {@link Player} based on the provided username.
-	 *
-	 * @param username The username of the player to be retrieved.
-	 * @return An {@link Optional} containing the found {@link Player} if present, otherwise an empty {@link Optional}.
-	 * @apiNote This method is typically used for retrieving a player by their unique username.
-	 * @see Player
-	 * @see Optional
-	 */
-	Optional<Player> findByUsername(String username);
-
-	/**
 	 * Gets the balance of a player.
 	 *
 	 * @param authPlayer The authenticated player for whom the balance is requested.

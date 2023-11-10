@@ -23,7 +23,7 @@
             <column name="password" type="VARCHAR(50)"/>
             <column name="balance" type="DOUBLE PRECISION"
                     defaultValue="0.0"/>
-            <column name="role_id" type="INT">
+            <column name="role_id" type="INT" defaultValue="1">
                 <constraints foreignKeyName="fk_players_roles"
                              references="wallet_service.roles(role_id)"/>
             </column>
@@ -35,7 +35,6 @@
             <column name="transaction_id" type="INTEGER" defaultValueSequenceNext="transaction_id_seq">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="record" type="VARCHAR(200)"/>
             <column name="token" type="VARCHAR(20)"/>
             <column name="operation" type="VARCHAR(20)"/>
             <column name="amount" type="NUMERIC(10,2)"/>
