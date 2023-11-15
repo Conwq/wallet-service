@@ -9,6 +9,7 @@ import ru.patseev.auditspringbootstarter.logger.aspect.LoggerAspect;
 import ru.patseev.auditspringbootstarter.logger.mapper.LogMapper;
 import ru.patseev.auditspringbootstarter.logger.repository.LoggerRepository;
 import ru.patseev.auditspringbootstarter.logger.repository.impl.LoggerRepositoryImpl;
+import ru.patseev.auditspringbootstarter.logger.repository.impl.PlayRepository;
 
 /**
  * Configuration class for the Logger module.
@@ -49,12 +50,22 @@ public class LoggerConfiguration {
 	}
 
 	/**
+	 * Creates and configures a PlayRepository bean.
+	 *
+	 * @return The configured PlayRepository bean.
+	 */
+	@Bean
+	public PlayRepository playRepository() {
+		return new PlayRepository(jdbcTemplate);
+	}
+
+	/**
 	 * Bean definition for the LoggerAspect.
 	 *
 	 * @return An instance of the LoggerAspect.
 	 */
 	@Bean
 	public LoggerAspect loggerAspect() {
-		return new LoggerAspect(loggerRepositoryImpl(), logMapper());
+		return new LoggerAspect(loggerRepositoryImpl(), logMapper(), playRepository());
 	}
 }

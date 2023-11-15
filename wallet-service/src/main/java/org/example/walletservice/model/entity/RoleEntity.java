@@ -1,4 +1,4 @@
-package org.example.walletservice.model.ent.entity;
+package org.example.walletservice.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,6 +9,10 @@ import org.example.walletservice.model.enums.Role;
 
 import java.util.List;
 
+/**
+ * Represents a role entity in the application.
+ * This entity is used to model user roles within the system.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,8 +22,8 @@ import java.util.List;
 public class RoleEntity {
 	@Id
 	@Column(name = "role_id")
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "role_id_seq")
-	@SequenceGenerator(name = "role_id_seq", sequenceName = "role_id_seq", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "wallet_service.role_id_seq")
+	@SequenceGenerator(name = "wallet_service.role_id_seq", sequenceName = "wallet_service.role_id_seq", allocationSize = 1)
 	private int roleID;
 	@Column(name = "role_name")
 	@Enumerated(EnumType.STRING)

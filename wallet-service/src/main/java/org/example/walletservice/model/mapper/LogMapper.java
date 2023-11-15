@@ -1,7 +1,7 @@
 package org.example.walletservice.model.mapper;
 
 import org.example.walletservice.model.dto.LogResponseDto;
-import org.example.walletservice.model.ent.entity.LogEntity;
+import org.example.walletservice.model.entity.LogEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

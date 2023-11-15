@@ -1,4 +1,4 @@
-package org.example.walletservice.model.ent.entity;
+package org.example.walletservice.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,8 +22,8 @@ import java.math.BigDecimal;
 public class TransactionEntity {
 	@Id
 	@Column(name = "transaction_id")
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "transaction_id_seq")
-	@SequenceGenerator(name = "transaction_id_seq", sequenceName = "transaction_id_seq", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "wallet_service.transaction_id_seq")
+	@SequenceGenerator(name = "wallet_service.transaction_id_seq", sequenceName = "wallet_service.transaction_id_seq", allocationSize = 1)
 	private int transactionID;
 	@Column(name = "token")
 	private String token;

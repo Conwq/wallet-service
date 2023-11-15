@@ -1,7 +1,7 @@
 package org.example.walletservice.model.mapper;
 
 import org.example.walletservice.model.dto.BalanceResponseDto;
-import org.example.walletservice.model.ent.entity.PlayerEntity;
+import org.example.walletservice.model.entity.PlayerEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

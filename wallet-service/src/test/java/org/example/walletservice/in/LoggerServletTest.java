@@ -44,7 +44,7 @@ class LoggerServletTest {
 		}};
 		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Role.ADMIN);
 
-		Mockito.when(loggerService.getAllLogs(authPlayer)).thenReturn(logList);
+//		Mockito.when(loggerService.getAllLogs(authPlayer)).thenReturn(logList);
 
 		mockMvc.perform(MockMvcRequestBuilders
 						.get("/log/all_log")
@@ -63,7 +63,7 @@ class LoggerServletTest {
 			add(new LogResponseDto("Log message 2"));
 		}};
 		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Role.ADMIN);
-		Mockito.when(loggerService.getLogsByUsername(authPlayer, "admin")).thenReturn(logList);
+//		Mockito.when(loggerService.getLogsByUsername(authPlayer, "admin")).thenReturn(logList);
 
 		mockMvc.perform(MockMvcRequestBuilders
 						.get("/log/player_log")

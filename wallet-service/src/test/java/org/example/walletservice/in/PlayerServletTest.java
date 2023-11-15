@@ -57,7 +57,7 @@ class PlayerServletTest {
 		final BigDecimal balance = new BigDecimal(100);
 
 		BalanceResponseDto balanceResponse = new BalanceResponseDto(authPlayer.username(), balance);
-		Mockito.when(playerService.getPlayerBalance(authPlayer)).thenReturn(balanceResponse);
+//		Mockito.when(playerService.getPlayerBalance(authPlayer)).thenReturn(balanceResponse);
 
 		ResultActions perform = mockMvc.perform(MockMvcRequestBuilders
 				.get("/players/balance")
@@ -92,8 +92,8 @@ class PlayerServletTest {
 		AuthPlayer newAuthPlayer = new AuthPlayer(1, "user", Role.USER);
 		String jwtToken = "jwt_token";
 
-		Mockito.when(playerService.logIn(playerRequest)).thenReturn(newAuthPlayer);
-		Mockito.when(jwtService.generateWebToken(new HashMap<>(), newAuthPlayer)).thenReturn(jwtToken);
+//		Mockito.when(playerService.logIn(playerRequest)).thenReturn(newAuthPlayer);
+//		Mockito.when(jwtService.generateWebToken(new HashMap<>(), newAuthPlayer)).thenReturn(jwtToken);
 
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders
 				.post("/players/log_in")

@@ -5,12 +5,13 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.example.walletservice.model.dto.AuthPlayer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -33,40 +34,43 @@ public class JwtService {
 	}
 
 	/**
-	 * Extracts the player ID claim from the provided JWT.
+	 * Generates a JWT with the specified extra claims and player details.
 	 *
-	 * @param jwt The JWT from which to extract the player ID claim.
-	 * @return The player ID extracted from the JWT.
+	 * @param extraClaims   Additional claims to include in the JWT.
+	 * @param userDetails The player details used to generate the JWT.
+	 * @return The generated JWT.
 	 */
-	public int extractPlayerID(String jwt) {
-		return extractClaim(jwt, claims -> claims.get("playerID", Integer.class));
-	}
-
-	/**
-	 * Extracts the role claim from the provided JWT.
-	 *
-	 * @param jwt The JWT from which to extract the role claim.
-	 * @return The role extracted from the JWT.
-	 */
-	public String extractRole(String jwt) {
-		return extractClaim(jwt, claims -> claims.get("role", String.class));
+	public String generateWebToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+		return Jwts.builder()
+				.setClaims(extraClaims)
+				.setSubject(userDetails.getUsername())
+				.setIssuedAt(new Date(System.currentTimeMillis()))
+				.setExpiration(new Date(System.currentTimeMillis() + 12000000))
+				.signWith(generateKey(), SignatureAlgorithm.HS256)
+				.compact();
 	}
 
 	/**
 	 * Generates a JWT with the specified extra claims and player details.
 	 *
-	 * @param extraClaims   Additional claims to include in the JWT.
-	 * @param authPlayer The player details used to generate the JWT.
+	 * @param userDetails The player details used to generate the JWT.
 	 * @return The generated JWT.
 	 */
-	public String generateWebToken(Map<String, Object> extraClaims, AuthPlayer authPlayer) {
-		return Jwts.builder()
-				.setClaims(extraClaims)
-				.setSubject(authPlayer.username())
-				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + 12000000))
-				.signWith(generateKey(), SignatureAlgorithm.HS256)
-				.compact();
+	public String generateWebToken(UserDetails userDetails) {
+		return generateWebToken(new HashMap<>(), userDetails);
+	}
+
+	public boolean isTokenValid(String jwt, UserDetails userDetails) {
+		final String username = extractUsername(jwt);
+		return username.equals(userDetails.getUsername()) && !isTokenExpired(jwt);
+	}
+
+	private boolean isTokenExpired(String jwt) {
+		return extractExpiration(jwt).before(new Date());
+	}
+
+	private Date extractExpiration(String jwt) {
+		return extractClaim(jwt, Claims::getExpiration);
 	}
 
 	/**

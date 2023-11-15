@@ -20,12 +20,10 @@
                 <constraints primaryKey="true"/>
             </column>
             <column name="username" type="VARCHAR(50)"/>
-            <column name="password" type="VARCHAR(50)"/>
-            <column name="balance" type="DOUBLE PRECISION"
-                    defaultValue="0.0"/>
+            <column name="password" type="VARCHAR(100)"/>
+            <column name="balance" type="DOUBLE PRECISION" defaultValue="0.0"/>
             <column name="role_id" type="INT" defaultValue="1">
-                <constraints foreignKeyName="fk_players_roles"
-                             references="wallet_service.roles(role_id)"/>
+                <constraints foreignKeyName="fk_players_roles" references="wallet_service.roles(role_id)"/>
             </column>
         </createTable>
     </changeSet>

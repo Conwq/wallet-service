@@ -15,6 +15,10 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.Statement;
 
+/**
+ * Configuration class for Liquibase database migration in the application.
+ * This class initializes and performs database migration using Liquibase upon application startup.
+ */
 @Configuration
 public class LiquibaseMigration {
 	private final DataSource dataSource;
@@ -30,6 +34,9 @@ public class LiquibaseMigration {
 		this.dataSource = dataSource;
 	}
 
+	/**
+	 * Performs database migration using Liquibase upon application startup.
+	 */
 	@EventListener(ApplicationReadyEvent.class)
 	public void performingDatabaseMigration() {
 		final String queryCreateSchema = "CREATE SCHEMA IF NOT EXISTS migration";

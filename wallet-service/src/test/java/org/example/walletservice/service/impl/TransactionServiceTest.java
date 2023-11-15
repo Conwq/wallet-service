@@ -1,34 +1,7 @@
 package org.example.walletservice.service.impl;
 
-import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.enums.Role;
-import org.example.walletservice.model.dto.AuthPlayer;
-import org.example.walletservice.model.dto.TransactionRequestDto;
-import org.example.walletservice.model.dto.TransactionResponseDto;
-import org.example.walletservice.model.entity.Player;
-import org.example.walletservice.model.entity.Transaction;
-import org.example.walletservice.model.mapper.PlayerMapper;
-import org.example.walletservice.model.mapper.TransactionMapper;
-import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.service.TransactionService;
-import org.example.walletservice.model.enums.Operation;
-import org.example.walletservice.service.exception.InvalidInputDataException;
-import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
-import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
-import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @Disabled
 @SpringBootTest

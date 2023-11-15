@@ -1,27 +1,7 @@
 package org.example.walletservice.repository.impl;
 
-import liquibase.Liquibase;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.LiquibaseException;
-import liquibase.resource.ClassLoaderResourceAccessor;
-import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.enums.Role;
-import org.example.walletservice.model.entity.Player;
-import org.example.walletservice.model.entity.Transaction;
-import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.repository.TransactionRepository;
-import org.example.walletservice.model.enums.Operation;
-import org.junit.jupiter.api.*;
-import org.postgresql.ds.PGSimpleDataSource;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
 
 @Disabled
 @SpringBootTest

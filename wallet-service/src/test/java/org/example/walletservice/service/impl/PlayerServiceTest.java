@@ -1,27 +1,7 @@
 package org.example.walletservice.service.impl;
 
-import org.assertj.core.api.AssertionsForClassTypes;
-import org.example.walletservice.model.enums.Role;
-import org.example.walletservice.model.dto.AuthPlayer;
-import org.example.walletservice.model.dto.BalanceResponseDto;
-import org.example.walletservice.model.dto.PlayerRequestDto;
-import org.example.walletservice.model.entity.Player;
-import org.example.walletservice.model.mapper.BalanceMapper;
-import org.example.walletservice.model.mapper.PlayerMapper;
-import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.service.PlayerService;
-import org.example.walletservice.service.exception.InvalidInputDataException;
-import org.example.walletservice.service.exception.PlayerAlreadyExistException;
-import org.example.walletservice.service.exception.PlayerNotFoundException;
-import org.example.walletservice.service.exception.PlayerNotLoggedInException;
-import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import java.math.BigDecimal;
-import java.util.Optional;
 
 @Disabled
 @SpringBootTest

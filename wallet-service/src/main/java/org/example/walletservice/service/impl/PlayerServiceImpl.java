@@ -1,11 +1,11 @@
 package org.example.walletservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.example.walletservice.model.dto.AuthPlayer;
+import org.example.walletservice.jwt.JwtService;
 import org.example.walletservice.model.dto.BalanceResponseDto;
 import org.example.walletservice.model.dto.PlayerRequestDto;
-import org.example.walletservice.model.ent.entity.PlayerEntity;
-import org.example.walletservice.model.ent.entity.RoleEntity;
+import org.example.walletservice.model.entity.PlayerEntity;
+import org.example.walletservice.model.entity.RoleEntity;
 import org.example.walletservice.model.enums.Role;
 import org.example.walletservice.model.mapper.BalanceMapper;
 import org.example.walletservice.model.mapper.PlayerMapper;
@@ -15,9 +15,11 @@ import org.example.walletservice.service.PlayerService;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
-import org.example.walletservice.service.exception.PlayerNotLoggedInException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Provides functionality for player registration, login, balance management, credit, debit, transaction history,
@@ -30,57 +32,53 @@ public class PlayerServiceImpl implements PlayerService {
 	private final RoleRepository roleRepository;
 	private final PlayerMapper playerMapper;
 	private final BalanceMapper balanceMapper;
+	private final JwtService jwtService;
+	private final AuthenticationManager authenticationManager;
+	private final PasswordEncoder passwordEncoder;
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@Transactional
 	@Override
-	public void registrationPlayer(PlayerRequestDto playerRequestDto)
-			throws PlayerAlreadyExistException, PlayerNotLoggedInException, InvalidInputDataException {
+	public int registrationPlayer(PlayerRequestDto playerRequestDto)
+			throws PlayerAlreadyExistException, InvalidInputDataException {
 		inputValidation(playerRequestDto);
 
-		if (playerRepository.findByUsername(playerRequestDto.username()).isPresent()) {
-			throw new PlayerAlreadyExistException("This user is already registered. Try again.");
-		}
+		playerRepository.findByUsername(playerRequestDto.username()).ifPresent(existingPlayer -> {
+			throw new PlayerAlreadyExistException("This user is already registered.");
+		});
 
 		RoleEntity roleEntity = roleRepository.findByRoleName(Role.USER);
 		PlayerEntity player = playerMapper.toEntityFromRequest(playerRequestDto, roleEntity);
 
 		playerRepository.save(player);
+		return player.getPlayerID();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@Transactional(readOnly = true)
 	@Override
-	public AuthPlayer logIn(PlayerRequestDto playerRequestDto)
-			throws PlayerNotFoundException, PlayerNotLoggedInException, InvalidInputDataException {
+	public String logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException, InvalidInputDataException {
 		inputValidation(playerRequestDto);
+
 		PlayerEntity playerEntity = playerRepository.findByUsername(playerRequestDto.username())
-				.orElseThrow(() -> new PlayerNotFoundException("Current player not found. Please try again."));
+				.filter(player -> passwordEncoder.matches(playerRequestDto.password(), player.getPassword()))
+				.orElseThrow(() -> new PlayerNotFoundException("Player not found."));
 
-		if (!playerEntity.getPassword().equals(playerRequestDto.password())) {
-			throw new InvalidInputDataException("Incorrect password.");
-		}
+		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(playerRequestDto.username(),
+				playerRequestDto.password()));
 
-		return playerMapper.toAuthPlayer(playerEntity);
+		return jwtService.generateWebToken(playerEntity);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@Transactional(readOnly = true)
 	@Override
-	public BalanceResponseDto getPlayerBalance(AuthPlayer authPlayer)
-			throws PlayerNotLoggedInException, PlayerNotFoundException {
-		if (authPlayer == null) {
-			throw new PlayerNotLoggedInException("Performing an operation by an unregistered user.");
-		}
-
-		PlayerEntity playerEntity = playerRepository.findByUsername(authPlayer.username())
-				.orElseThrow(() -> new PlayerNotFoundException("Current player not found. Please try again."));
+	public BalanceResponseDto getPlayerBalance(UserDetails userDetails) throws PlayerNotFoundException {
+		PlayerEntity playerEntity = playerRepository.findByUsername(userDetails.getUsername())
+				.orElseThrow(() -> new PlayerNotFoundException("Player not found."));
 
 		return balanceMapper.toDto(playerEntity);
 	}
@@ -91,14 +89,12 @@ public class PlayerServiceImpl implements PlayerService {
 	 * @param playerRequestDto The PlayerRequestDto containing player information.
 	 * @throws InvalidInputDataException If the input data is invalid, such as empty or too short username/password.
 	 */
-	private void inputValidation(PlayerRequestDto playerRequestDto)
-			throws InvalidInputDataException, PlayerNotLoggedInException {
-
+	private void inputValidation(PlayerRequestDto playerRequestDto) throws InvalidInputDataException {
 		final String username;
 		final String password;
 
 		if (playerRequestDto == null) {
-			throw new PlayerNotLoggedInException("Performing an operation by an unregistered user.");
+			throw new InvalidInputDataException("You need to fill in the data.");
 		}
 
 		username = playerRequestDto.username();

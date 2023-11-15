@@ -2,15 +2,10 @@ package org.example.walletservice.model.mapper;
 
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
-import org.example.walletservice.model.ent.entity.PlayerEntity;
-import org.example.walletservice.model.ent.entity.TransactionEntity;
-import org.example.walletservice.model.entity.Player;
-import org.example.walletservice.model.entity.Transaction;
-import org.example.walletservice.model.enums.Operation;
+import org.example.walletservice.model.entity.PlayerEntity;
+import org.example.walletservice.model.entity.TransactionEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.math.BigDecimal;
 
 /**
  * Mapper for converting between Transaction entity and TransactionRequestDto.

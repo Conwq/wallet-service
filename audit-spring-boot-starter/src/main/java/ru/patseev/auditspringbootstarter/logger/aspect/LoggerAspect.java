@@ -1,14 +1,19 @@
 package ru.patseev.auditspringbootstarter.logger.aspect;
 
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import ru.patseev.auditspringbootstarter.logger.entities.Operation;
 import ru.patseev.auditspringbootstarter.logger.entities.Status;
 import ru.patseev.auditspringbootstarter.logger.mapper.LogMapper;
 import ru.patseev.auditspringbootstarter.logger.model.Log;
 import ru.patseev.auditspringbootstarter.logger.repository.LoggerRepository;
+import ru.patseev.auditspringbootstarter.logger.repository.impl.PlayRepository;
 
 /**
  * Aspect for logging operations and recording them in the log repository.
@@ -17,6 +22,7 @@ import ru.patseev.auditspringbootstarter.logger.repository.LoggerRepository;
 public class LoggerAspect {
 	private final LoggerRepository loggerRepository;
 	private final LogMapper logMapper;
+	private final PlayRepository playerRepository;
 	private static final String LOG_TEMPLATE =
 			"""
 					-Operation: %s-
@@ -30,9 +36,10 @@ public class LoggerAspect {
 	 * @param logMapper        The mapper to convert log data.
 	 */
 	@Autowired
-	public LoggerAspect(LoggerRepository loggerRepository, LogMapper logMapper) {
+	public LoggerAspect(LoggerRepository loggerRepository, LogMapper logMapper, PlayRepository playerRepository) {
 		this.loggerRepository = loggerRepository;
 		this.logMapper = logMapper;
+		this.playerRepository = playerRepository;
 	}
 
 	/**
@@ -44,13 +51,14 @@ public class LoggerAspect {
 	 */
 	@Around("execution(* org.example.walletservice.service.LoggerService.getAllLogs(..))")
 	public Object getAllLogsAspect(ProceedingJoinPoint joinPoint) throws Throwable {
+		int playerID = getAuthorizedPlayerIDFromContext();
 		try {
 			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.SHOW_ALL_LOGS, Status.SUCCESSFUL);
+			recordActionInLog(Operation.SHOW_ALL_LOGS, Status.SUCCESSFUL, playerID);
 			return result;
 
 		} catch (RuntimeException e) {
-			recordActionInLog(Operation.SHOW_ALL_LOGS, Status.FAIL);
+			recordActionInLog(Operation.SHOW_ALL_LOGS, Status.FAIL, playerID);
 			throw e;
 		}
 	}
@@ -64,129 +72,103 @@ public class LoggerAspect {
 	 */
 	@Around("execution(* org.example.walletservice.service.LoggerService.getLogsByUsername(..))")
 	public Object getLogsByUsername(ProceedingJoinPoint joinPoint) throws Throwable {
+		int playerID = getAuthorizedPlayerIDFromContext();
 		try {
 			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.SHOW_LOGS_PLAYER, Status.SUCCESSFUL);
+			recordActionInLog(Operation.SHOW_LOGS_PLAYER, Status.SUCCESSFUL, playerID);
 			return result;
 
 		} catch (RuntimeException e) {
-			recordActionInLog(Operation.SHOW_LOGS_PLAYER, Status.FAIL);
+			recordActionInLog(Operation.SHOW_LOGS_PLAYER, Status.FAIL, playerID);
 			throw e;
 		}
 	}
 
 	/**
-	 * Intercepts and logs the player login operation in PlayerService.
+	 * Logs a successful login event.
 	 *
-	 * @param joinPoint The join point for the intercepted method.
-	 * @return The result of the original method call.
-	 * @throws Throwable Any exception thrown by the intercepted method.
+	 * @param authentication The authentication object containing information about the successful login.
 	 */
-	@Around("execution(* org.example.walletservice.service.impl.PlayerServiceImpl.logIn(..))")
-	public Object logInAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		try {
-			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.LOG_IN, Status.SUCCESSFUL);
-			return result;
-
-		} catch (RuntimeException e) {
-			recordActionInLog(Operation.LOG_IN, Status.FAIL);
-			throw e;
-		}
+	@AfterReturning(pointcut = "execution(* org.springframework.security.authentication.AuthenticationProvider.authenticate(..))",
+			returning = "authentication")
+	public void logSuccessfulLogin(Authentication authentication) {
+		String username = authentication.getName();
+		int playerId = playerRepository.findIdByUsername(username);
+		recordActionInLog(Operation.LOG_IN, Status.SUCCESSFUL, playerId);
 	}
 
 	/**
-	 * Intercepts and logs the player registration operation in PlayerService.
-	 *
-	 * @param joinPoint The join point for the intercepted method.
-	 * @return The result of the original method call.
-	 * @throws Throwable Any exception thrown by the intercepted method.
+	 * Logs a successful player balance retrieval event.
 	 */
-	@Around("execution(* org.example.walletservice.service.impl.PlayerServiceImpl.registrationPlayer(..))")
-	public Object registrationPlayerAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		Object result = joinPoint.proceed();
-		recordActionInLog(Operation.REGISTRATION, Status.SUCCESSFUL);
-		return result;
+	@AfterReturning("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
+	public void playerBalanceAspectAfterReturning() {
+		System.out.println("Returning");
+		int playerID = getAuthorizedPlayerIDFromContext();
+		recordActionInLog(Operation.VIEW_BALANCE, Status.SUCCESSFUL, playerID);
 	}
 
 	/**
-	 * Intercepts and logs the method for retrieving a player's balance.
-	 *
-	 * @param joinPoint The join point for the intercepted method.
-	 * @return The result of the original method call.
-	 * @throws Throwable Any exception thrown by the intercepted method.
+	 * Logs a failed player balance retrieval event.
 	 */
-	@Around("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
-	public Object getPlayerBalanceAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		try {
-			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.VIEW_BALANCE, Status.SUCCESSFUL);
-			return result;
-
-		} catch (RuntimeException e) {
-			recordActionInLog(Operation.VIEW_BALANCE, Status.FAIL);
-			throw e;
-		}
+	@AfterThrowing("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
+	public void playerBalanceAspectAfterThrowing() {
+		int playerID = getAuthorizedPlayerIDFromContext();
+		recordActionInLog(Operation.VIEW_BALANCE, Status.FAIL, playerID);
 	}
 
 	/**
-	 * Intercepts and logs credit transactions.
-	 *
-	 * @param joinPoint The join point for the intercepted method.
-	 * @return The result of the original method call.
-	 * @throws Throwable Any exception thrown by the intercepted method.
+	 * Logs a successful credit transaction event.
 	 */
-	@Around("execution(* org.example.walletservice.service.TransactionService.credit(..))")
-	public Object creditAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		try {
-			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.CREDIT, Status.SUCCESSFUL);
-			return result;
-
-		} catch (RuntimeException e) {
-			recordActionInLog(Operation.CREDIT, Status.FAIL);
-			throw e;
-		}
+	@AfterReturning("execution(* org.example.walletservice.service.TransactionService.credit(..))")
+	public void creditAspectAspectAfterReturning() {
+		int playerID = getAuthorizedPlayerIDFromContext();
+		recordActionInLog(Operation.CREDIT, Status.SUCCESSFUL, playerID);
 	}
 
 	/**
-	 * Intercepts and logs debit transactions.
-	 *
-	 * @param joinPoint The join point for the intercepted method.
-	 * @return The result of the original method call.
-	 * @throws Throwable Any exception thrown by the intercepted method.
+	 * Logs a failed credit transaction event.
 	 */
-	@Around("execution(* org.example.walletservice.service.TransactionService.debit(..))")
-	public Object debitAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		try {
-			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.DEBIT, Status.SUCCESSFUL);
-			return result;
 
-		} catch (RuntimeException e) {
-			recordActionInLog(Operation.DEBIT, Status.FAIL);
-			throw e;
-		}
+	@AfterThrowing("execution(* org.example.walletservice.service.TransactionService.credit(..))")
+	public void creditAspectAfterThrowing() {
+		int playerID = getAuthorizedPlayerIDFromContext();
+		recordActionInLog(Operation.CREDIT, Status.FAIL, playerID);
 	}
 
 	/**
-	 * Intercepts and logs the method for retrieving the player's transactional history.
-	 *
-	 * @param joinPoint The join point for the intercepted method.
-	 * @return The result of the original method call.
-	 * @throws Throwable Any exception thrown by the intercepted method.
+	 * Logs a successful debit transaction event.
 	 */
-	@Around("execution(* org.example.walletservice.service.TransactionService.getPlayerTransactionalHistory(..))")
-	public Object getPlayerTransactionHistoryAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		try {
-			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.TRANSACTIONAL_HISTORY, Status.SUCCESSFUL);
-			return result;
+	@AfterReturning("execution(* org.example.walletservice.service.TransactionService.debit(..))")
+	public void debitAspectAspectAfterReturning() {
+		int playerID = getAuthorizedPlayerIDFromContext();
+		recordActionInLog(Operation.DEBIT, Status.SUCCESSFUL, playerID);
+	}
 
-		} catch (RuntimeException e) {
-			recordActionInLog(Operation.TRANSACTIONAL_HISTORY, Status.FAIL);
-			throw e;
-		}
+	/**
+	 * Logs a failed debit transaction event.
+	 */
+	@AfterThrowing("execution(* org.example.walletservice.service.TransactionService.debit(..))")
+	public void debitAspectAfterThrowing() {
+		int playerID = getAuthorizedPlayerIDFromContext();
+		recordActionInLog(Operation.DEBIT, Status.FAIL, playerID);
+	}
+
+	/**
+	 * Logs a successful player transactional history retrieval event.
+	 */
+	@AfterReturning("execution(* org.example.walletservice.service.TransactionService.getPlayerTransactionalHistory(..))")
+	public void transactionAspectAspectAfterReturning() {
+		int playerID = getAuthorizedPlayerIDFromContext();
+		recordActionInLog(Operation.TRANSACTIONAL_HISTORY, Status.SUCCESSFUL, playerID);
+	}
+
+	/**
+	 * Logs a failed player transactional history retrieval event.
+	 */
+	@AfterThrowing("execution(* org.example.walletservice.service.TransactionService.getPlayerTransactionalHistory(..))")
+	public void transactionAspectAfterThrowing() {
+		int playerID = getAuthorizedPlayerIDFromContext();
+		recordActionInLog(Operation.TRANSACTIONAL_HISTORY, Status.FAIL, playerID);
 	}
 
 	/**
@@ -194,10 +176,22 @@ public class LoggerAspect {
 	 *
 	 * @param operation The type of operation being logged.
 	 * @param status    The status of the operation (SUCCESSFUL or FAIL).
+	 * @param playerID  Player id
 	 */
-	private void recordActionInLog(Operation operation, Status status) {
+	private void recordActionInLog(Operation operation, Status status, int playerID) {
 		String formatLog = String.format(LOG_TEMPLATE, operation.toString(), status.toString());
 		Log log = logMapper.toEntity(formatLog);
-		loggerRepository.recordAction(log);
+		loggerRepository.recordAction(log, playerID);
+	}
+
+	/**
+	 * Retrieves the ID of the authorized player from the security context.
+	 *
+	 * @return The ID of the authorized player.
+	 */
+	private int getAuthorizedPlayerIDFromContext() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String username = authentication.getName();
+		return playerRepository.findIdByUsername(username);
 	}
 }

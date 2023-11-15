@@ -17,7 +17,7 @@
         <insert schemaName="wallet_service" tableName="players">
             <column name="player_id" value="1"/>
             <column name="username" value="admin"/>
-            <column name="password" value="admin"/>
+            <column name="password" value="$2a$10$eYk3fwkRstqwHFaiCvnXseM45XrMTBBrFWOtM5zfGfDjqZlRi65QS"/>
             <column name="balance" value="0"/>
             <column name="role_id" value="2"/>
         </insert>

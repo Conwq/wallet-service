@@ -4,6 +4,14 @@ spring:
     password: 1
     username: root
     driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    database: postgresql
+    properties:
+      hibernate:
+        format_sql: false
   liquibase:
     enabled: false
     change-log: changelog/changelog.xml

@@ -1,33 +1,7 @@
 package org.example.walletservice.service.impl;
 
-import org.assertj.core.api.Assertions;
-import org.example.walletservice.model.enums.Role;
-import org.example.walletservice.model.dto.AuthPlayer;
-import org.example.walletservice.model.dto.LogResponseDto;
-import org.example.walletservice.model.entity.Log;
-import org.example.walletservice.model.entity.Player;
-import org.example.walletservice.model.mapper.LogMapper;
-import org.example.walletservice.repository.LoggerRepository;
-import org.example.walletservice.repository.PlayerRepository;
-import org.example.walletservice.service.LoggerService;
-import org.example.walletservice.service.exception.PlayerNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Disabled
 @SpringBootTest

@@ -1,11 +1,10 @@
 package org.example.walletservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
-import org.example.walletservice.model.ent.entity.PlayerEntity;
-import org.example.walletservice.model.ent.entity.TransactionEntity;
+import org.example.walletservice.model.entity.PlayerEntity;
+import org.example.walletservice.model.entity.TransactionEntity;
 import org.example.walletservice.model.mapper.TransactionMapper;
 import org.example.walletservice.repository.PlayerRepository;
 import org.example.walletservice.repository.TransactionRepository;
@@ -14,8 +13,8 @@ import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerDoesNotHaveAccessException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,11 +30,11 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * {@inheritDoc}
 	 */
-	@Transactional(readOnly = true)
 	@Override
-	public List<TransactionResponseDto> getPlayerTransactionalHistory(AuthPlayer authPlayer)
+	public List<TransactionResponseDto> getPlayerTransactionalHistory(UserDetails userDetails)
 			throws PlayerDoesNotHaveAccessException {
-		PlayerEntity playerEntity = passDataValidationAndGetPlayer(authPlayer);
+		PlayerEntity playerEntity = playerRepository.findByUsername(userDetails.getUsername())
+				.orElseThrow(() -> new PlayerNotFoundException("Player not found."));
 
 		return playerEntity.getListTransactionEntity()
 				.stream()
@@ -46,12 +45,12 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * {@inheritDoc}
 	 */
-	@Transactional
 	@Override
-	public void credit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto)
+	public void credit(UserDetails userDetails, TransactionRequestDto transactionRequestDto)
 			throws PlayerDoesNotHaveAccessException, InvalidInputDataException, TransactionNumberAlreadyExist {
 
-		PlayerEntity playerEntity = passDataValidationAndGetPlayer(authPlayer);
+		PlayerEntity playerEntity = playerRepository.findByUsername(userDetails.getUsername())
+				.orElseThrow(() -> new PlayerNotFoundException("Player not found."));
 		validatingInputData(transactionRequestDto);
 
 		BigDecimal playerBalance = playerEntity.getBalance();
@@ -67,12 +66,12 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * {@inheritDoc}
 	 */
-	@Transactional
 	@Override
-	public void debit(AuthPlayer authPlayer, TransactionRequestDto transactionRequestDto)
-			throws PlayerDoesNotHaveAccessException, InvalidInputDataException, TransactionNumberAlreadyExist {
+	public void debit(UserDetails userDetails, TransactionRequestDto transactionRequestDto)
+			throws InvalidInputDataException, TransactionNumberAlreadyExist {
 
-		PlayerEntity playerEntity = passDataValidationAndGetPlayer(authPlayer);
+		PlayerEntity playerEntity = playerRepository.findByUsername(userDetails.getUsername())
+				.orElseThrow(() -> new PlayerNotFoundException("Player not found."));
 		validatingInputData(transactionRequestDto);
 
 		BigDecimal playerBalance = playerEntity.getBalance();
@@ -111,20 +110,5 @@ public class TransactionServiceImpl implements TransactionService {
 		if (transactionRepository.existsTransactionEntityByToken(token)) {
 			throw new TransactionNumberAlreadyExist("A transaction with this number already exists.");
 		}
-	}
-
-	/**
-	 * Checks if the AuthPlayer is valid (not null).
-	 *
-	 * @param authPlayer The AuthPlayer to check.
-	 * @return The player associated with the AuthPlayer.
-	 * @throws PlayerDoesNotHaveAccessException If the AuthPlayer is null, indicating an unregistered user.
-	 */
-	private PlayerEntity passDataValidationAndGetPlayer(AuthPlayer authPlayer) throws PlayerDoesNotHaveAccessException {
-		if (authPlayer == null) {
-			throw new PlayerDoesNotHaveAccessException("You need to log in. This resource is not available to you.");
-		}
-		return playerRepository.findByUsername(authPlayer.username())
-				.orElseThrow(() -> new PlayerNotFoundException("Current player not found. Please try again."));
 	}
 }

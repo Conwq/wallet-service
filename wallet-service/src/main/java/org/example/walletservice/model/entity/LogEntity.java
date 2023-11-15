@@ -1,4 +1,4 @@
-package org.example.walletservice.model.ent.entity;
+package org.example.walletservice.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,8 +19,8 @@ import lombok.NoArgsConstructor;
 public class LogEntity {
 	@Id
 	@Column(name = "log_id")
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "log_id_seq")
-	@SequenceGenerator(name = "log_id_seq", sequenceName = "log_id_seq", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "wallet_service.log_id_seq")
+	@SequenceGenerator(name = "wallet_service.log_id_seq", sequenceName = "wallet_service.log_id_seq", allocationSize = 1)
 	private int logID;
 	@Column(name = "log")
 	private String log;

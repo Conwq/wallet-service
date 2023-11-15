@@ -8,6 +8,8 @@ import org.example.walletservice.model.dto.TransactionResponseDto;
 import org.example.walletservice.service.TransactionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -25,14 +27,14 @@ public class TransactionServlet {
 	/**
 	 * Handles the HTTP GET request to retrieve the transaction history of the authenticated player.
 	 *
-	 * @param authPlayer Authorized player data.
+	 * @param userDetails Authorized player data.
 	 * @return ResponseEntity containing the list of TransactionResponseDto and HTTP status.
 	 */
 	@GetMapping
-	public ResponseEntity<?> getTransactionHistory(@RequestAttribute(required = false) AuthPlayer authPlayer) {
+	public ResponseEntity<?> getTransactionHistory(@AuthenticationPrincipal UserDetails userDetails) {
 
 		List<TransactionResponseDto> playerTransactionHistory = transactionService
-				.getPlayerTransactionalHistory(authPlayer);
+				.getPlayerTransactionalHistory(userDetails);
 		if (playerTransactionHistory.isEmpty()) {
 			return generateResponse("Transaction history is empty");
 		}
@@ -43,13 +45,13 @@ public class TransactionServlet {
 	 * Handles the HTTP POST request to perform a credit transaction.
 	 *
 	 * @param transactionRequest The TransactionRequestDto containing credit transaction information.
-	 * @param authPlayer         Authorized player data.
+	 * @param userDetails         Authorized player data.
 	 * @return ResponseEntity containing the InfoResponse and HTTP status.
 	 */
 	@PostMapping("/credit")
 	public ResponseEntity<InfoResponse> credit(@RequestBody TransactionRequestDto transactionRequest,
-											   @RequestAttribute(required = false) AuthPlayer authPlayer) {
-		transactionService.credit(authPlayer, transactionRequest);
+											   @AuthenticationPrincipal UserDetails userDetails) {
+		transactionService.credit(userDetails, transactionRequest);
 		return generateResponse("Credit successfully.");
 	}
 
@@ -57,13 +59,13 @@ public class TransactionServlet {
 	 * Handles the HTTP POST request to perform a debit transaction.
 	 *
 	 * @param transactionRequest The TransactionRequestDto containing debit transaction information.
-	 * @param authPlayer         Authorized player data.
+	 * @param userDetails         Authorized player data.
 	 * @return ResponseEntity containing the InfoResponse and HTTP status.
 	 */
 	@PostMapping("/debit")
 	public ResponseEntity<InfoResponse> debit(@RequestBody TransactionRequestDto transactionRequest,
-											  @RequestAttribute(required = false) AuthPlayer authPlayer) {
-		transactionService.debit(authPlayer, transactionRequest);
+											  @AuthenticationPrincipal UserDetails userDetails) {
+		transactionService.debit(userDetails, transactionRequest);
 		return generateResponse("Debit successfully.");
 	}
 
