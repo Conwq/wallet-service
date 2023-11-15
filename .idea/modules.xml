@@ -4,8 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/audit-spring-boot-starter/audit-spring-boot-starter.iml" filepath="$PROJECT_DIR$/audit-spring-boot-starter/audit-spring-boot-starter.iml" />
       <module fileurl="file://$PROJECT_DIR$/util/util.iml" filepath="$PROJECT_DIR$/util/util.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/ylab-intership.iml" filepath="$PROJECT_DIR$/.idea/ylab-intership.iml" />
-      <module fileurl="file://$PROJECT_DIR$/wallet-service/ylab-project.iml" filepath="$PROJECT_DIR$/wallet-service/ylab-project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wallet-service/wallet-service.iml" filepath="$PROJECT_DIR$/wallet-service/wallet-service.iml" />
     </modules>
   </component>
 </project>

@@ -20,12 +20,12 @@ public class LoggerRepositoryImpl implements LoggerRepository {
 	 */
 	@Override
 	public void recordAction(Log log, int playerID) {
-		System.out.println("Repository");
 		final String requestToAddPlayerActions = """
-				INSERT INTO wallet_service.log(log, player_id)
-				VALUES (?, ?)
+				INSERT INTO wallet_service.log(operation, status, player_id)
+				VALUES (?, ?, ?)
 				""";
 
-		jdbcTemplate.update(requestToAddPlayerActions, log.getLog(), playerID);
+		jdbcTemplate.update(requestToAddPlayerActions,
+				log.getOperation().name(), log.getStatus().name(), playerID);
 	}
 }

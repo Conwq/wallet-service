@@ -30,9 +30,4 @@ public class RoleEntity {
 	private Role role;
 	@OneToMany(mappedBy = "roleEntity", fetch = FetchType.LAZY)
 	private List<PlayerEntity> playerEntity;
-
-	@Override
-	public String toString() {
-		return role.name();
-	}
 }

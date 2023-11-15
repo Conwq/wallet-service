@@ -48,7 +48,8 @@
             <column name="log_id" type="INTEGER" defaultValueSequenceNext="log_id_seq">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="log" type="VARCHAR(255)"/>
+            <column name="operation" type="VARCHAR(50)"/>
+            <column name="status" type="VARCHAR(50)"/>
             <column name="player_id" type="INT">
                 <constraints foreignKeyName="fk_log_players"
                              references="wallet_service.players(player_id)"/>

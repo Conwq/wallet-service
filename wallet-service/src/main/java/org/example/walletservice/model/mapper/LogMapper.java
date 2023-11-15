@@ -10,13 +10,14 @@ import org.mapstruct.Mapping;
  */
 @Mapper(componentModel = "spring")
 public interface LogMapper {
-
 	/**
 	 * Converts a Log entity to a LogResponseDto.
 	 *
 	 * @param logEntity The Log entity.
 	 * @return The LogResponseDto.
 	 */
-	@Mapping(target = "record", source = "log")
+	@Mapping(target = "operation", source = "operation")
+	@Mapping(target = "status", source = "status")
+	@Mapping(target = "username", source = "playerEntity.username")
 	LogResponseDto toDto(LogEntity logEntity);
 }

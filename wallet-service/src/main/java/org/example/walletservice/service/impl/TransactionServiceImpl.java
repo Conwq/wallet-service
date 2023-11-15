@@ -15,6 +15,7 @@ import org.example.walletservice.service.exception.PlayerNotFoundException;
 import org.example.walletservice.service.exception.TransactionNumberAlreadyExist;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -30,6 +31,7 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional
 	@Override
 	public List<TransactionResponseDto> getPlayerTransactionalHistory(UserDetails userDetails)
 			throws PlayerDoesNotHaveAccessException {
@@ -45,6 +47,7 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional
 	@Override
 	public void credit(UserDetails userDetails, TransactionRequestDto transactionRequestDto)
 			throws PlayerDoesNotHaveAccessException, InvalidInputDataException, TransactionNumberAlreadyExist {
@@ -66,6 +69,7 @@ public class TransactionServiceImpl implements TransactionService {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Transactional
 	@Override
 	public void debit(UserDetails userDetails, TransactionRequestDto transactionRequestDto)
 			throws InvalidInputDataException, TransactionNumberAlreadyExist {
@@ -76,11 +80,9 @@ public class TransactionServiceImpl implements TransactionService {
 
 		BigDecimal playerBalance = playerEntity.getBalance();
 		BigDecimal newPlayerBalance = playerBalance.subtract(transactionRequestDto.inputPlayerAmount());
-
 		if (newPlayerBalance.subtract(BigDecimal.ZERO).compareTo(BigDecimal.ZERO) < 0) {
 			throw new InvalidInputDataException("The number of funds to be withdrawn exceeds the number of funds on the account.");
 		}
-
 		playerEntity.setBalance(newPlayerBalance);
 
 		TransactionEntity transactionEntity = transactionMapper.toEntity(transactionRequestDto, playerEntity);

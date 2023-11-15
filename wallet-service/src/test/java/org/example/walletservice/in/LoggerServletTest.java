@@ -38,10 +38,10 @@ class LoggerServletTest {
 	@Test
 	@DisplayName("Must return all logs")
 	void shouldReturnAllLogs_success() throws Exception {
-		List<LogResponseDto> logList = new ArrayList<>() {{
-			add(new LogResponseDto("Log message 1"));
-			add(new LogResponseDto("Log message 2"));
-		}};
+//		List<LogResponseDto> logList = new ArrayList<>() {{
+//			add(new LogResponseDto("Log message 1"));
+//			add(new LogResponseDto("Log message 2"));
+//		}};
 		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Role.ADMIN);
 
 //		Mockito.when(loggerService.getAllLogs(authPlayer)).thenReturn(logList);
@@ -58,10 +58,10 @@ class LoggerServletTest {
 	@Test
 	@DisplayName("Must return logs of a specific player")
 	void shouldReturnPlayersLogs() throws Exception {
-		List<LogResponseDto> logList = new ArrayList<>() {{
-			add(new LogResponseDto("Log message 1"));
-			add(new LogResponseDto("Log message 2"));
-		}};
+//		List<LogResponseDto> logList = new ArrayList<>() {{
+//			add(new LogResponseDto("Log message 1"));
+//			add(new LogResponseDto("Log message 2"));
+//		}};
 		AuthPlayer authPlayer = new AuthPlayer(1, "admin", Role.ADMIN);
 //		Mockito.when(loggerService.getLogsByUsername(authPlayer, "admin")).thenReturn(logList);
 

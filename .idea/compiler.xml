@@ -8,7 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
       </profile>
-      <profile name="Annotation profile for audit-spring-boot-starter" enabled="true">
+      <profile name="Annotation profile for wallet-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -17,21 +17,19 @@
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final.jar" />
         </processorPath>
-        <module name="ylab-project" />
+        <module name="wallet-service" />
         <module name="audit-spring-boot-starter" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="audit-spring-boot-starter" target="17" />
-      <module name="util" target="17" />
-      <module name="ylab-project" target="17" />
+      <module name="wallet-service" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="audit-spring-boot-starter" options="-parameters" />
-      <module name="util" options="-parameters" />
-      <module name="ylab-project" options="-parameters" />
+      <module name="wallet-service" options="-parameters" />
     </option>
   </component>
 </project>

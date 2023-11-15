@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import ru.patseev.auditspringbootstarter.logger.entities.Operation;
 import ru.patseev.auditspringbootstarter.logger.entities.Status;
 import ru.patseev.auditspringbootstarter.logger.mapper.LogMapper;
@@ -51,14 +52,13 @@ public class LoggerAspect {
 	 */
 	@Around("execution(* org.example.walletservice.service.LoggerService.getAllLogs(..))")
 	public Object getAllLogsAspect(ProceedingJoinPoint joinPoint) throws Throwable {
-		int playerID = getAuthorizedPlayerIDFromContext();
 		try {
 			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.SHOW_ALL_LOGS, Status.SUCCESSFUL, playerID);
+			recordActionInLog(Operation.SHOW_ALL_LOGS, Status.SUCCESSFUL);
 			return result;
 
 		} catch (RuntimeException e) {
-			recordActionInLog(Operation.SHOW_ALL_LOGS, Status.FAIL, playerID);
+			recordActionInLog(Operation.SHOW_ALL_LOGS, Status.FAIL);
 			throw e;
 		}
 	}
@@ -72,14 +72,13 @@ public class LoggerAspect {
 	 */
 	@Around("execution(* org.example.walletservice.service.LoggerService.getLogsByUsername(..))")
 	public Object getLogsByUsername(ProceedingJoinPoint joinPoint) throws Throwable {
-		int playerID = getAuthorizedPlayerIDFromContext();
 		try {
 			Object result = joinPoint.proceed();
-			recordActionInLog(Operation.SHOW_LOGS_PLAYER, Status.SUCCESSFUL, playerID);
+			recordActionInLog(Operation.SHOW_LOGS_PLAYER, Status.SUCCESSFUL);
 			return result;
 
 		} catch (RuntimeException e) {
-			recordActionInLog(Operation.SHOW_LOGS_PLAYER, Status.FAIL, playerID);
+			recordActionInLog(Operation.SHOW_LOGS_PLAYER, Status.FAIL);
 			throw e;
 		}
 	}
@@ -92,37 +91,45 @@ public class LoggerAspect {
 	@AfterReturning(pointcut = "execution(* org.springframework.security.authentication.AuthenticationProvider.authenticate(..))",
 			returning = "authentication")
 	public void logSuccessfulLogin(Authentication authentication) {
-		String username = authentication.getName();
-		int playerId = playerRepository.findIdByUsername(username);
-		recordActionInLog(Operation.LOG_IN, Status.SUCCESSFUL, playerId);
+		recordActionInLog(Operation.LOG_IN, Status.SUCCESSFUL, authentication);
 	}
 
 	/**
 	 * Logs a successful player balance retrieval event.
 	 */
-	@AfterReturning("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
-	public void playerBalanceAspectAfterReturning() {
-		System.out.println("Returning");
-		int playerID = getAuthorizedPlayerIDFromContext();
-		recordActionInLog(Operation.VIEW_BALANCE, Status.SUCCESSFUL, playerID);
+//	@AfterReturning("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
+//	public void playerBalanceAspectAfterReturning() {
+//		recordActionInLog(Operation.VIEW_BALANCE, Status.SUCCESSFUL);
+//	}
+//
+//	/**
+//	 * Logs a failed player balance retrieval event.
+//	 */
+//	@AfterThrowing("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
+//	public void playerBalanceAspectAfterThrowing() {
+//		recordActionInLog(Operation.VIEW_BALANCE, Status.FAIL);
+//	}
+
+	@Around("execution(* org.example.walletservice.service.TransactionService.credit(..))")
+	public Object creditAspectAfterReturning(ProceedingJoinPoint joinPoint) throws Throwable {
+		Object result;
+		try {
+			result = joinPoint.proceed();
+			recordActionInLog(Operation.CREDIT, Status.SUCCESSFUL);
+		} catch (RuntimeException e) {
+			recordActionInLog(Operation.CREDIT, Status.FAIL);
+			throw e;
+		}
+		return result;
 	}
 
-	/**
-	 * Logs a failed player balance retrieval event.
-	 */
-	@AfterThrowing("execution(* org.example.walletservice.service.PlayerService.getPlayerBalance(..))")
-	public void playerBalanceAspectAfterThrowing() {
-		int playerID = getAuthorizedPlayerIDFromContext();
-		recordActionInLog(Operation.VIEW_BALANCE, Status.FAIL, playerID);
-	}
 
 	/**
 	 * Logs a successful credit transaction event.
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.TransactionService.credit(..))")
-	public void creditAspectAspectAfterReturning() {
-		int playerID = getAuthorizedPlayerIDFromContext();
-		recordActionInLog(Operation.CREDIT, Status.SUCCESSFUL, playerID);
+	public void creditAspectAfterReturning() {
+		recordActionInLog(Operation.CREDIT, Status.SUCCESSFUL);
 	}
 
 	/**
@@ -131,8 +138,7 @@ public class LoggerAspect {
 
 	@AfterThrowing("execution(* org.example.walletservice.service.TransactionService.credit(..))")
 	public void creditAspectAfterThrowing() {
-		int playerID = getAuthorizedPlayerIDFromContext();
-		recordActionInLog(Operation.CREDIT, Status.FAIL, playerID);
+		recordActionInLog(Operation.CREDIT, Status.FAIL);
 	}
 
 	/**
@@ -140,8 +146,7 @@ public class LoggerAspect {
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.TransactionService.debit(..))")
 	public void debitAspectAspectAfterReturning() {
-		int playerID = getAuthorizedPlayerIDFromContext();
-		recordActionInLog(Operation.DEBIT, Status.SUCCESSFUL, playerID);
+		recordActionInLog(Operation.DEBIT, Status.SUCCESSFUL);
 	}
 
 	/**
@@ -149,8 +154,7 @@ public class LoggerAspect {
 	 */
 	@AfterThrowing("execution(* org.example.walletservice.service.TransactionService.debit(..))")
 	public void debitAspectAfterThrowing() {
-		int playerID = getAuthorizedPlayerIDFromContext();
-		recordActionInLog(Operation.DEBIT, Status.FAIL, playerID);
+		recordActionInLog(Operation.DEBIT, Status.FAIL);
 	}
 
 	/**
@@ -158,8 +162,7 @@ public class LoggerAspect {
 	 */
 	@AfterReturning("execution(* org.example.walletservice.service.TransactionService.getPlayerTransactionalHistory(..))")
 	public void transactionAspectAspectAfterReturning() {
-		int playerID = getAuthorizedPlayerIDFromContext();
-		recordActionInLog(Operation.TRANSACTIONAL_HISTORY, Status.SUCCESSFUL, playerID);
+		recordActionInLog(Operation.TRANSACTIONAL_HISTORY, Status.SUCCESSFUL);
 	}
 
 	/**
@@ -167,8 +170,7 @@ public class LoggerAspect {
 	 */
 	@AfterThrowing("execution(* org.example.walletservice.service.TransactionService.getPlayerTransactionalHistory(..))")
 	public void transactionAspectAfterThrowing() {
-		int playerID = getAuthorizedPlayerIDFromContext();
-		recordActionInLog(Operation.TRANSACTIONAL_HISTORY, Status.FAIL, playerID);
+		recordActionInLog(Operation.TRANSACTIONAL_HISTORY, Status.FAIL);
 	}
 
 	/**
@@ -176,11 +178,19 @@ public class LoggerAspect {
 	 *
 	 * @param operation The type of operation being logged.
 	 * @param status    The status of the operation (SUCCESSFUL or FAIL).
-	 * @param playerID  Player id
 	 */
-	private void recordActionInLog(Operation operation, Status status, int playerID) {
-		String formatLog = String.format(LOG_TEMPLATE, operation.toString(), status.toString());
-		Log log = logMapper.toEntity(formatLog);
+	private void recordActionInLog(Operation operation, Status status) {
+		int playerID = getAuthorizedPlayerIDFromContext();
+		record(operation, status, playerID);
+	}
+
+	private void recordActionInLog(Operation operation, Status status, Authentication authentication) {
+		int playerID = playerRepository.findIdByUsername(authentication.getName());
+		record(operation, status, playerID);
+	}
+
+	private void record(Operation operation, Status status, int playerID) {
+		Log log = logMapper.toEntity(operation, status);
 		loggerRepository.recordAction(log, playerID);
 	}
 

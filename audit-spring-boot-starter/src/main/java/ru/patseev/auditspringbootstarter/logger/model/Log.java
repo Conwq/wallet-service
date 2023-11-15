@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.patseev.auditspringbootstarter.logger.entities.Operation;
+import ru.patseev.auditspringbootstarter.logger.entities.Status;
 
 /**
  * A data class representing a log entry.
@@ -15,6 +17,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Log {
 	private int logID;
-	private String log;
-	private int playerID;
+	private Operation operation;
+	private Status status;
 }

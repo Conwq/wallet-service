@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.walletservice.model.enums.Operation;
+import ru.patseev.auditspringbootstarter.logger.entities.Status;
 
 /**
  * A data class representing a log entry.
@@ -22,14 +24,13 @@ public class LogEntity {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "wallet_service.log_id_seq")
 	@SequenceGenerator(name = "wallet_service.log_id_seq", sequenceName = "wallet_service.log_id_seq", allocationSize = 1)
 	private int logID;
-	@Column(name = "log")
-	private String log;
-	@ManyToOne(fetch = FetchType.LAZY)
+	@Column(name = "operation")
+	@Enumerated(EnumType.STRING)
+	private Operation operation;
+	@Column(name = "status")
+	@Enumerated(EnumType.STRING)
+	private Status status;
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "player_id", referencedColumnName = "player_id")
 	private PlayerEntity playerEntity;
-
-	@Override
-	public String toString() {
-		return log;
-	}
 }

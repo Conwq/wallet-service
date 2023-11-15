@@ -40,7 +40,7 @@ public class PlayerEntity implements UserDetails {
 	private RoleEntity roleEntity;
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "playerEntity")
 	private List<LogEntity> logEntity;
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "playerEntity")
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "playerEntity")
 	private List<TransactionEntity> listTransactionEntity;
 
 	@Override

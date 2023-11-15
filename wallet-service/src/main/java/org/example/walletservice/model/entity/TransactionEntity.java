@@ -35,9 +35,4 @@ public class TransactionEntity {
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "player_id")
 	private PlayerEntity playerEntity;
-
-	@Override
-	public String toString() {
-		return "";
-	}
 }

@@ -3,6 +3,8 @@ package ru.patseev.auditspringbootstarter.logger.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import ru.patseev.auditspringbootstarter.logger.entities.Operation;
+import ru.patseev.auditspringbootstarter.logger.entities.Status;
 import ru.patseev.auditspringbootstarter.logger.model.Log;
 
 /**
@@ -14,9 +16,9 @@ public interface LogMapper {
 	/**
 	 * Converts log details and player ID to a Log entity.
 	 *
-	 * @param record The log record details.
 	 * @return The Log entity.
 	 */
-	@Mapping(target = "log", source = "record")
-	Log toEntity(String record);
+	@Mapping(target = "operation", source = "operation")
+	@Mapping(target = "status", source = "status")
+	Log toEntity(Operation operation, Status status);
 }
