@@ -1,8 +1,8 @@
 package org.example.walletservice.service;
 
-import org.example.walletservice.model.dto.AuthPlayer;
+import org.example.walletservice.model.dto.AuthorizationResponse;
 import org.example.walletservice.model.dto.BalanceResponseDto;
-import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.model.dto.PlayerRequest;
 import org.example.walletservice.service.exception.InvalidInputDataException;
 import org.example.walletservice.service.exception.PlayerAlreadyExistException;
 import org.example.walletservice.service.exception.PlayerNotFoundException;
@@ -17,19 +17,19 @@ public interface PlayerService {
 	/**
 	 * Registers a new player in the system.
 	 *
-	 * @param playerRequestDto The data required for player registration.
+	 * @param request The data required for player registration.
 	 * @return Player id
 	 */
-	int registrationPlayer(PlayerRequestDto playerRequestDto)
+	int registrationPlayer(PlayerRequest request)
 			throws PlayerAlreadyExistException, PlayerNotLoggedInException, InvalidInputDataException;
 
 	/**
 	 * Logs in an existing player to the system.
 	 *
-	 * @param playerRequestDto The data required for player login, including username and password.
+	 * @param request The data required for player login, including username and password.
 	 * @return Jwt token.
 	 */
-	String logIn(PlayerRequestDto playerRequestDto)
+	AuthorizationResponse logIn(PlayerRequest request)
 			throws PlayerNotFoundException, PlayerNotLoggedInException, InvalidInputDataException;
 
 	/**

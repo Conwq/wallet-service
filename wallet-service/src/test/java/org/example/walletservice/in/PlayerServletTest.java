@@ -5,7 +5,7 @@ import org.example.walletservice.jwt.JwtService;
 import org.example.walletservice.model.enums.Role;
 import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.BalanceResponseDto;
-import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.model.dto.PlayerRequest;
 import org.example.walletservice.service.PlayerService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +25,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 
 @Disabled
 @SpringBootTest
@@ -71,7 +70,7 @@ class PlayerServletTest {
 	@Test
 	@DisplayName("Should register player")
 	public void shouldRegisterPlayer() throws Exception {
-		PlayerRequestDto playerRequest = new PlayerRequestDto("username", "password");
+		PlayerRequest playerRequest = new PlayerRequest("username", "password");
 
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders
 				.post("/players/registration")
@@ -88,7 +87,7 @@ class PlayerServletTest {
 	@Test
 	@DisplayName("Should perform sign-in operation")
 	public void shouldPerformSigInOperation() throws Exception {
-		PlayerRequestDto playerRequest = new PlayerRequestDto("user", "user123");
+		PlayerRequest playerRequest = new PlayerRequest("user", "user123");
 		AuthPlayer newAuthPlayer = new AuthPlayer(1, "user", Role.USER);
 		String jwtToken = "jwt_token";
 

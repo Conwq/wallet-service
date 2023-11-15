@@ -1,15 +1,12 @@
 package org.example.walletservice.model.mapper;
 
-import lombok.RequiredArgsConstructor;
 import org.example.walletservice.model.dto.AuthPlayer;
-import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.model.dto.PlayerRequest;
 import org.example.walletservice.model.entity.PlayerEntity;
 import org.example.walletservice.model.entity.RoleEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 
@@ -25,7 +22,7 @@ public interface PlayerMapper {
 	 * @param playerRequestDto The PlayerRequestDto.
 	 * @return The Player entity.
 	 */
-	default PlayerEntity toEntityFromRequest(PlayerRequestDto playerRequestDto, RoleEntity roleEntity) {
+	default PlayerEntity toEntityFromRequest(PlayerRequest playerRequestDto, RoleEntity roleEntity) {
 		return PlayerEntity.builder()
 				.username(playerRequestDto.username())
 				.password(new BCryptPasswordEncoder().encode(playerRequestDto.password()))

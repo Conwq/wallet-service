@@ -9,5 +9,5 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
  * @param password The player's password.
  */
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-public record PlayerRequestDto(String username, String password) {
+public record PlayerRequest(String username, String password) {
 }

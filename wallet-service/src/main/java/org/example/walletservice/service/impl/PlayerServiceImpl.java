@@ -2,8 +2,9 @@ package org.example.walletservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.walletservice.jwt.JwtService;
+import org.example.walletservice.model.dto.AuthorizationResponse;
 import org.example.walletservice.model.dto.BalanceResponseDto;
-import org.example.walletservice.model.dto.PlayerRequestDto;
+import org.example.walletservice.model.dto.PlayerRequest;
 import org.example.walletservice.model.entity.PlayerEntity;
 import org.example.walletservice.model.entity.RoleEntity;
 import org.example.walletservice.model.enums.Role;
@@ -20,6 +21,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 /**
  * Provides functionality for player registration, login, balance management, credit, debit, transaction history,
@@ -40,7 +43,7 @@ public class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int registrationPlayer(PlayerRequestDto playerRequestDto)
+	public int registrationPlayer(PlayerRequest playerRequestDto)
 			throws PlayerAlreadyExistException, InvalidInputDataException {
 		inputValidation(playerRequestDto);
 
@@ -59,17 +62,18 @@ public class PlayerServiceImpl implements PlayerService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String logIn(PlayerRequestDto playerRequestDto) throws PlayerNotFoundException, InvalidInputDataException {
-		inputValidation(playerRequestDto);
+	public AuthorizationResponse logIn(PlayerRequest request) throws PlayerNotFoundException, InvalidInputDataException {
+		inputValidation(request);
 
-		PlayerEntity playerEntity = playerRepository.findByUsername(playerRequestDto.username())
-				.filter(player -> passwordEncoder.matches(playerRequestDto.password(), player.getPassword()))
+		PlayerEntity playerEntity = playerRepository.findByUsername(request.username())
+				.filter(player -> passwordEncoder.matches(request.password(), player.getPassword()))
 				.orElseThrow(() -> new PlayerNotFoundException("Player not found."));
 
-		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(playerRequestDto.username(),
-				playerRequestDto.password()));
+		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.username(),
+				request.password()));
 
-		return jwtService.generateWebToken(playerEntity);
+		return new AuthorizationResponse(new Date().toString(),
+				jwtService.generateWebToken(playerEntity), "You've successfully logged in");
 	}
 
 	/**
@@ -89,7 +93,7 @@ public class PlayerServiceImpl implements PlayerService {
 	 * @param playerRequestDto The PlayerRequestDto containing player information.
 	 * @throws InvalidInputDataException If the input data is invalid, such as empty or too short username/password.
 	 */
-	private void inputValidation(PlayerRequestDto playerRequestDto) throws InvalidInputDataException {
+	private void inputValidation(PlayerRequest playerRequestDto) throws InvalidInputDataException {
 		final String username;
 		final String password;
 

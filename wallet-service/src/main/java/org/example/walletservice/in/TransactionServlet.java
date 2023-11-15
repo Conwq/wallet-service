@@ -1,7 +1,6 @@
 package org.example.walletservice.in;
 
 import lombok.RequiredArgsConstructor;
-import org.example.walletservice.model.dto.AuthPlayer;
 import org.example.walletservice.model.dto.InfoResponse;
 import org.example.walletservice.model.dto.TransactionRequestDto;
 import org.example.walletservice.model.dto.TransactionResponseDto;
@@ -45,7 +44,7 @@ public class TransactionServlet {
 	 * Handles the HTTP POST request to perform a credit transaction.
 	 *
 	 * @param transactionRequest The TransactionRequestDto containing credit transaction information.
-	 * @param userDetails         Authorized player data.
+	 * @param userDetails        Authorized player data.
 	 * @return ResponseEntity containing the InfoResponse and HTTP status.
 	 */
 	@PostMapping("/credit")
@@ -59,7 +58,7 @@ public class TransactionServlet {
 	 * Handles the HTTP POST request to perform a debit transaction.
 	 *
 	 * @param transactionRequest The TransactionRequestDto containing debit transaction information.
-	 * @param userDetails         Authorized player data.
+	 * @param userDetails        Authorized player data.
 	 * @return ResponseEntity containing the InfoResponse and HTTP status.
 	 */
 	@PostMapping("/debit")
