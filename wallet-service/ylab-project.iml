@@ -44,7 +44,6 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.15.3" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: io.jsonwebtoken:jjwt-impl:0.12.3" level="project" />
     <orderEntry type="library" name="Maven: io.jsonwebtoken:jjwt-api:0.12.3" level="project" />
-    <orderEntry type="library" name="Maven: org.mapstruct:mapstruct:1.5.5.Final" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-web:3.2.0-RC2" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter:3.2.0-RC2" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-logging:3.2.0-RC2" level="project" />
@@ -80,8 +79,6 @@
     <orderEntry type="library" name="Maven: org.apache.commons:commons-collections4:4.4" level="project" />
     <orderEntry type="library" name="Maven: org.yaml:snakeyaml:2.2" level="project" />
     <orderEntry type="library" name="Maven: javax.xml.bind:jaxb-api:2.3.1" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Maven: org.postgresql:postgresql:42.6.0" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Maven: org.checkerframework:checker-qual:3.31.0" level="project" />
     <orderEntry type="library" name="Maven: org.projectlombok:lombok:1.18.30" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-data-jpa:3.2.0-RC2" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-aop:3.2.0-RC2" level="project" />
@@ -120,6 +117,9 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.3" level="project" />
     <orderEntry type="library" name="Maven: org.webjars:swagger-ui:5.2.0" level="project" />
     <orderEntry type="module" module-name="audit-spring-boot-starter" />
+    <orderEntry type="library" name="Maven: org.mapstruct:mapstruct:1.5.5.Final" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: org.postgresql:postgresql:42.6.0" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: org.checkerframework:checker-qual:3.31.0" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-security:3.2.0-RC2" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.security:spring-security-config:6.2.0-RC2" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.security:spring-security-core:6.2.0-RC2" level="project" />

@@ -8,10 +8,10 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: false
-    database: postgresql
     properties:
       hibernate:
         format_sql: false
+    open-in-view: false
   liquibase:
     enabled: false
     change-log: changelog/changelog.xml
